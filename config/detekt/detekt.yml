@@ -1,0 +1,66 @@
+build:
+  maxIssues: 0
+
+config:
+  validation: true
+  warningsAsErrors: false
+
+complexity:
+  CyclomaticComplexMethod:
+    threshold: 15
+    ignoreAnnotated:
+      - Composable
+  LongMethod:
+    threshold: 60
+    ignoreAnnotated:
+      - Composable
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 8
+    ignoreAnnotated:
+      - Composable
+  TooManyFunctions:
+    thresholdInFiles: 20
+    thresholdInClasses: 15
+
+style:
+  MaxLineLength:
+    maxLineLength: 160
+    excludeCommentStatements: true
+  WildcardImport:
+    excludeImports:
+      - 'androidx.compose.foundation.layout.*'
+      - 'androidx.compose.material3.*'
+      - 'androidx.compose.ui.*'
+      - 'org.jetbrains.compose.ui.*'
+  MagicNumber:
+    excludes:
+      - '**/ui/theme/**'
+      - '**/*Test.kt'
+      - '**/webMain/**'
+      - '**/jsMain/**'
+    ignoreNumbers:
+      - '-1'
+      - '0'
+      - '1'
+      - '2'
+      - '100'
+    ignoreAnnotated:
+      - 'Preview'
+      - 'Composable'
+
+naming:
+  FunctionNaming:
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    excludes: ['**/ui/**']
+    ignoreAnnotated:
+      - Composable
+  MatchingDeclarationName:
+    excludes:
+      - '**/Platform.*.kt'
+
+comments:
+  UndocumentedPublicClass:
+    active: false
+  UndocumentedPublicFunction:
+    active: false

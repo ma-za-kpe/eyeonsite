@@ -4,7 +4,25 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.detekt)
     id("com.google.gms.google-services")
+    alias(libs.plugins.firebaseCrashlytics)
+}
+
+spotless {
+    kotlin {
+        target("src/**/*.kt")
+        ktlint(libs.versions.ktlint.get())
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+detekt {
+    config.setFrom(rootProject.files("config/detekt/detekt.yml"))
+    baseline = rootProject.file("config/detekt/baseline.xml")
+    buildUponDefaultConfig = true
 }
 
 kotlin {
@@ -22,8 +40,10 @@ dependencies {
 
     // Firebase (BoM manages all version alignment)
     implementation(platform(libs.firebase.bom))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-auth")
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.crashlytics)
+    implementation(libs.firebase.perf)
 }
 
 android {

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EyeOnSite — Brand Asset Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,500;0,9..40,700;1,9..40,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --forest:#0B6E4F;--deep:#022B1E;--gold:#D4A843;
+  --green:#34D399;--coral:#E8593C;--amber:#F59E0B;--blue:#3B82F6;
+  --ink:#1A1A19;--ash:#4A4A47;--stone:#9C9A92;--sand:#E8E6DD;--ivory:#F5F4F0;
+  --font:'DM Sans',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--font);background:#FAFAF8;color:var(--ink);line-height:1.6}
+.hero{background:var(--deep);padding:80px 40px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-100px;right:-100px;width:400px;height:400px;border-radius:50%;background:var(--forest);opacity:.15}
+.hero::after{content:'';position:absolute;bottom:-80px;left:-60px;width:300px;height:300px;border-radius:50%;background:var(--gold);opacity:.04}
+.hero h1{font-size:48px;font-weight:700;color:#fff;letter-spacing:-1px;position:relative;z-index:1}
+.hero h1 span{color:var(--green)}
+.hero p{color:rgba(255,255,255,.5);font-size:16px;margin-top:12px;letter-spacing:2px;text-transform:uppercase;position:relative;z-index:1}
+.hero .subtitle{color:rgba(255,255,255,.35);font-size:13px;margin-top:24px;letter-spacing:0;text-transform:none;font-weight:300;position:relative;z-index:1}
+.container{max-width:1200px;margin:0 auto;padding:0 40px}
+section{padding:60px 0}
+h2{font-size:28px;font-weight:700;color:var(--deep);margin-bottom:8px;letter-spacing:-.5px}
+h2 span{color:var(--forest)}
+.section-desc{color:var(--stone);font-size:14px;margin-bottom:40px}
+h3{font-size:16px;font-weight:700;color:var(--ash);margin-bottom:16px;text-transform:uppercase;letter-spacing:1px;font-size:12px}
+
+/* Asset grid */
+.asset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:24px;margin-bottom:48px}
+.asset-card{background:#fff;border:1px solid var(--sand);border-radius:16px;padding:24px;text-align:center;transition:all .2s;cursor:default}
+.asset-card:hover{border-color:var(--forest);box-shadow:0 8px 32px rgba(11,110,79,.08);transform:translateY(-2px)}
+.asset-card.dark{background:var(--deep);border-color:rgba(255,255,255,.08)}
+.asset-card.dark:hover{border-color:var(--green)}
+.asset-card .preview{height:100px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.asset-card .preview svg{max-width:80px;max-height:80px;width:auto;height:auto}
+.asset-card .preview.tall svg{max-height:90px;max-width:60px}
+.asset-card .preview.wide svg{max-width:160px;max-height:50px}
+.asset-card .label{font-size:11px;font-family:var(--mono);color:var(--stone);word-break:break-all}
+.asset-card.dark .label{color:rgba(255,255,255,.4)}
+.asset-card .platform{display:inline-block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:2px 8px;border-radius:99px;margin-top:8px}
+.asset-card .platform.android{background:#E8F5E9;color:#2E7D32}
+.asset-card .platform.ios{background:#E3F2FD;color:#1565C0}
+.asset-card .platform.web{background:#FFF3E0;color:#E65100}
+.asset-card .platform.shared{background:#F3E5F5;color:#7B1FA2}
+
+/* Color palette */
+.color-row{display:flex;gap:0;border-radius:16px;overflow:hidden;margin-bottom:24px;height:100px}
+.color-swatch{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:12px;transition:flex .3s}
+.color-swatch:hover{flex:2}
+.color-swatch .name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.color-swatch .hex{font-size:10px;font-family:var(--mono);opacity:.7}
+
+/* Token table */
+.token-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:48px}
+@media(max-width:768px){.token-grid{grid-template-columns:1fr}}
+.token-block{background:#fff;border:1px solid var(--sand);border-radius:16px;padding:24px;overflow:auto}
+.token-block h4{font-size:13px;font-weight:700;color:var(--forest);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.token-block h4 .lang{font-size:10px;background:var(--sand);padding:2px 8px;border-radius:4px;color:var(--ash)}
+.token-block pre{font-family:var(--mono);font-size:11px;color:var(--ash);line-height:1.8;white-space:pre;overflow-x:auto}
+
+/* Social previews */
+.social-grid{display:grid;grid-template-columns:1fr;gap:24px;margin-bottom:48px}
+.social-card{background:#fff;border:1px solid var(--sand);border-radius:16px;overflow:hidden}
+.social-card .social-label{padding:16px 24px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--stone);border-bottom:1px solid var(--sand)}
+.social-card .social-preview{padding:24px;display:flex;justify-content:center}
+.social-card .social-preview svg{width:100%;max-width:800px;height:auto;border-radius:8px}
+
+/* Status row */
+.status-row{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:48px}
+.status-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ash)}
+.status-item svg{width:12px;height:12px}
+
+/* Divider */
+.divider{height:1px;background:var(--sand);margin:0}
+
+/* Stats */
+.stats{display:flex;gap:48px;justify-content:center;padding:40px 0}
+.stat{text-align:center}
+.stat .num{font-size:36px;font-weight:700;color:var(--forest)}
+.stat .lbl{font-size:12px;color:var(--stone);text-transform:uppercase;letter-spacing:1px}
+
+/* Footer */
+footer{background:var(--deep);padding:40px;text-align:center;color:rgba(255,255,255,.3);font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1><span>Eye</span>On<span>Site</span></h1>
+  <p>Brand Asset Sheet</p>
+  <p class="subtitle">81 files · 69 SVGs · 12 configs · 3 platforms + shared tokens</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="num">35</div><div class="lbl">Android</div></div>
+  <div class="stat"><div class="num">18</div><div class="lbl">iOS</div></div>
+  <div class="stat"><div class="num">24</div><div class="lbl">Web</div></div>
+  <div class="stat"><div class="num">4</div><div class="lbl">Shared</div></div>
+</div>
+
+<div class="divider"></div>
+
+<div class="container">
+
+<!-- LOGO MARKS -->
+<section>
+  <h2>Logo <span>Marks</span></h2>
+  <p class="section-desc">Pin × Eye icon — the core brand mark in all variants</p>
+
+  <h3>Full Color</h3>
+  <div class="asset-grid">
+    <div class="asset-card">
+      <div class="preview tall">
+        <svg viewBox="0 0 120 160"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF" opacity=".95"/><circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#022B1E"/><circle cx="54" cy="57" r="4" fill="#FFF" opacity=".85"/></svg>
+      </div>
+      <div class="label">mark-color</div>
+      <span class="platform android">Android</span>
+      <span class="platform ios">iOS</span>
+      <span class="platform web">Web</span>
+    </div>
+    <div class="asset-card dark">
+      <div class="preview tall">
+        <svg viewBox="0 0 120 160"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#FFF"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#022B1E"/><circle cx="60" cy="62" r="16" fill="#FFF"/><circle cx="60" cy="62" r="8" fill="#022B1E"/></svg>
+      </div>
+      <div class="label">mark-white</div>
+      <span class="platform android">Android</span>
+      <span class="platform ios">iOS</span>
+      <span class="platform web">Web</span>
+    </div>
+    <div class="asset-card">
+      <div class="preview tall">
+        <svg viewBox="0 0 120 160"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#1A1A19"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF"/><circle cx="60" cy="62" r="16" fill="#1A1A19"/><circle cx="60" cy="62" r="8" fill="#FFF"/></svg>
+      </div>
+      <div class="label">mark-black</div>
+      <span class="platform android">Android</span>
+      <span class="platform web">Web</span>
+    </div>
+    <div class="asset-card">
+      <div class="preview tall">
+        <svg viewBox="0 0 120 160"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="none" stroke="#0B6E4F" stroke-width="3"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="none" stroke="#0B6E4F" stroke-width="2.5"/><circle cx="60" cy="62" r="16" fill="none" stroke="#0B6E4F" stroke-width="2.5"/><circle cx="60" cy="62" r="6" fill="#0B6E4F"/></svg>
+      </div>
+      <div class="label">mark-outline</div>
+      <span class="platform android">Android</span>
+      <span class="platform ios">iOS</span>
+      <span class="platform web">Web</span>
+    </div>
+  </div>
+
+  <h3>App Icon</h3>
+  <div class="asset-grid">
+    <div class="asset-card dark">
+      <div class="preview" style="height:120px">
+        <svg viewBox="0 0 512 512" style="max-width:100px;max-height:100px;border-radius:22%"><rect width="512" height="512" fill="#022B1E"/><g transform="translate(166,80) scale(1.5)"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF" opacity=".95"/><circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#022B1E"/><circle cx="54" cy="57" r="4" fill="#FFF" opacity=".85"/></g></svg>
+      </div>
+      <div class="label">ic_launcher (rounded)</div>
+      <span class="platform android">Android</span>
+      <span class="platform ios">iOS</span>
+    </div>
+    <div class="asset-card">
+      <div class="preview">
+        <svg viewBox="0 0 32 32" style="max-width:32px"><path d="M16 1 C24.3 1,31 7.7,31 16 C31 24.3,16 31,16 31 C16 31,1 24.3,1 16 C1 7.7,7.7 1,16 1Z" fill="#0B6E4F"/><path d="M7 16.5 Q16 9,25 16.5 Q16 24,7 16.5Z" fill="#FFF" opacity=".95"/><circle cx="16" cy="16.5" r="4.2" fill="#0B6E4F"/><circle cx="16" cy="16.5" r="2" fill="#022B1E"/></svg>
+      </div>
+      <div class="label">favicon.svg</div>
+      <span class="platform web">Web</span>
+    </div>
+    <div class="asset-card">
+      <div class="preview">
+        <svg viewBox="0 0 200 200" style="max-width:80px"><circle cx="100" cy="100" r="96" fill="#0B6E4F"/><g transform="translate(52,24) scale(.8)"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#FFF"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#0B6E4F"/><circle cx="60" cy="62" r="16" fill="#FFF"/><circle cx="60" cy="62" r="8" fill="#0B6E4F"/></g></svg>
+      </div>
+      <div class="label">badge / avatar</div>
+      <span class="platform android">Android</span>
+      <span class="platform ios">iOS</span>
+      <span class="platform web">Web</span>
+    </div>
+    <div class="asset-card">
+      <div class="preview">
+        <svg viewBox="0 0 160 160" style="max-width:80px"><circle cx="80" cy="80" r="76" fill="none" stroke="#0B6E4F" stroke-width="2"/><circle cx="80" cy="80" r="70" fill="none" stroke="#0B6E4F" stroke-width=".5"/><circle cx="80" cy="80" r="66" fill="#0B6E4F" opacity=".06"/><g transform="translate(52,22) scale(.38)"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF"/><circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#FFF"/></g><path id="ta" d="M24 80 A56 56 0 0 1 136 80" fill="none"/><text font-family="Arial,sans-serif" font-size="9" font-weight="bold" letter-spacing="3" fill="#0B6E4F"><textPath href="#ta" startOffset="50%" text-anchor="middle">EYEONSITE</textPath></text><path id="ba" d="M28 92 A56 56 0 0 0 132 92" fill="none"/><text font-family="Arial,sans-serif" font-size="9" font-weight="bold" letter-spacing="3" fill="#0B6E4F"><textPath href="#ba" startOffset="50%" text-anchor="middle">VERIFIED</textPath></text><circle cx="24" cy="84" r="2" fill="#D4A843"/><circle cx="136" cy="84" r="2" fill="#D4A843"/></svg>
+      </div>
+      <div class="label">verified-stamp</div>
+      <span class="platform android">Android</span>
+      <span class="platform ios">iOS</span>
+      <span class="platform web">Web</span>
+    </div>
+  </div>
+
+  <h3>Horizontal Lockups</h3>
+  <div class="asset-grid" style="grid-template-columns:1fr 1fr">
+    <div class="asset-card">
+      <div class="preview wide">
+        <svg viewBox="0 0 460 80"><g transform="translate(8,0) scale(.5)"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF" opacity=".95"/><circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#022B1E"/><circle cx="54" cy="57" r="4" fill="#FFF" opacity=".85"/></g><text x="82" y="46" font-family="Arial,sans-serif" font-size="36" font-weight="500" letter-spacing="-.5"><tspan fill="#0B6E4F">Eye</tspan><tspan fill="#1A1A19">On</tspan><tspan fill="#0B6E4F">Site</tspan></text><text x="84" y="66" font-family="Arial,sans-serif" font-size="11" letter-spacing="2" fill="#9C9A92">TRUST, VERIFIED.</text></svg>
+      </div>
+      <div class="label">lockup-color</div>
+    </div>
+    <div class="asset-card dark">
+      <div class="preview wide">
+        <svg viewBox="0 0 460 80"><g transform="translate(8,0) scale(.5)"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#FFF"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#022B1E"/><circle cx="60" cy="62" r="16" fill="#FFF"/><circle cx="60" cy="62" r="8" fill="#022B1E"/></g><text x="82" y="46" font-family="Arial,sans-serif" font-size="36" font-weight="500" letter-spacing="-.5"><tspan fill="#34D399">Eye</tspan><tspan fill="#FFF">On</tspan><tspan fill="#34D399">Site</tspan></text><text x="84" y="66" font-family="Arial,sans-serif" font-size="11" letter-spacing="2" fill="#FFF" opacity=".5">TRUST, VERIFIED.</text></svg>
+      </div>
+      <div class="label">lockup-white</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FUNCTIONAL ICONS -->
+<section>
+  <h2>Functional <span>Icons</span></h2>
+  <p class="section-desc">In-app status indicators, GPS verification, and photo angle guides</p>
+
+  <h3>Status Indicators</h3>
+  <div class="status-row">
+    <div class="status-item"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#34D399"/></svg> Success</div>
+    <div class="status-item"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#F59E0B"/></svg> Pending</div>
+    <div class="status-item"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#E8593C"/></svg> Error</div>
+    <div class="status-item"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#0B6E4F"/></svg> Active</div>
+    <div class="status-item"><svg viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="#3B82F6"/></svg> Info</div>
+    <div class="status-item" style="margin-left:24px">
+      <svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="10" fill="none" stroke="#34D399" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="#34D399"/><line x1="12" y1="0" x2="12" y2="4" stroke="#34D399" stroke-width="1.5"/><line x1="12" y1="20" x2="12" y2="24" stroke="#34D399" stroke-width="1.5"/><line x1="0" y1="12" x2="4" y2="12" stroke="#34D399" stroke-width="1.5"/><line x1="20" y1="12" x2="24" y2="12" stroke="#34D399" stroke-width="1.5"/></svg>
+      GPS Verified
+    </div>
+  </div>
+
+  <h3>Photo Angle Guides (Inspector Capture Mode)</h3>
+  <div class="asset-grid" style="grid-template-columns:repeat(8,1fr)">
+    <div class="asset-card" style="padding:12px">
+      <div class="preview" style="height:60px">
+        <svg viewBox="0 0 48 48" style="max-width:40px"><rect x="4" y="8" width="40" height="28" rx="4" fill="none" stroke="#0B6E4F" stroke-width="2"/><circle cx="24" cy="22" r="8" fill="none" stroke="#0B6E4F" stroke-width="1.5"/><circle cx="24" cy="22" r="3" fill="#0B6E4F"/><text x="24" y="46" text-anchor="middle" font-family="Arial" font-size="6" fill="#0B6E4F" font-weight="bold">FRONT</text></svg>
+      </div>
+      <div class="label" style="font-size:9px">FRONT</div>
+    </div>
+    <div class="asset-card" style="padding:12px">
+      <div class="preview" style="height:60px">
+        <svg viewBox="0 0 48 48" style="max-width:40px"><rect x="4" y="8" width="40" height="28" rx="4" fill="none" stroke="#0B6E4F" stroke-width="2"/><circle cx="24" cy="22" r="8" fill="none" stroke="#0B6E4F" stroke-width="1.5"/><circle cx="24" cy="22" r="3" fill="#0B6E4F"/><text x="24" y="46" text-anchor="middle" font-family="Arial" font-size="6" fill="#0B6E4F" font-weight="bold">BACK</text></svg>
+      </div>
+      <div class="label" style="font-size:9px">BACK</div>
+    </div>
+    <div class="asset-card" style="padding:12px">
+      <div class="preview" style="height:60px">
+        <svg viewBox="0 0 48 48" style="max-width:40px"><rect x="4" y="8" width="40" height="28" rx="4" fill="none" stroke="#0B6E4F" stroke-width="2"/><circle cx="24" cy="22" r="8" fill="none" stroke="#0B6E4F" stroke-width="1.5"/><circle cx="24" cy="22" r="3" fill="#0B6E4F"/><text x="24" y="46" text-anchor="middle" font-family="Arial" font-size="6" fill="#0B6E4F" font-weight="bold">LEFT</text></svg>
+      </div>
+      <div class="label" style="font-size:9px">LEFT</div>
+    </div>
+    <div class="asset-card" style="padding:12px">
+      <div class="preview" style="height:60px">
+        <svg viewBox="0 0 48 48" style="max-width:40px"><rect x="4" y="8" width="40" height="28" rx="4" fill="none" stroke="#0B6E4F" stroke-width="2"/><circle cx="24" cy="22" r="8" fill="none" stroke="#0B6E4F" stroke-width="1.5"/><circle cx="24" cy="22" r="3" fill="#0B6E4F"/><text x="24" y="46" text-anchor="middle" font-family="Arial" font-size="6" fill="#0B6E4F" font-weight="bold">RIGHT</text></svg>
+      </div>
+      <div class="label" style="font-size:9px">RIGHT</div>
+    </div>
+    <div class="asset-card" style="padding:12px">
+      <div class="preview" style="height:60px">
+        <svg viewBox="0 0 48 48" style="max-width:40px"><rect x="4" y="8" width="40" height="28" rx="4" fill="none" stroke="#0B6E4F" stroke-width="2"/><circle cx="24" cy="22" r="8" fill="none" stroke="#0B6E4F" stroke-width="1.5"/><circle cx="24" cy="22" r="3" fill="#0B6E4F"/><text x="24" y="46" text-anchor="middle" font-family="Arial" font-size="5" fill="#0B6E4F" font-weight="bold">INTERIOR</text></svg>
+      </div>
+      <div class="label" style="font-size:9px">INTERIOR</div>
+    </div>
+    <div class="asset-card" style="padding:12px">
+      <div class="preview" style="height:60px">
+        <svg viewBox="0 0 48 48" style="max-width:40px"><rect x="4" y="8" width="40" height="28" rx="4" fill="none" stroke="#0B6E4F" stroke-width="2"/><circle cx="24" cy="22" r="8" fill="none" stroke="#0B6E4F" stroke-width="1.5"/><circle cx="24" cy="22" r="3" fill="#0B6E4F"/><text x="24" y="46" text-anchor="middle" font-family="Arial" font-size="6" fill="#0B6E4F" font-weight="bold">AERIAL</text></svg>
+      </div>
+      <div class="label" style="font-size:9px">AERIAL</div>
+    </div>
+    <div class="asset-card" style="padding:12px">
+      <div class="preview" style="height:60px">
+        <svg viewBox="0 0 48 48" style="max-width:40px"><rect x="4" y="8" width="40" height="28" rx="4" fill="none" stroke="#0B6E4F" stroke-width="2"/><circle cx="24" cy="22" r="8" fill="none" stroke="#0B6E4F" stroke-width="1.5"/><circle cx="24" cy="22" r="3" fill="#0B6E4F"/><text x="24" y="46" text-anchor="middle" font-family="Arial" font-size="6" fill="#0B6E4F" font-weight="bold">DETAIL</text></svg>
+      </div>
+      <div class="label" style="font-size:9px">DETAIL</div>
+    </div>
+    <div class="asset-card" style="padding:12px">
+      <div class="preview" style="height:60px">
+        <svg viewBox="0 0 48 48" style="max-width:40px"><rect x="4" y="8" width="40" height="28" rx="4" fill="none" stroke="#0B6E4F" stroke-width="2"/><circle cx="24" cy="22" r="8" fill="none" stroke="#0B6E4F" stroke-width="1.5"/><circle cx="24" cy="22" r="3" fill="#0B6E4F"/><text x="24" y="46" text-anchor="middle" font-family="Arial" font-size="5" fill="#0B6E4F" font-weight="bold">OVERVIEW</text></svg>
+      </div>
+      <div class="label" style="font-size:9px">OVERVIEW</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- COLOR PALETTE -->
+<section>
+  <h2>Color <span>Palette</span></h2>
+  <p class="section-desc">Brand, functional, and neutral color system</p>
+
+  <h3>Brand</h3>
+  <div class="color-row">
+    <div class="color-swatch" style="background:#0B6E4F"><span class="name" style="color:#fff">Forest</span><span class="hex" style="color:rgba(255,255,255,.7)">#0B6E4F</span></div>
+    <div class="color-swatch" style="background:#022B1E"><span class="name" style="color:#fff">Deep Forest</span><span class="hex" style="color:rgba(255,255,255,.5)">#022B1E</span></div>
+    <div class="color-swatch" style="background:#D4A843"><span class="name" style="color:#fff">Savanna Gold</span><span class="hex" style="color:rgba(255,255,255,.7)">#D4A843</span></div>
+  </div>
+
+  <h3>Functional</h3>
+  <div class="color-row">
+    <div class="color-swatch" style="background:#34D399"><span class="name" style="color:#022B1E">Signal Green</span><span class="hex" style="color:rgba(0,0,0,.5)">#34D399</span></div>
+    <div class="color-swatch" style="background:#E8593C"><span class="name" style="color:#fff">Alert Coral</span><span class="hex" style="color:rgba(255,255,255,.7)">#E8593C</span></div>
+    <div class="color-swatch" style="background:#F59E0B"><span class="name" style="color:#fff">Caution Amber</span><span class="hex" style="color:rgba(255,255,255,.7)">#F59E0B</span></div>
+    <div class="color-swatch" style="background:#3B82F6"><span class="name" style="color:#fff">Info Blue</span><span class="hex" style="color:rgba(255,255,255,.7)">#3B82F6</span></div>
+  </div>
+
+  <h3>Neutral</h3>
+  <div class="color-row">
+    <div class="color-swatch" style="background:#1A1A19"><span class="name" style="color:#fff">Ink</span><span class="hex" style="color:rgba(255,255,255,.5)">#1A1A19</span></div>
+    <div class="color-swatch" style="background:#4A4A47"><span class="name" style="color:#fff">Ash</span><span class="hex" style="color:rgba(255,255,255,.5)">#4A4A47</span></div>
+    <div class="color-swatch" style="background:#9C9A92"><span class="name" style="color:#fff">Stone</span><span class="hex" style="color:rgba(255,255,255,.7)">#9C9A92</span></div>
+    <div class="color-swatch" style="background:#E8E6DD"><span class="name">Sand</span><span class="hex">#E8E6DD</span></div>
+    <div class="color-swatch" style="background:#F5F4F0"><span class="name">Ivory</span><span class="hex">#F5F4F0</span></div>
+    <div class="color-swatch" style="background:#FFF;border:1px solid #E8E6DD"><span class="name">White</span><span class="hex">#FFFFFF</span></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- SOCIAL PREVIEWS -->
+<section>
+  <h2>Social <span>Assets</span></h2>
+  <p class="section-desc">Open Graph, LinkedIn, and X/Twitter header images</p>
+
+  <div class="social-grid">
+    <div class="social-card">
+      <div class="social-label">Open Graph Image — 1200×630</div>
+      <div class="social-preview">
+        <svg viewBox="0 0 1200 630"><rect width="1200" height="630" fill="#022B1E"/><circle cx="1050" cy="150" r="200" fill="#0B6E4F" opacity=".2"/><g transform="translate(80,160) scale(.8)"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF" opacity=".95"/><circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#022B1E"/></g><text x="200" y="240" font-family="Arial,sans-serif" font-size="56" font-weight="700"><tspan fill="#34D399">Eye</tspan><tspan fill="#FFF">On</tspan><tspan fill="#34D399">Site</tspan></text><text x="200" y="300" font-family="Arial,sans-serif" font-size="28" fill="#FFF" opacity=".7">See your house before you fly home.</text><text x="200" y="360" font-family="Arial,sans-serif" font-size="16" letter-spacing="3" fill="#D4A843">TRUST, VERIFIED.</text></svg>
+      </div>
+    </div>
+    <div class="social-card">
+      <div class="social-label">LinkedIn Banner — 1584×396</div>
+      <div class="social-preview">
+        <svg viewBox="0 0 1584 396"><rect width="1584" height="396" fill="#022B1E"/><circle cx="1400" cy="100" r="180" fill="#0B6E4F" opacity=".15"/><g transform="translate(80,90) scale(.6)"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF" opacity=".95"/><circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#022B1E"/></g><text x="170" y="185" font-family="Arial,sans-serif" font-size="44" font-weight="700"><tspan fill="#34D399">Eye</tspan><tspan fill="#FFF">On</tspan><tspan fill="#34D399">Site</tspan></text><text x="170" y="230" font-family="Arial,sans-serif" font-size="20" fill="#FFF" opacity=".6">See your house before you fly home.</text><text x="170" y="270" font-family="Arial,sans-serif" font-size="12" letter-spacing="3" fill="#D4A843">TRUST, VERIFIED.</text></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- DESIGN TOKENS -->
+<section>
+  <h2>Design <span>Tokens</span></h2>
+  <p class="section-desc">Platform-specific color constants — copy directly into your codebase</p>
+
+  <div class="token-grid">
+    <div class="token-block">
+      <h4>Kotlin <span class="lang">Jetpack Compose</span></h4>
+      <pre>object EyeOnSiteColors {
+    val Forest      = Color(0xFF0B6E4F)
+    val DeepForest  = Color(0xFF022B1E)
+    val SavannaGold = Color(0xFFD4A843)
+    val SignalGreen = Color(0xFF34D399)
+    val AlertCoral  = Color(0xFFE8593C)
+    val CautionAmber = Color(0xFFF59E0B)
+    val InfoBlue    = Color(0xFF3B82F6)
+    val Ink   = Color(0xFF1A1A19)
+    val Ash   = Color(0xFF4A4A47)
+    val Stone = Color(0xFF9C9A92)
+    val Sand  = Color(0xFFE8E6DD)
+    val Ivory = Color(0xFFF5F4F0)
+}</pre>
+    </div>
+    <div class="token-block">
+      <h4>Swift <span class="lang">SwiftUI</span></h4>
+      <pre>extension Color {
+    static let eosForest =
+        Color(red: 11/255, green: 110/255, blue: 79/255)
+    static let eosDeepForest =
+        Color(red: 2/255, green: 43/255, blue: 30/255)
+    static let eosSavannaGold =
+        Color(red: 212/255, green: 168/255, blue: 67/255)
+    static let eosSignalGreen =
+        Color(red: 52/255, green: 211/255, blue: 153/255)
+    static let eosAlertCoral =
+        Color(red: 232/255, green: 89/255, blue: 60/255)
+    // ... more in shared/EyeOnSiteColors.swift
+}</pre>
+    </div>
+    <div class="token-block">
+      <h4>CSS <span class="lang">Custom Properties</span></h4>
+      <pre>:root {
+  --eos-forest: #0B6E4F;
+  --eos-deep-forest: #022B1E;
+  --eos-savanna-gold: #D4A843;
+  --eos-signal-green: #34D399;
+  --eos-alert-coral: #E8593C;
+  --eos-caution-amber: #F59E0B;
+  --eos-info-blue: #3B82F6;
+  --eos-ink: #1A1A19;
+  --eos-font: 'DM Sans', sans-serif;
+  --eos-font-mono: 'JetBrains Mono', monospace;
+}</pre>
+    </div>
+    <div class="token-block">
+      <h4>JSON <span class="lang">Platform-agnostic</span></h4>
+      <pre>{
+  "brand": {
+    "forest": "#0B6E4F",
+    "deepForest": "#022B1E",
+    "savannaGold": "#D4A843"
+  },
+  "functional": {
+    "signalGreen": "#34D399",
+    "alertCoral": "#E8593C",
+    "cautionAmber": "#F59E0B",
+    "infoBlue": "#3B82F6"
+  }
+}</pre>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  EyeOnSite Brand Assets &middot; Manti Labs LLC &middot; Generated May 2026<br>
+  81 files &middot; 69 SVGs &middot; Android / iOS / Web / Shared
+</footer>
+
+</body>
+</html>

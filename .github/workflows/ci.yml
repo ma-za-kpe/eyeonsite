@@ -1,0 +1,156 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─── 1. LINT ────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint (Spotless + Detekt)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+          cache: gradle
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v3
+
+      - name: Spotless check
+        run: ./gradlew spotlessCheck --no-daemon --stacktrace
+
+      - name: Detekt
+        run: ./gradlew detektAll --no-daemon --stacktrace
+
+  # ─── 2. BUILD SHARED ────────────────────────────────────────────────────────
+  build-shared:
+    name: Build shared (KMP)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+          cache: gradle
+
+      - name: Build shared module targets used on Linux
+        run: ./gradlew :app:shared:compileKotlinMetadata :app:shared:compileAndroidMain :app:shared:compileKotlinJs --no-daemon --stacktrace
+
+  # ─── 3. BUILD ANDROID ───────────────────────────────────────────────────────
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    needs: build-shared
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+          cache: gradle
+
+      - name: Assemble debug APK
+        run: ./gradlew :app:androidApp:assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: app/androidApp/build/outputs/apk/debug/*.apk
+          retention-days: 7
+
+  # ─── 4. BUILD WEB ───────────────────────────────────────────────────────────
+  build-web:
+    name: Build Web bundle
+    runs-on: ubuntu-latest
+    needs: build-shared
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+          cache: gradle
+
+      - name: Build JS production bundle
+        run: ./gradlew :app:webApp:jsBrowserProductionWebpack --no-daemon --stacktrace
+
+      - name: Upload web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-bundle
+          path: app/webApp/build/dist/js/productionExecutable/
+          retention-days: 7
+
+  # ─── 5. UNIT TESTS ──────────────────────────────────────────────────────────
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: build-shared
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+          cache: gradle
+
+      - name: Run shared Android unit tests
+        run: ./gradlew :app:shared:testAndroid --no-daemon --stacktrace
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: app/shared/build/reports/tests/
+          retention-days: 7
+
+  # ─── 6. DEPLOY WEB (main only) ──────────────────────────────────────────────
+  deploy-web:
+    name: Deploy to Firebase Hosting
+    runs-on: ubuntu-latest
+    needs: [build-web, test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+          cache: gradle
+
+      - name: Build JS production bundle
+        run: ./gradlew :app:webApp:jsBrowserProductionWebpack --no-daemon
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: live
+          projectId: eyeonsite-3b8e0
