@@ -1,17 +1,13 @@
 package com.maku.eyeonsite.ui.auth
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -27,10 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,7 +33,10 @@ import com.maku.eyeonsite.ui.theme.Stone
 import com.maku.eyeonsite.ui.theme.White
 
 @Composable
-fun SignInScreen(onContinue: (phoneNumber: String) -> Unit = {}) {
+fun SignInScreen(
+    isSending: Boolean = false,
+    onContinue: (phoneNumber: String) -> Unit = {},
+) {
     var phoneNumber by remember { mutableStateOf("") }
 
     Column(
@@ -124,7 +119,7 @@ fun SignInScreen(onContinue: (phoneNumber: String) -> Unit = {}) {
                 Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-            enabled = phoneNumber.length >= 10,
+            enabled = phoneNumber.length >= 10 && !isSending,
             shape = RoundedCornerShape(12.dp),
             colors =
                 ButtonDefaults.buttonColors(
@@ -135,7 +130,7 @@ fun SignInScreen(onContinue: (phoneNumber: String) -> Unit = {}) {
                 ),
         ) {
             Text(
-                text = "Continue",
+                text = if (isSending) "Sending…" else "Continue",
                 style = MaterialTheme.typography.labelLarge,
             )
         }
@@ -153,66 +148,10 @@ fun SignInScreen(onContinue: (phoneNumber: String) -> Unit = {}) {
     }
 }
 
+@androidx.compose.ui.tooling.preview.Preview
 @Composable
-private fun LogoMark() {
-    Box(
-        modifier =
-            Modifier
-                .size(80.dp)
-                .clip(CircleShape)
-                .background(Forest),
-        contentAlignment = Alignment.Center,
-    ) {
-        // EyeOnSite mark: white drop-pin shape with dark iris.
-        // Drawn via Canvas (no SVG dependency — works on all platforms).
-        val dark = DeepForest
-        Canvas(modifier = Modifier.size(64.dp)) {
-            val w = size.width
-            val h = size.height
-            // Original mark SVG viewBox: 120 × 160
-            val scale = minOf(w / 120f, h / 160f)
-            val ox = (w - 120f * scale) / 2f
-            val oy = (h - 160f * scale) / 2f
-
-            fun tx(x: Float) = x * scale + ox
-
-            fun ty(y: Float) = y * scale + oy
-
-            // Drop/pin body (white)
-            val drop =
-                Path().apply {
-                    moveTo(tx(60f), ty(4f))
-                    cubicTo(tx(91f), ty(4f), tx(116f), ty(29f), tx(116f), ty(60f))
-                    cubicTo(tx(116f), ty(91f), tx(60f), ty(152f), tx(60f), ty(152f))
-                    cubicTo(tx(60f), ty(152f), tx(4f), ty(91f), tx(4f), ty(60f))
-                    cubicTo(tx(4f), ty(29f), tx(29f), ty(4f), tx(60f), ty(4f))
-                    close()
-                }
-            drawPath(drop, color = Color.White)
-
-            // Eye lens highlight (dark, quadratic bezier lens shape)
-            val lens =
-                Path().apply {
-                    moveTo(tx(26f), ty(62f))
-                    quadraticBezierTo(tx(60f), ty(32f), tx(94f), ty(62f))
-                    quadraticBezierTo(tx(60f), ty(92f), tx(26f), ty(62f))
-                    close()
-                }
-            drawPath(lens, color = dark)
-
-            // Iris (white circle)
-            drawCircle(
-                color = Color.White,
-                radius = 16f * scale,
-                center = Offset(tx(60f), ty(62f)),
-            )
-
-            // Pupil (dark circle)
-            drawCircle(
-                color = dark,
-                radius = 8f * scale,
-                center = Offset(tx(60f), ty(62f)),
-            )
-        }
+fun SignInScreenPreview() {
+    com.maku.eyeonsite.ui.theme.EyeOnSiteTheme {
+        SignInScreen()
     }
 }
