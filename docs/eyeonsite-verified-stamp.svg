@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160">
+  <!-- EyeOnSite "Verified" Badge — for evidence reports, certificates -->
+  <!-- Outer ring -->
+  <circle cx="80" cy="80" r="76" fill="none" stroke="#0B6E4F" stroke-width="2"/>
+  <circle cx="80" cy="80" r="70" fill="none" stroke="#0B6E4F" stroke-width="0.5"/>
+  <!-- Inner fill -->
+  <circle cx="80" cy="80" r="66" fill="#0B6E4F" opacity="0.06"/>
+  <!-- Pin mark small -->
+  <g transform="translate(52, 22) scale(0.38)">
+    <path d="M60 4 C91 4, 116 29, 116 60 C116 91, 60 152, 60 152 C60 152, 4 91, 4 60 C4 29, 29 4, 60 4Z" fill="#0B6E4F"/>
+    <path d="M26 62 Q60 32, 94 62 Q60 92, 26 62Z" fill="#FFFFFF"/>
+    <circle cx="60" cy="62" r="16" fill="#0B6E4F"/>
+    <circle cx="60" cy="62" r="8" fill="#FFFFFF"/>
+  </g>
+  <!-- Curved text top: EYEONSITE -->
+  <path id="topArc" d="M24 80 A56 56 0 0 1 136 80" fill="none"/>
+  <text font-family="'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="9" font-weight="500" letter-spacing="3" fill="#0B6E4F">
+    <textPath href="#topArc" startOffset="50%" text-anchor="middle">EYEONSITE</textPath>
+  </text>
+  <!-- Curved text bottom: VERIFIED -->
+  <path id="bottomArc" d="M28 92 A56 56 0 0 0 132 92" fill="none"/>
+  <text font-family="'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="9" font-weight="500" letter-spacing="3" fill="#0B6E4F">
+    <textPath href="#bottomArc" startOffset="50%" text-anchor="middle">VERIFIED</textPath>
+  </text>
+  <!-- Dots -->
+  <circle cx="24" cy="84" r="2" fill="#D4A843"/>
+  <circle cx="136" cy="84" r="2" fill="#D4A843"/>
+</svg>

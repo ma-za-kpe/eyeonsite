@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "922315268903",
+    "project_id": "eyeonsite-3b8e0",
+    "storage_bucket": "eyeonsite-3b8e0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:922315268903:android:9a262a3db6364511fb7f02",
+        "android_client_info": {
+          "package_name": "com.maku.eyeonsite"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKjkUXX8tQeqqHMxoanXLnC197V_42Mn0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

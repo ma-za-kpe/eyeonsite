@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EyeOnSite — Complete Brand System</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--forest:#0B6E4F;--deep:#022B1E;--gold:#D4A843;--signal:#34D399;--coral:#E8593C;--amber:#F59E0B;--ink:#1A1A19;--ash:#4A4A47;--stone:#9C9A92;--sand:#E8E6DD;--ivory:#F5F4F0;--white:#FFFFFF}
+body{font-family:'DM Sans',sans-serif;background:var(--ivory);color:var(--ink);overflow-x:hidden}
+.page{max-width:1200px;margin:0 auto;padding:40px 24px}
+
+/* Header */
+.brand-header{background:var(--deep);padding:60px 40px;border-radius:24px;margin-bottom:48px;position:relative;overflow:hidden}
+.brand-header::before{content:'';position:absolute;top:-60px;right:-40px;width:300px;height:300px;border-radius:50%;background:var(--forest);opacity:0.3}
+.brand-header::after{content:'';position:absolute;bottom:-80px;left:30%;width:200px;height:200px;border-radius:50%;background:var(--gold);opacity:0.08}
+.brand-header h1{font-size:14px;font-weight:500;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:16px;position:relative}
+.brand-header h2{font-size:48px;font-weight:700;color:var(--white);letter-spacing:-1px;position:relative;line-height:1.1}
+.brand-header h2 span{color:var(--signal)}
+.brand-header p{font-size:16px;color:rgba(255,255,255,0.5);margin-top:12px;position:relative;max-width:600px}
+
+/* Section */
+.section{margin-bottom:56px}
+.section-label{font-size:11px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:var(--forest);margin-bottom:8px}
+.section-title{font-size:28px;font-weight:700;color:var(--ink);letter-spacing:-0.5px;margin-bottom:6px}
+.section-desc{font-size:15px;color:var(--ash);margin-bottom:32px;max-width:700px;line-height:1.6}
+
+/* Logo Grid */
+.logo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}
+.logo-card{background:var(--white);border-radius:16px;padding:32px 24px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:180px;border:1px solid var(--sand);transition:transform 0.2s,box-shadow 0.2s}
+.logo-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,0.06)}
+.logo-card.dark{background:var(--deep);border-color:var(--deep)}
+.logo-card.forest{background:var(--forest);border-color:var(--forest)}
+.logo-card.gold-bg{background:var(--gold);border-color:var(--gold)}
+.logo-card svg{max-width:100%;height:auto}
+.logo-label{font-size:12px;font-weight:500;color:var(--ash);margin-top:16px;text-align:center}
+.logo-card.dark .logo-label,.logo-card.forest .logo-label{color:rgba(255,255,255,0.5)}
+.logo-sublabel{font-size:10px;color:var(--stone);margin-top:2px;font-family:'JetBrains Mono',monospace}
+.logo-card.dark .logo-sublabel,.logo-card.forest .logo-sublabel{color:rgba(255,255,255,0.3)}
+
+/* Color Palette */
+.color-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
+.color-swatch{border-radius:16px;overflow:hidden;border:1px solid var(--sand)}
+.color-fill{height:100px;position:relative}
+.color-info{padding:14px 16px;background:var(--white)}
+.color-name{font-size:14px;font-weight:500;color:var(--ink)}
+.color-hex{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--stone);margin-top:2px}
+.color-use{font-size:11px;color:var(--ash);margin-top:6px;line-height:1.4}
+
+/* Typography showcase */
+.type-row{margin-bottom:28px;padding:24px;background:var(--white);border-radius:16px;border:1px solid var(--sand)}
+.type-spec{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--stone);margin-bottom:8px}
+
+/* Use case cards */
+.usecase-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px}
+.usecase-card{background:var(--white);border-radius:16px;overflow:hidden;border:1px solid var(--sand)}
+.usecase-preview{height:200px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.usecase-info{padding:20px}
+.usecase-title{font-size:16px;font-weight:500;color:var(--ink)}
+.usecase-desc{font-size:13px;color:var(--ash);margin-top:4px;line-height:1.5}
+
+/* Voice cards */
+.voice-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.voice-card{padding:24px;border-radius:16px;border:1px solid var(--sand);background:var(--white)}
+.voice-pill{display:inline-block;padding:4px 14px;border-radius:20px;background:var(--forest);color:var(--white);font-size:12px;font-weight:500;margin-bottom:12px}
+.voice-example{font-size:14px;color:var(--ink);line-height:1.6;font-style:italic}
+.voice-bad{font-size:13px;color:var(--coral);margin-top:10px;text-decoration:line-through;opacity:0.6}
+
+/* Tagline wall */
+.tagline-wall{display:flex;flex-wrap:wrap;gap:12px}
+.tagline-chip{padding:10px 20px;border-radius:100px;font-size:14px;font-weight:500;border:1.5px solid var(--sand);color:var(--ink);background:var(--white);transition:all 0.2s}
+.tagline-chip:hover{border-color:var(--forest);color:var(--forest);background:rgba(11,110,79,0.04)}
+.tagline-chip.primary{background:var(--forest);color:var(--white);border-color:var(--forest)}
+
+/* Footer */
+.brand-footer{text-align:center;padding:60px 40px;color:var(--stone);font-size:13px}
+.brand-footer strong{color:var(--forest)}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="brand-header">
+  <h1>Brand System</h1>
+  <h2><span>Eye</span>On<span>Site</span></h2>
+  <p>Complete visual identity, logo system, colors, typography, voice, and marketing assets for the trust verification marketplace.</p>
+</div>
+
+<!-- LOGO MARK SYSTEM -->
+<div class="section">
+  <div class="section-label">01 — Logo system</div>
+  <div class="section-title">The mark: pin × eye</div>
+  <div class="section-desc">A map pin containing an eye. Verification at a verified location. The pin says "here." The eye says "seen." Together: someone was watching, right here.</div>
+
+  <div class="logo-grid">
+    <!-- Full color mark -->
+    <div class="logo-card">
+      <svg viewBox="0 0 120 160" width="60" height="80">
+        <path d="M60 4 C91 4, 116 29, 116 60 C116 91, 60 152, 60 152 C60 152, 4 91, 4 60 C4 29, 29 4, 60 4Z" fill="#0B6E4F"/>
+        <path d="M26 62 Q60 32, 94 62 Q60 92, 26 62Z" fill="#FFF" opacity="0.95"/>
+        <circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#022B1E"/>
+        <circle cx="54" cy="57" r="4" fill="#FFF" opacity="0.85"/>
+      </svg>
+      <div class="logo-label">Full color mark</div>
+      <div class="logo-sublabel">eyeonsite-mark-color.svg</div>
+    </div>
+
+    <!-- White mark on dark -->
+    <div class="logo-card dark">
+      <svg viewBox="0 0 120 160" width="60" height="80">
+        <path d="M60 4 C91 4, 116 29, 116 60 C116 91, 60 152, 60 152 C60 152, 4 91, 4 60 C4 29, 29 4, 60 4Z" fill="#FFF"/>
+        <path d="M26 62 Q60 32, 94 62 Q60 92, 26 62Z" fill="#022B1E"/>
+        <circle cx="60" cy="62" r="16" fill="#FFF"/><circle cx="60" cy="62" r="8" fill="#022B1E"/>
+      </svg>
+      <div class="logo-label">White mark</div>
+      <div class="logo-sublabel">eyeonsite-mark-white.svg</div>
+    </div>
+
+    <!-- Black mono -->
+    <div class="logo-card">
+      <svg viewBox="0 0 120 160" width="60" height="80">
+        <path d="M60 4 C91 4, 116 29, 116 60 C116 91, 60 152, 60 152 C60 152, 4 91, 4 60 C4 29, 29 4, 60 4Z" fill="#1A1A19"/>
+        <path d="M26 62 Q60 32, 94 62 Q60 92, 26 62Z" fill="#FFF"/>
+        <circle cx="60" cy="62" r="16" fill="#1A1A19"/><circle cx="60" cy="62" r="8" fill="#FFF"/>
+      </svg>
+      <div class="logo-label">Black mono</div>
+      <div class="logo-sublabel">eyeonsite-mark-black.svg</div>
+    </div>
+
+    <!-- Outline -->
+    <div class="logo-card">
+      <svg viewBox="0 0 120 160" width="60" height="80">
+        <path d="M60 4 C91 4, 116 29, 116 60 C116 91, 60 152, 60 152 C60 152, 4 91, 4 60 C4 29, 29 4, 60 4Z" fill="none" stroke="#0B6E4F" stroke-width="3"/>
+        <path d="M26 62 Q60 32, 94 62 Q60 92, 26 62Z" fill="none" stroke="#0B6E4F" stroke-width="2.5"/>
+        <circle cx="60" cy="62" r="16" fill="none" stroke="#0B6E4F" stroke-width="2.5"/>
+        <circle cx="60" cy="62" r="6" fill="#0B6E4F"/>
+      </svg>
+      <div class="logo-label">Outline</div>
+      <div class="logo-sublabel">eyeonsite-mark-outline.svg</div>
+    </div>
+
+    <!-- Outline white -->
+    <div class="logo-card dark">
+      <svg viewBox="0 0 120 160" width="60" height="80">
+        <path d="M60 4 C91 4, 116 29, 116 60 C116 91, 60 152, 60 152 C60 152, 4 91, 4 60 C4 29, 29 4, 60 4Z" fill="none" stroke="#FFF" stroke-width="3"/>
+        <path d="M26 62 Q60 32, 94 62 Q60 92, 26 62Z" fill="none" stroke="#FFF" stroke-width="2.5"/>
+        <circle cx="60" cy="62" r="16" fill="none" stroke="#FFF" stroke-width="2.5"/>
+        <circle cx="60" cy="62" r="6" fill="#FFF"/>
+      </svg>
+      <div class="logo-label">Outline white</div>
+      <div class="logo-sublabel">eyeonsite-mark-outline-white.svg</div>
+    </div>
+
+    <!-- App icon -->
+    <div class="logo-card" style="padding:16px">
+      <svg viewBox="0 0 512 512" width="100" height="100">
+        <rect width="512" height="512" rx="108" fill="#022B1E"/>
+        <g transform="translate(166,80) scale(1.5)">
+          <path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/>
+          <path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF" opacity="0.95"/>
+          <circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#022B1E"/>
+          <circle cx="54" cy="57" r="4" fill="#FFF" opacity="0.85"/>
+        </g>
+      </svg>
+      <div class="logo-label">App icon</div>
+      <div class="logo-sublabel">eyeonsite-appicon-512.svg</div>
+    </div>
+
+    <!-- Badge -->
+    <div class="logo-card">
+      <svg viewBox="0 0 200 200" width="90" height="90">
+        <circle cx="100" cy="100" r="96" fill="#0B6E4F"/>
+        <g transform="translate(52,24) scale(0.8)">
+          <path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#FFF"/>
+          <path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#0B6E4F"/>
+          <circle cx="60" cy="62" r="16" fill="#FFF"/><circle cx="60" cy="62" r="8" fill="#0B6E4F"/>
+        </g>
+      </svg>
+      <div class="logo-label">Badge</div>
+      <div class="logo-sublabel">eyeonsite-badge.svg</div>
+    </div>
+
+    <!-- Favicon -->
+    <div class="logo-card">
+      <svg viewBox="0 0 32 32" width="64" height="64" style="image-rendering:auto">
+        <path d="M16 1 C24.3 1,31 7.7,31 16 C31 24.3,16 31,16 31 C16 31,1 24.3,1 16 C1 7.7,7.7 1,16 1Z" fill="#0B6E4F"/>
+        <path d="M7 16.5 Q16 9,25 16.5 Q16 24,7 16.5Z" fill="#FFF" opacity="0.95"/>
+        <circle cx="16" cy="16.5" r="4.2" fill="#0B6E4F"/><circle cx="16" cy="16.5" r="2" fill="#022B1E"/>
+      </svg>
+      <div class="logo-label">Favicon</div>
+      <div class="logo-sublabel">eyeonsite-favicon.svg</div>
+    </div>
+
+    <!-- Verified stamp -->
+    <div class="logo-card">
+      <svg viewBox="0 0 160 160" width="80" height="80">
+        <circle cx="80" cy="80" r="76" fill="none" stroke="#0B6E4F" stroke-width="2"/>
+        <circle cx="80" cy="80" r="70" fill="none" stroke="#0B6E4F" stroke-width="0.5"/>
+        <circle cx="80" cy="80" r="66" fill="#0B6E4F" opacity="0.06"/>
+        <g transform="translate(52,22) scale(0.38)">
+          <path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/>
+          <path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF"/>
+          <circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#FFF"/>
+        </g>
+        <path id="ta" d="M24 80 A56 56 0 0 1 136 80" fill="none"/>
+        <text font-family="'DM Sans',sans-serif" font-size="9" font-weight="500" letter-spacing="3" fill="#0B6E4F"><textPath href="#ta" startOffset="50%" text-anchor="middle">EYEONSITE</textPath></text>
+        <path id="ba" d="M28 92 A56 56 0 0 0 132 92" fill="none"/>
+        <text font-family="'DM Sans',sans-serif" font-size="9" font-weight="500" letter-spacing="3" fill="#0B6E4F"><textPath href="#ba" startOffset="50%" text-anchor="middle">VERIFIED</textPath></text>
+        <circle cx="24" cy="84" r="2" fill="#D4A843"/><circle cx="136" cy="84" r="2" fill="#D4A843"/>
+      </svg>
+      <div class="logo-label">Verified stamp</div>
+      <div class="logo-sublabel">eyeonsite-verified-stamp.svg</div>
+    </div>
+  </div>
+</div>
+
+<!-- LOCKUPS -->
+<div class="section">
+  <div class="section-label">02 — Lockups</div>
+  <div class="section-title">Mark + wordmark combinations</div>
+  <div class="section-desc">Horizontal for headers and documents. Stacked for square placements. Wordmark for inline text use.</div>
+
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <!-- Horizontal color -->
+    <div class="logo-card" style="padding:32px 40px;align-items:flex-start;min-height:auto;flex-direction:row;gap:20px">
+      <svg viewBox="0 0 120 160" width="36" height="48">
+        <path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/>
+        <path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF" opacity="0.95"/>
+        <circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#022B1E"/>
+        <circle cx="54" cy="57" r="4" fill="#FFF" opacity="0.85"/>
+      </svg>
+      <div>
+        <div style="font-size:32px;font-weight:500;letter-spacing:-0.5px;line-height:1"><span style="color:var(--forest)">Eye</span><span style="color:var(--ink)">On</span><span style="color:var(--forest)">Site</span></div>
+        <div style="font-size:10px;letter-spacing:2px;color:var(--stone);margin-top:6px;text-transform:uppercase">Trust, verified.</div>
+      </div>
+    </div>
+
+    <!-- Horizontal on dark -->
+    <div class="logo-card dark" style="padding:32px 40px;align-items:flex-start;min-height:auto;flex-direction:row;gap:20px">
+      <svg viewBox="0 0 120 160" width="36" height="48">
+        <path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#FFF"/>
+        <path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#022B1E"/>
+        <circle cx="60" cy="62" r="16" fill="#FFF"/><circle cx="60" cy="62" r="8" fill="#022B1E"/>
+      </svg>
+      <div>
+        <div style="font-size:32px;font-weight:500;letter-spacing:-0.5px;line-height:1"><span style="color:#34D399">Eye</span><span style="color:#FFF">On</span><span style="color:#34D399">Site</span></div>
+        <div style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.4);margin-top:6px;text-transform:uppercase">Trust, verified.</div>
+      </div>
+    </div>
+
+    <!-- Horizontal on forest -->
+    <div class="logo-card forest" style="padding:32px 40px;align-items:flex-start;min-height:auto;flex-direction:row;gap:20px">
+      <svg viewBox="0 0 120 160" width="36" height="48">
+        <path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#FFF"/>
+        <path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#0B6E4F"/>
+        <circle cx="60" cy="62" r="16" fill="#FFF"/><circle cx="60" cy="62" r="8" fill="#0B6E4F"/>
+      </svg>
+      <div>
+        <div style="font-size:32px;font-weight:500;letter-spacing:-0.5px;line-height:1;color:#FFF">EyeOnSite</div>
+        <div style="font-size:10px;letter-spacing:2px;color:rgba(255,255,255,0.5);margin-top:6px;text-transform:uppercase">Trust, verified.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COLORS -->
+<div class="section">
+  <div class="section-label">03 — Color palette</div>
+  <div class="section-title">Grounded. Not blue.</div>
+  <div class="section-desc">Green is trust, land, growth — and it's not every other fintech. Gold is warmth, value, the Ghanaian sun. Together they feel African, serious, and distinct.</div>
+
+  <div class="color-grid">
+    <div class="color-swatch"><div class="color-fill" style="background:#0B6E4F"></div><div class="color-info"><div class="color-name">Forest</div><div class="color-hex">#0B6E4F</div><div class="color-use">Primary. Logo, buttons, links, headers.</div></div></div>
+    <div class="color-swatch"><div class="color-fill" style="background:#022B1E"></div><div class="color-info"><div class="color-name">Deep forest</div><div class="color-hex">#022B1E</div><div class="color-use">Dark mode, app icon, authority.</div></div></div>
+    <div class="color-swatch"><div class="color-fill" style="background:#D4A843"></div><div class="color-info"><div class="color-name">Savanna gold</div><div class="color-hex">#D4A843</div><div class="color-use">Accent, highlights, premium, CTAs.</div></div></div>
+    <div class="color-swatch"><div class="color-fill" style="background:#34D399"></div><div class="color-info"><div class="color-name">Signal green</div><div class="color-hex">#34D399</div><div class="color-use">Success, verified, GPS confirmed.</div></div></div>
+    <div class="color-swatch"><div class="color-fill" style="background:#E8593C"></div><div class="color-info"><div class="color-name">Alert coral</div><div class="color-hex">#E8593C</div><div class="color-use">Errors, disputes, fraud flags.</div></div></div>
+    <div class="color-swatch"><div class="color-fill" style="background:#F59E0B"></div><div class="color-info"><div class="color-name">Caution amber</div><div class="color-hex">#F59E0B</div><div class="color-use">Warnings, pending, review needed.</div></div></div>
+    <div class="color-swatch"><div class="color-fill" style="background:#1A1A19"></div><div class="color-info"><div class="color-name">Ink</div><div class="color-hex">#1A1A19</div><div class="color-use">Primary text on light.</div></div></div>
+    <div class="color-swatch"><div class="color-fill" style="background:#9C9A92"></div><div class="color-info"><div class="color-name">Stone</div><div class="color-hex">#9C9A92</div><div class="color-use">Tertiary text, placeholders.</div></div></div>
+    <div class="color-swatch"><div class="color-fill" style="background:#E8E6DD"></div><div class="color-info"><div class="color-name">Sand</div><div class="color-hex">#E8E6DD</div><div class="color-use">Borders, dividers, surfaces.</div></div></div>
+  </div>
+</div>
+
+<!-- TYPOGRAPHY -->
+<div class="section">
+  <div class="section-label">04 — Typography</div>
+  <div class="section-title">DM Sans + JetBrains Mono</div>
+  <div class="section-desc">DM Sans is warm, geometric, and highly readable. JetBrains Mono is for the data that proves the trust: GPS coordinates, timestamps, task IDs.</div>
+
+  <div class="type-row">
+    <div class="type-spec">DM Sans · 48px · Weight 700 · Headlines</div>
+    <div style="font-size:48px;font-weight:700;letter-spacing:-1px;color:var(--ink);line-height:1.1">See your house<br>before you fly home.</div>
+  </div>
+  <div class="type-row">
+    <div class="type-spec">DM Sans · 24px · Weight 500 · Subheadlines</div>
+    <div style="font-size:24px;font-weight:500;color:var(--ink)">On-demand verification for diaspora investors.</div>
+  </div>
+  <div class="type-row">
+    <div class="type-spec">DM Sans · 16px · Weight 400 · Body text</div>
+    <div style="font-size:16px;color:var(--ash);line-height:1.7">Your contractor sends WhatsApp photos. We send GPS-verified proof — 12+ timestamped photos, a structured checklist, and location verification. Your money stays in escrow until you're satisfied.</div>
+  </div>
+  <div class="type-row">
+    <div class="type-spec">JetBrains Mono · 14px · Weight 400 · Data &amp; technical</div>
+    <div style="font-size:14px;font-family:'JetBrains Mono',monospace;color:var(--forest)">5.6037°N, 0.1870°W · 14:32:07 UTC · Quality: 0.87 · Task #01HXK9NBRZ</div>
+  </div>
+</div>
+
+<!-- VOICE -->
+<div class="section">
+  <div class="section-label">05 — Brand voice</div>
+  <div class="section-title">Like a trusted friend who's also an engineer</div>
+  <div class="section-desc">Four pillars: direct, warm, grounded, brave. We say what we mean, care about people's money, prove with specifics, and name the problem directly.</div>
+
+  <div class="voice-grid">
+    <div class="voice-card">
+      <div class="voice-pill">Direct</div>
+      <div class="voice-example">"Your inspector is 12 minutes away."</div>
+      <div class="voice-bad">"Your verification request has been assigned to a qualified professional."</div>
+    </div>
+    <div class="voice-card">
+      <div class="voice-pill">Warm</div>
+      <div class="voice-example">"We know how hard you worked for this money."</div>
+      <div class="voice-bad">"Our platform ensures verification compliance standards."</div>
+    </div>
+    <div class="voice-card">
+      <div class="voice-pill">Grounded</div>
+      <div class="voice-example">"GPS-verified at 5.6°N, 0.2°W at 2:32 PM. 12 photos. Lintel stage."</div>
+      <div class="voice-bad">"Our advanced technology ensures the highest accuracy."</div>
+    </div>
+    <div class="voice-card">
+      <div class="voice-pill">Brave</div>
+      <div class="voice-example">"Contractor fraud costs diaspora families millions every year."</div>
+      <div class="voice-bad">"There are occasional challenges in remote project management."</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAGLINES -->
+<div class="section">
+  <div class="section-label">06 — Taglines</div>
+  <div class="section-title">Messages that stick</div>
+  <div class="section-desc">One primary tagline. Context-specific variants for every audience and channel.</div>
+
+  <div class="tagline-wall">
+    <div class="tagline-chip primary">Trust, verified.</div>
+    <div class="tagline-chip">See your house before you fly home.</div>
+    <div class="tagline-chip">Know it's real before you wire the money.</div>
+    <div class="tagline-chip">Your farm. Your eyes. Even from London.</div>
+    <div class="tagline-chip">Because WhatsApp photos aren't proof.</div>
+    <div class="tagline-chip">GPS-stamped. Escrow-backed. Fraud-checked.</div>
+    <div class="tagline-chip">The money moved. Now make sure the house does too.</div>
+    <div class="tagline-chip">Field truth for every loan, every claim.</div>
+    <div class="tagline-chip">Get paid to be someone's eyes on the ground.</div>
+  </div>
+</div>
+
+<!-- USE CASES -->
+<div class="section">
+  <div class="section-label">07 — Use cases</div>
+  <div class="section-title">Where the brand lives</div>
+
+  <div class="usecase-grid">
+    <div class="usecase-card">
+      <div class="usecase-preview" style="background:#022B1E">
+        <svg viewBox="0 0 512 512" width="120" height="120">
+          <rect width="512" height="512" rx="108" fill="#022B1E"/>
+          <g transform="translate(166,80) scale(1.5)">
+            <path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/>
+            <path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF" opacity="0.95"/>
+            <circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#022B1E"/>
+            <circle cx="54" cy="57" r="4" fill="#FFF" opacity="0.85"/>
+          </g>
+        </svg>
+      </div>
+      <div class="usecase-info">
+        <div class="usecase-title">App icon — Play Store / App Store</div>
+        <div class="usecase-desc">512×512 SVG. Deep Forest background, rounded corners. Scales to all icon sizes.</div>
+      </div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-preview" style="background:var(--ivory);padding:24px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:4px">
+        <div style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:var(--ink)">Maku Mazakpe</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:12px;color:var(--ash)">Founder, EyeOnSite</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--stone);margin-top:4px">maku@eyeonsite.com</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--stone)">+233 XX XXX XXXX</div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 120 160" width="14" height="18"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF"/><circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#022B1E"/></svg>
+          <span style="font-family:'DM Sans',sans-serif;font-size:11px;color:var(--forest);font-weight:500">eyeonsite.com</span>
+          <span style="font-family:'DM Sans',sans-serif;font-size:9px;letter-spacing:1px;color:var(--stone)">· TRUST, VERIFIED.</span>
+        </div>
+      </div>
+      <div class="usecase-info">
+        <div class="usecase-title">Email signature</div>
+        <div class="usecase-desc">Clean, professional. Pin icon + wordmark. JetBrains Mono for contact data.</div>
+      </div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-preview" style="background:var(--forest);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px">
+        <svg viewBox="0 0 200 200" width="60" height="60">
+          <circle cx="100" cy="100" r="96" fill="#FFF" opacity="0.15"/>
+          <g transform="translate(52,24) scale(0.8)">
+            <path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#FFF"/>
+            <path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#0B6E4F"/>
+            <circle cx="60" cy="62" r="16" fill="#FFF"/><circle cx="60" cy="62" r="8" fill="#0B6E4F"/>
+          </g>
+        </svg>
+        <div style="color:#FFF;font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:1px;opacity:0.7">@eyeonsite</div>
+      </div>
+      <div class="usecase-info">
+        <div class="usecase-title">Social avatar — X / LinkedIn / Instagram</div>
+        <div class="usecase-desc">Badge variant on Forest background. Clean at small sizes.</div>
+      </div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-preview" style="background:var(--deep);padding:32px;display:flex;flex-direction:column;justify-content:flex-end">
+        <div style="font-family:'DM Sans',sans-serif;font-size:22px;font-weight:700;color:#FFF;line-height:1.2;max-width:260px">See your house before you fly home.</div>
+        <div style="margin-top:12px;display:flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 120 160" width="12" height="16"><path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#34D399"/><path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#022B1E"/><circle cx="60" cy="62" r="16" fill="#34D399"/><circle cx="60" cy="62" r="8" fill="#022B1E"/></svg>
+          <span style="font-family:'DM Sans',sans-serif;font-size:12px;color:#34D399;font-weight:500">EyeOnSite</span>
+          <span style="font-family:'DM Sans',sans-serif;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:1px">TRUST, VERIFIED.</span>
+        </div>
+      </div>
+      <div class="usecase-info">
+        <div class="usecase-title">Social media header / banner</div>
+        <div class="usecase-desc">Dark background, hero tagline, signal green mark. For X, LinkedIn, Facebook cover.</div>
+      </div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-preview" style="background:var(--white);padding:24px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px">
+        <svg viewBox="0 0 160 160" width="60" height="60">
+          <circle cx="80" cy="80" r="76" fill="none" stroke="#0B6E4F" stroke-width="2"/>
+          <circle cx="80" cy="80" r="70" fill="none" stroke="#0B6E4F" stroke-width="0.5"/>
+          <circle cx="80" cy="80" r="66" fill="#0B6E4F" opacity="0.06"/>
+          <g transform="translate(52,22) scale(0.38)">
+            <path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#0B6E4F"/>
+            <path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#FFF"/>
+            <circle cx="60" cy="62" r="16" fill="#0B6E4F"/><circle cx="60" cy="62" r="8" fill="#FFF"/>
+          </g>
+          <path id="ta2" d="M24 80 A56 56 0 0 1 136 80" fill="none"/>
+          <text font-family="'DM Sans',sans-serif" font-size="9" font-weight="500" letter-spacing="3" fill="#0B6E4F"><textPath href="#ta2" startOffset="50%" text-anchor="middle">EYEONSITE</textPath></text>
+          <path id="ba2" d="M28 92 A56 56 0 0 0 132 92" fill="none"/>
+          <text font-family="'DM Sans',sans-serif" font-size="9" font-weight="500" letter-spacing="3" fill="#0B6E4F"><textPath href="#ba2" startOffset="50%" text-anchor="middle">VERIFIED</textPath></text>
+          <circle cx="24" cy="84" r="2" fill="#D4A843"/><circle cx="136" cy="84" r="2" fill="#D4A843"/>
+        </svg>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--stone)">Evidence Report Watermark</div>
+      </div>
+      <div class="usecase-info">
+        <div class="usecase-title">Verified stamp — evidence reports</div>
+        <div class="usecase-desc">Appears on every evidence report PDF. The seal of trust.</div>
+      </div>
+    </div>
+
+    <div class="usecase-card">
+      <div class="usecase-preview" style="background:var(--gold);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:20px">
+        <svg viewBox="0 0 120 160" width="40" height="54">
+          <path d="M60 4 C91 4,116 29,116 60 C116 91,60 152,60 152 C60 152,4 91,4 60 C4 29,29 4,60 4Z" fill="#FFF"/>
+          <path d="M26 62 Q60 32,94 62 Q60 92,26 62Z" fill="#D4A843"/>
+          <circle cx="60" cy="62" r="16" fill="#FFF"/><circle cx="60" cy="62" r="8" fill="#D4A843"/>
+        </svg>
+        <div style="font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;color:#3A2E0A;letter-spacing:1px">PREMIUM INSPECTOR</div>
+      </div>
+      <div class="usecase-info">
+        <div class="usecase-title">Gold variant — premium / expert tier</div>
+        <div class="usecase-desc">Used for Expert-tier inspector badges, premium task indicators, and special editions.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="brand-footer">
+  <strong>EyeOnSite</strong> · A Manti Labs product · Built in Accra 🇬🇭<br>
+  27 product docs · 6 brand docs · 14 logo SVGs · One mission: trust, verified.
+</div>
+
+</div>
+</body>
+</html>

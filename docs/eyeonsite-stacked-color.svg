@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <!-- EyeOnSite Stacked Lockup — Full Color -->
+  <!-- Pin mark centered -->
+  <g transform="translate(70, 10) scale(0.8)">
+    <path d="M60 4 C91 4, 116 29, 116 60 C116 91, 60 152, 60 152 C60 152, 4 91, 4 60 C4 29, 29 4, 60 4Z" fill="#0B6E4F"/>
+    <path d="M26 62 Q60 32, 94 62 Q60 92, 26 62Z" fill="#FFFFFF" opacity="0.95"/>
+    <circle cx="60" cy="62" r="16" fill="#0B6E4F"/>
+    <circle cx="60" cy="62" r="8" fill="#022B1E"/>
+    <circle cx="54" cy="57" r="4" fill="#FFFFFF" opacity="0.85"/>
+  </g>
+  <!-- Wordmark centered below -->
+  <text x="120" y="190" text-anchor="middle" font-family="'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="28" font-weight="500" letter-spacing="-0.3">
+    <tspan fill="#0B6E4F">Eye</tspan><tspan fill="#1A1A19">On</tspan><tspan fill="#0B6E4F">Site</tspan>
+  </text>
+  <!-- Tagline -->
+  <text x="120" y="212" text-anchor="middle" font-family="'DM Sans', 'Helvetica Neue', Arial, sans-serif" font-size="9" font-weight="400" letter-spacing="2" fill="#9C9A92">TRUST, VERIFIED.</text>
+</svg>

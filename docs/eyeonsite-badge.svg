@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- EyeOnSite Badge — Circle with white mark -->
+  <circle cx="100" cy="100" r="96" fill="#0B6E4F"/>
+  <g transform="translate(52, 24) scale(0.8)">
+    <path d="M60 4 C91 4, 116 29, 116 60 C116 91, 60 152, 60 152 C60 152, 4 91, 4 60 C4 29, 29 4, 60 4Z" fill="#FFFFFF"/>
+    <path d="M26 62 Q60 32, 94 62 Q60 92, 26 62Z" fill="#0B6E4F"/>
+    <circle cx="60" cy="62" r="16" fill="#FFFFFF"/>
+    <circle cx="60" cy="62" r="8" fill="#0B6E4F"/>
+  </g>
+</svg>

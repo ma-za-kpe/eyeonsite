@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 160" width="120" height="160">
+  <!-- EyeOnSite Logo Mark — Outline White -->
+  <path d="M60 4 C91 4, 116 29, 116 60 C116 91, 60 152, 60 152 C60 152, 4 91, 4 60 C4 29, 29 4, 60 4Z" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+  <path d="M26 62 Q60 32, 94 62 Q60 92, 26 62Z" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
+  <circle cx="60" cy="62" r="16" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
+  <circle cx="60" cy="62" r="6" fill="#FFFFFF"/>
+</svg>
