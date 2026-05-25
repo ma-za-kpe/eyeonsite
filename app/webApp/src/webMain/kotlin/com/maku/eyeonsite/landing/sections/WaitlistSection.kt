@@ -360,7 +360,7 @@ private fun WaitlistSuccess(role: WaitlistRole) {
         Text(
             text =
                 if (role == WaitlistRole.DIASPORA_CLIENT) {
-                    "We'll reach out as soon as Accra goes live — usually within the next few weeks."
+                    "We'll reach out as soon as EyeOnSite launches — usually within the next few weeks."
                 } else {
                     "We'll be in touch to start your inspector onboarding. Welcome to the team."
                 },
