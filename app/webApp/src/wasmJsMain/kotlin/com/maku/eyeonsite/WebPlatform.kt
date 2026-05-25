@@ -11,7 +11,10 @@ actual fun submitWaitlistEntry(
     onError("WASM: not supported")
 }
 
-actual fun currentPath(): String = "/"
+@JsFun("() => window.location.pathname")
+private external fun jsGetPathname(): String
+
+actual fun currentPath(): String = jsGetPathname()
 
 actual fun signInAdmin(
     email: String,
@@ -35,4 +38,7 @@ actual fun trackAnalyticsEvent(
     params: Map<String, String>,
 ) { /* no-op */ }
 
-actual fun navigateTo(path: String) { /* no-op */ }
+@JsFun("(path) => { window.location.href = path; }")
+private external fun jsSetHref(path: String)
+
+actual fun navigateTo(path: String) = jsSetHref(path)
