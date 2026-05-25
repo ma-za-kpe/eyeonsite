@@ -172,11 +172,16 @@ Open `app/iosApp` in Xcode and run.
 
 ```bash
 # Shared (KMP) unit tests
-./gradlew :app:shared:jsTest
-./gradlew :app:shared:testAndroidHostTest
+./gradlew :app:shared:testAndroid
 
 # Server tests
 ./gradlew :server:test
+
+# Full local validation used by the pre-commit hook and CI
+./gradlew spotlessCheck
+./gradlew detektAll
+./gradlew :app:androidApp:assembleDebug
+./gradlew :app:webApp:jsBrowserProductionWebpack
 ```
 
 ---
@@ -194,6 +199,7 @@ Full product documentation is in `docs/`. Start here:
 | [EOS-05](./docs/EOS-05-MANIFEST-SPECS.md) | All Kotlin data classes and Firestore rules |
 | [EOS-09](./docs/EOS-09-ROADMAP.md) | V0 → V5 roadmap |
 | [EOS-B1](./docs/EOS-B1-BRAND-IDENTITY.md) | Colors, fonts, logo, brand voice |
+| [EOS-A8](./docs/EOS-A8-INTEGRATION-MOCK-STRATEGY.md) | Stripe, Flutterwave, Firebase Analytics, and AI mock strategy |
 
 **For developers joining:** read `CLAUDE.md` first, then EOS-03 → EOS-04 → EOS-05.
 

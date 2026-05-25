@@ -1,40 +1,57 @@
-# Tooling — Tasks
+# Tooling - Tasks
+
+## Status Legend
+
+- [ ] Not started
+- [x] Complete
 
 ## Tasks
 
-### T1: Add Spotless + Detekt to version catalog
-- [ ] Add `spotless`, `detekt`, `ktlint` versions to `libs.versions.toml`
-- [ ] Add plugin aliases
+### T1: Add Spotless and Detekt to version catalog
 
-### T2: Wire plugins into root build.gradle.kts
-- [ ] Apply Spotless + Detekt plugins (apply false at root)
-- [ ] Register `detektAll` aggregate task
+- [x] Add `spotless`, `detekt`, and `ktlint` versions to `libs.versions.toml`
+- [x] Add plugin aliases
+
+### T2: Wire plugins into root `build.gradle.kts`
+
+- [x] Apply Spotless and Detekt plugins with `apply false` at root
+- [x] Register `detektAll` aggregate task
 
 ### T3: Configure Spotless in each module
-- [ ] `app/shared/build.gradle.kts`
-- [ ] `app/androidApp/build.gradle.kts`
-- [ ] `app/webApp/build.gradle.kts`
-- [ ] `core/build.gradle.kts`
+
+- [x] `app/shared/build.gradle.kts`
+- [x] `app/androidApp/build.gradle.kts`
+- [x] `app/webApp/build.gradle.kts`
+- [x] `core/build.gradle.kts`
 
 ### T4: Detekt config file
-- [ ] `config/detekt/detekt.yml` — rules config
-- [ ] `config/detekt/baseline.xml` — generated from existing code
+
+- [x] `config/detekt/detekt.yml` - rules config
+- [x] `config/detekt/baseline.xml` - generated baseline file
 
 ### T5: Pre-commit hook
-- [ ] `scripts/pre-commit.sh`
-- [ ] `scripts/install-hooks.sh`
 
-### T6: Release-please config
-- [ ] `release-please-config.json`
-- [ ] `.release-please-manifest.json`
-- [ ] `CHANGELOG.md` (initial)
+- [x] `scripts/pre-commit.sh`
+- [x] `scripts/install-hooks.sh`
+- [x] `.git/hooks/pre-commit` installed locally
+
+### T6: Release Please config
+
+- [x] `release-please-config.json`
+- [x] `.release-please-manifest.json`
+- [x] `CHANGELOG.md` initial entry
 
 ### T7: GitHub Actions CI workflow
-- [ ] `.github/workflows/ci.yml`
-- [ ] `.github/workflows/release-please.yml`
+
+- [x] `.github/workflows/ci.yml`
+- [x] `.github/workflows/release-please.yml`
 
 ### T8: Verify all checks pass
-- [ ] `./gradlew spotlessCheck` — green
-- [ ] `./gradlew detektAll` — green
-- [ ] `./gradlew :app:androidApp:assembleDebug` — green
-- [ ] `./gradlew :app:webApp:jsBrowserProductionWebpack` — green
+
+- [x] `./gradlew spotlessCheck`
+- [x] `./gradlew detektAll`
+- [x] `./gradlew :app:shared:testAndroid`
+- [x] `./gradlew :app:androidApp:assembleDebug`
+- [x] `./gradlew :app:webApp:jsBrowserProductionWebpack`
+- [x] `./gradlew :app:shared:compileKotlinMetadata :app:shared:compileAndroidMain :app:shared:compileKotlinJs`
+- [x] `./gradlew :server:test`

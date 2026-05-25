@@ -1,0 +1,94 @@
+# Platform Readiness - Tasks
+
+Status legend:
+- [ ] Not started
+- [~] In progress
+- [x] Complete
+
+## P0 - Restore A Green Foundation
+
+- [x] Capture audit findings in a consolidated task list.
+- [x] Fix Android/shared Firebase dependency wiring so `:app:androidApp:assembleDebug` compiles.
+- [x] Fix web landing dependencies so `:app:webApp:jsBrowserProductionWebpack` compiles.
+- [x] Wire the web entry point to a real landing page instead of the shared sign-in app.
+- [x] Fix `detektAll` so static analysis runs without Gradle configuration errors.
+- [x] Replace invalid pre-commit test command with an existing shared test task.
+- [x] Install the local Git pre-commit hook.
+- [x] Add Firebase Hosting security headers.
+- [x] Run and record `spotlessCheck`, `detektAll`, Android build, web build, shared tests, shared compile, and server tests.
+
+Validated on 2026-05-25:
+- `./gradlew spotlessCheck`
+- `./gradlew detektAll`
+- `./gradlew :app:shared:testAndroid`
+- `./gradlew :app:androidApp:assembleDebug`
+- `./gradlew :app:webApp:jsBrowserProductionWebpack`
+- `./gradlew :app:shared:compileKotlinMetadata :app:shared:compileAndroidMain :app:shared:compileKotlinJs`
+- `./gradlew :server:test`
+
+## P1 - Landing Page First
+
+- [x] Build `LandingPage.kt` as the web root with nav, scroll container, analytics on load, and section orchestration.
+- [x] Complete hero, problem, how-it-works, evidence preview, verticals, trust, pricing, and footer sections.
+- [x] Ensure every CTA emits `cta_clicked` with stable `cta_id` and `section`.
+- [x] Ensure each landing section emits `section_viewed` when displayed.
+- [ ] Replace web analytics console stub with Firebase Analytics JS or gtag integration.
+- [ ] Add responsive layouts for desktop/tablet/mobile.
+- [ ] Add visual QA screenshots for desktop and mobile before deploy.
+- [ ] Deploy Firebase Hosting only after build and checks are green.
+
+## P2 - Demo MVP Golden Path
+
+- [ ] Auth: real Firebase phone OTP, OTP code entry, auth state observer, sign out.
+- [ ] Auth: role selection persisted to `users/{uid}`.
+- [ ] Domain: add shared models for `User`, `Task`, `Inspector`, `EvidencePackage`, `Template`, and status enums.
+- [ ] Data: repository interfaces in shared common code.
+- [ ] Data: Firebase-backed Android implementations for Auth, Firestore, Storage, and FCM token registration.
+- [ ] Client: task dashboard with realtime Firestore listener.
+- [ ] Client: create task flow with map pin, construction template, instructions, and budget.
+- [ ] Client: task detail with realtime status, inspector profile, map, and evidence entry point.
+- [ ] Inspector: task map with location, nearby tasks, task sheet, and accept action.
+- [ ] Inspector: capture mode with CameraX, GPS status, required photo counter, angle guide, and thumbnails.
+- [ ] Inspector: checklist flow and evidence summary.
+- [ ] Evidence: upload photos to Cloud Storage and write `evidence/{id}`.
+- [ ] Evidence review: photo grid, GPS verification, checklist, quality score, inspector notes, accept action.
+- [ ] Demo payment: simulated escrow status changes only.
+- [ ] Notifications: new task, inspector matched, evidence ready, evidence accepted.
+- [ ] Seed data: construction template, sample inspectors, and sample tasks.
+- [ ] Firestore rules for the five demo collections.
+- [ ] Cloud Functions: `onTaskCreated`, `onEvidenceSubmitted`, `sendNotification`.
+- [ ] End-to-end demo test plan using two Android devices.
+
+## P3 - V1 Deferred Work
+
+- [x] Document external integration mock strategy for Stripe, Flutterwave, Firebase Analytics Web, and Cloud Vision AI.
+- [ ] Real escrow ledger and money movement via Stripe and Flutterwave.
+- [ ] Stripe test-mode adapter, webhook signature verification, and PaymentIntent fixtures.
+- [ ] Flutterwave test-mode adapter, transfer scenario keys, webhook/callback verification, and payout fixtures.
+- [ ] SQLDelight offline-first sync engine and pending upload queue.
+- [ ] Inspector onboarding: ID upload, liveness/selfie check, training, test task.
+- [ ] Cloud Vision quality scoring behind a replaceable interface.
+- [ ] Fraud pipeline: GPS spoof checks, EXIF verification, device attestation, perceptual hashes.
+- [ ] Dispute and revision workflows.
+- [ ] Rating and trust-score system.
+- [ ] Full inspector tier system.
+- [ ] iOS production hardening and AVFoundation/CoreLocation actuals.
+- [ ] Admin dashboard in Compose for Web.
+- [ ] Release validation: changelog, release-please, tagged builds, release notes, rollback plan.
+
+## Firebase Console Checklist
+
+- [ ] Enable Authentication and Phone provider.
+- [ ] Enable Cloud Firestore.
+- [ ] Enable Cloud Storage for Firebase.
+- [ ] Enable Cloud Functions for Firebase.
+- [ ] Enable Firebase Cloud Messaging.
+- [ ] Enable Firebase Hosting.
+- [ ] Enable Google Analytics for Firebase.
+- [ ] Enable Firebase App Check.
+- [ ] Enable Crashlytics.
+- [ ] Enable Performance Monitoring.
+- [ ] Enable Test Lab and App Distribution for mobile QA.
+- [ ] Enable Google Secret Manager for Stripe and Flutterwave secrets.
+- [ ] Enable Cloud Vision API for V1 evidence scoring.
+- [ ] Enable Google Maps Platform APIs needed by Android, iOS, and web.

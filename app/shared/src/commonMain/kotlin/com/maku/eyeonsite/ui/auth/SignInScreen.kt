@@ -38,16 +38,15 @@ import com.maku.eyeonsite.ui.theme.Stone
 import com.maku.eyeonsite.ui.theme.White
 
 @Composable
-fun SignInScreen(
-    onContinue: (phoneNumber: String) -> Unit = {},
-) {
+fun SignInScreen(onContinue: (phoneNumber: String) -> Unit = {}) {
     var phoneNumber by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(DeepForest)
-            .padding(horizontal = 24.dp),
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(DeepForest)
+                .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Spacer(Modifier.height(72.dp))
@@ -103,31 +102,34 @@ fun SignInScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             singleLine = true,
             shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = White,
-                unfocusedTextColor = White,
-                focusedBorderColor = Forest,
-                unfocusedBorderColor = Stone,
-                focusedLabelColor = Forest,
-                cursorColor = SavannaGold,
-            ),
+            colors =
+                OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = White,
+                    unfocusedTextColor = White,
+                    focusedBorderColor = Forest,
+                    unfocusedBorderColor = Stone,
+                    focusedLabelColor = Forest,
+                    cursorColor = SavannaGold,
+                ),
         )
 
         Spacer(Modifier.height(16.dp))
 
         Button(
             onClick = { onContinue(phoneNumber) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
             enabled = phoneNumber.length >= 10,
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Forest,
-                contentColor = White,
-                disabledContainerColor = Forest.copy(alpha = 0.4f),
-                disabledContentColor = White.copy(alpha = 0.5f),
-            ),
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = Forest,
+                    contentColor = White,
+                    disabledContainerColor = Forest.copy(alpha = 0.4f),
+                    disabledContentColor = White.copy(alpha = 0.5f),
+                ),
         ) {
             Text(
                 text = "Continue",
@@ -151,10 +153,11 @@ fun SignInScreen(
 @Composable
 private fun LogoMark() {
     Box(
-        modifier = Modifier
-            .size(72.dp)
-            .clip(CircleShape)
-            .background(Forest),
+        modifier =
+            Modifier
+                .size(72.dp)
+                .clip(CircleShape)
+                .background(Forest),
         contentAlignment = Alignment.Center,
     ) {
         Row(
@@ -162,8 +165,9 @@ private fun LogoMark() {
             horizontalArrangement = Arrangement.Center,
         ) {
             Text(
-                text = "👁",
+                text = "E",
                 style = MaterialTheme.typography.headlineMedium,
+                color = White,
             )
         }
     }
