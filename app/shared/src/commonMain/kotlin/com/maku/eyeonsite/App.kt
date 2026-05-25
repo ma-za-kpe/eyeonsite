@@ -3,6 +3,7 @@ package com.maku.eyeonsite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.maku.eyeonsite.ui.auth.AuthState
 import com.maku.eyeonsite.ui.auth.AuthViewModel
 import com.maku.eyeonsite.ui.auth.OtpScreen
@@ -10,12 +11,12 @@ import com.maku.eyeonsite.ui.auth.RoleSelectionScreen
 import com.maku.eyeonsite.ui.auth.SignInScreen
 import com.maku.eyeonsite.ui.home.HomeScreen
 import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
-import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.context.GlobalContext
 
 @Composable
 fun App() {
     EyeOnSiteTheme {
-        val vm: AuthViewModel = koinViewModel()
+        val vm: AuthViewModel = viewModel { GlobalContext.get().get() }
         val state by vm.state.collectAsState()
         val phone by vm.phone.collectAsState()
 
