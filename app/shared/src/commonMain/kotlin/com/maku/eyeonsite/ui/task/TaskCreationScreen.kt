@@ -31,12 +31,8 @@ import androidx.compose.ui.unit.dp
 import com.maku.eyeonsite.domain.TaskType
 import com.maku.eyeonsite.domain.VerificationTask
 import com.maku.eyeonsite.ui.theme.AlertCoral
-import com.maku.eyeonsite.ui.theme.DeepForest
+import com.maku.eyeonsite.ui.theme.AppVariant
 import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
-import com.maku.eyeonsite.ui.theme.Forest
-import com.maku.eyeonsite.ui.theme.SavannaGold
-import com.maku.eyeonsite.ui.theme.Stone
-import com.maku.eyeonsite.ui.theme.White
 
 @Composable
 fun TaskCreationScreen(
@@ -56,7 +52,7 @@ fun TaskCreationScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(DeepForest),
+                .background(MaterialTheme.colorScheme.background),
     ) {
         TopBar(title = "New Verification Task", onBack = onBack)
 
@@ -140,7 +136,7 @@ fun TaskCreationScreen(
                     Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Forest)
+                        .background(MaterialTheme.colorScheme.primary)
                         .clickable {
                             submitted = true
                             val type = selectedType
@@ -159,7 +155,7 @@ fun TaskCreationScreen(
                 Text(
                     text = "Find Inspectors",
                     style = MaterialTheme.typography.labelLarge,
-                    color = White,
+                    color = MaterialTheme.colorScheme.onPrimary,
                 )
             }
 
@@ -175,14 +171,16 @@ private fun TaskTypeCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
+    val accentColor = MaterialTheme.colorScheme.secondary
+
     Column(
         modifier =
             modifier
                 .clip(RoundedCornerShape(10.dp))
-                .background(if (selected) SavannaGold.copy(alpha = 0.12f) else White.copy(alpha = 0.04f))
+                .background(if (selected) accentColor.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
                 .border(
                     width = if (selected) 1.5.dp else 1.dp,
-                    color = if (selected) SavannaGold else White.copy(alpha = 0.15f),
+                    color = if (selected) accentColor else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                     shape = RoundedCornerShape(10.dp),
                 ).clickable { onClick() }
                 .padding(14.dp),
@@ -191,12 +189,12 @@ private fun TaskTypeCard(
         Text(
             text = type.label,
             style = MaterialTheme.typography.labelLarge,
-            color = if (selected) SavannaGold else White,
+            color = if (selected) accentColor else MaterialTheme.colorScheme.onSurface,
         )
         Text(
             text = type.shortDescription,
             style = MaterialTheme.typography.bodySmall,
-            color = Stone,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -218,18 +216,18 @@ private fun TaskField(
             value = value,
             onValueChange = onValueChange,
             singleLine = singleLine,
-            textStyle = MaterialTheme.typography.bodyMedium.copy(color = White),
-            cursorBrush = SolidColor(SavannaGold),
+            textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.secondary),
             decorationBox = { inner ->
                 Box(
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(8.dp))
-                            .background(White.copy(alpha = 0.06f))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                             .border(
                                 width = 1.dp,
-                                color = if (isError) AlertCoral else White.copy(alpha = 0.15f),
+                                color = if (isError) AlertCoral else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
                                 shape = RoundedCornerShape(8.dp),
                             ).padding(horizontal = 14.dp, vertical = 14.dp),
                 ) {
@@ -237,7 +235,7 @@ private fun TaskField(
                         Text(
                             text = hint,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Stone.copy(alpha = 0.6f),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         )
                     }
                     inner()
@@ -258,7 +256,7 @@ private fun SectionLabel(
     Text(
         text = text,
         style = MaterialTheme.typography.labelMedium,
-        color = if (isError) AlertCoral else Stone,
+        color = if (isError) AlertCoral else MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 
@@ -288,7 +286,7 @@ internal fun TopBar(
             Text(
                 text = "←",
                 style = MaterialTheme.typography.titleLarge,
-                color = White,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier =
                     Modifier
                         .clickable { onBack() }
@@ -297,7 +295,7 @@ internal fun TopBar(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                color = White,
+                color = MaterialTheme.colorScheme.onBackground,
             )
         }
         Box(
@@ -305,24 +303,39 @@ internal fun TopBar(
                 Modifier
                     .fillMaxWidth()
                     .height(1.dp)
-                    .background(White.copy(alpha = 0.1f)),
+                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
         )
     }
 }
 
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
-fun TaskCreationScreenEmptyPreview() {
-    EyeOnSiteTheme {
+fun TaskCreationScreenClientLightPreview() {
+    EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = false) {
         TaskCreationScreen(onBack = {}, onTaskCreated = {})
     }
 }
 
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
-fun TaskCreationScreenWithTypePreview() {
-    EyeOnSiteTheme {
-        // Simulate: type selected, fields filled
+fun TaskCreationScreenClientDarkPreview() {
+    EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = true) {
+        TaskCreationScreen(onBack = {}, onTaskCreated = {})
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun TaskCreationScreenInspectorLightPreview() {
+    EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = false) {
+        TaskCreationScreen(onBack = {}, onTaskCreated = {})
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun TaskCreationScreenInspectorDarkPreview() {
+    EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = true) {
         TaskCreationScreen(onBack = {}, onTaskCreated = {})
     }
 }
