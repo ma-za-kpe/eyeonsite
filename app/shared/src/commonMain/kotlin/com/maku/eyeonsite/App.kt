@@ -8,6 +8,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.maku.eyeonsite.domain.EvidencePhoto
+import com.maku.eyeonsite.domain.TaskStatus
+import com.maku.eyeonsite.domain.TaskType
+import com.maku.eyeonsite.domain.UploadStatus
 import com.maku.eyeonsite.domain.UserRole
 import com.maku.eyeonsite.domain.VerificationTask
 import com.maku.eyeonsite.ui.auth.AuthState
@@ -20,6 +24,8 @@ import com.maku.eyeonsite.ui.evidence.EvidenceCaptureViewModel
 import com.maku.eyeonsite.ui.home.HomeScreen
 import com.maku.eyeonsite.ui.map.InspectorTaskMapScreen
 import com.maku.eyeonsite.ui.map.TaskMapViewModel
+import com.maku.eyeonsite.ui.review.EvidenceReviewScreen
+import com.maku.eyeonsite.ui.review.EvidenceReviewViewModel
 import com.maku.eyeonsite.ui.settings.SettingsScreen
 import com.maku.eyeonsite.ui.settings.SettingsViewModel
 import com.maku.eyeonsite.ui.task.InspectorMatchingScreen
@@ -28,6 +34,43 @@ import com.maku.eyeonsite.ui.theme.AppVariant
 import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
 import com.maku.eyeonsite.ui.theme.ThemeMode
 import org.koin.core.context.GlobalContext
+
+private val MOCK_REVIEW_TASK =
+    VerificationTask(
+        id = "mock-review-001",
+        type = TaskType.CONSTRUCTION,
+        location = "East Legon, Accra",
+        description = "Verify floor slab and column placement on floors 3–5",
+        status = TaskStatus.EVIDENCE_SUBMITTED,
+    )
+
+private val MOCK_REVIEW_PHOTOS =
+    listOf(
+        EvidencePhoto(
+            id = "photo-001",
+            taskId = "mock-review-001",
+            latitude = 5.6037,
+            longitude = -0.1870,
+            capturedAtMs = 1_748_000_000_000L,
+            uploadStatus = UploadStatus.UPLOADED,
+        ),
+        EvidencePhoto(
+            id = "photo-002",
+            taskId = "mock-review-001",
+            latitude = 5.6038,
+            longitude = -0.1871,
+            capturedAtMs = 1_748_000_060_000L,
+            uploadStatus = UploadStatus.UPLOADED,
+        ),
+        EvidencePhoto(
+            id = "photo-003",
+            taskId = "mock-review-001",
+            latitude = 5.6039,
+            longitude = -0.1872,
+            capturedAtMs = 1_748_000_120_000L,
+            uploadStatus = UploadStatus.UPLOADED,
+        ),
+    )
 
 private sealed class AppScreen {
     data object Home : AppScreen()
@@ -42,6 +85,11 @@ private sealed class AppScreen {
         val task: VerificationTask,
     ) : AppScreen()
 
+    data class ReviewEvidence(
+        val task: VerificationTask,
+        val photos: List<EvidencePhoto>,
+    ) : AppScreen()
+
     data object Settings : AppScreen()
 }
 
@@ -51,6 +99,7 @@ fun App() {
     val settingsVm: SettingsViewModel = viewModel { GlobalContext.get().get() }
     val evidenceVm: EvidenceCaptureViewModel = viewModel { GlobalContext.get().get() }
     val mapVm: TaskMapViewModel = viewModel { GlobalContext.get().get() }
+    val reviewVm: EvidenceReviewViewModel = viewModel { GlobalContext.get().get() }
 
     val authState by authVm.state.collectAsState()
     val phone by authVm.phone.collectAsState()
@@ -128,6 +177,9 @@ fun App() {
                                 role = s.role,
                                 onCreateTask = { appScreen = AppScreen.CreateTask },
                                 onSettings = { appScreen = AppScreen.Settings },
+                                onReviewEvidence = {
+                                    appScreen = AppScreen.ReviewEvidence(MOCK_REVIEW_TASK, MOCK_REVIEW_PHOTOS)
+                                },
                             )
                         }
 
@@ -150,6 +202,15 @@ fun App() {
                             vm = evidenceVm,
                             onBack = { appScreen = AppScreen.MatchInspectors(screen.task) },
                             onSubmitted = { appScreen = AppScreen.Home },
+                        )
+
+                    is AppScreen.ReviewEvidence ->
+                        EvidenceReviewScreen(
+                            vm = reviewVm,
+                            task = screen.task,
+                            photos = screen.photos,
+                            onBack = { appScreen = AppScreen.Home },
+                            onReviewSubmitted = { appScreen = AppScreen.Home },
                         )
 
                     AppScreen.Settings ->

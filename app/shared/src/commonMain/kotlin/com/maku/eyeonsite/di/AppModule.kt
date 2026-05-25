@@ -9,6 +9,9 @@ import com.maku.eyeonsite.ui.evidence.EvidenceUploader
 import com.maku.eyeonsite.ui.evidence.NoOpEvidenceUploader
 import com.maku.eyeonsite.ui.map.NearbyTaskRepository
 import com.maku.eyeonsite.ui.map.TaskMapViewModel
+import com.maku.eyeonsite.ui.review.EvidenceReviewViewModel
+import com.maku.eyeonsite.ui.review.EvidenceReviewer
+import com.maku.eyeonsite.ui.review.NoOpEvidenceReviewer
 import com.maku.eyeonsite.ui.settings.SettingsViewModel
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -22,6 +25,8 @@ val authModule =
         factory { EvidenceCaptureViewModel(get()) }
         factory<NearbyTaskRepository> { MockNearbyTaskRepository() }
         factory { TaskMapViewModel(get()) }
+        factory<EvidenceReviewer> { NoOpEvidenceReviewer() }
+        factory { EvidenceReviewViewModel(get()) }
     }
 
 expect val analyticsModule: Module
