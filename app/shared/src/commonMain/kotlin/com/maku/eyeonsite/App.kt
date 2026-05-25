@@ -18,6 +18,8 @@ import com.maku.eyeonsite.ui.auth.SignInScreen
 import com.maku.eyeonsite.ui.evidence.EvidenceCaptureScreen
 import com.maku.eyeonsite.ui.evidence.EvidenceCaptureViewModel
 import com.maku.eyeonsite.ui.home.HomeScreen
+import com.maku.eyeonsite.ui.map.InspectorTaskMapScreen
+import com.maku.eyeonsite.ui.map.TaskMapViewModel
 import com.maku.eyeonsite.ui.settings.SettingsScreen
 import com.maku.eyeonsite.ui.settings.SettingsViewModel
 import com.maku.eyeonsite.ui.task.InspectorMatchingScreen
@@ -48,6 +50,7 @@ fun App() {
     val authVm: AuthViewModel = viewModel { GlobalContext.get().get() }
     val settingsVm: SettingsViewModel = viewModel { GlobalContext.get().get() }
     val evidenceVm: EvidenceCaptureViewModel = viewModel { GlobalContext.get().get() }
+    val mapVm: TaskMapViewModel = viewModel { GlobalContext.get().get() }
 
     val authState by authVm.state.collectAsState()
     val phone by authVm.phone.collectAsState()
@@ -105,11 +108,28 @@ fun App() {
             is AuthState.Authenticated ->
                 when (val screen = appScreen) {
                     AppScreen.Home ->
-                        HomeScreen(
-                            role = s.role,
-                            onCreateTask = { appScreen = AppScreen.CreateTask },
-                            onSettings = { appScreen = AppScreen.Settings },
-                        )
+                        if (s.role == UserRole.INSPECTOR) {
+                            InspectorTaskMapScreen(
+                                vm = mapVm,
+                                onAcceptTask = { nearbyTask ->
+                                    appScreen =
+                                        AppScreen.CaptureEvidence(
+                                            VerificationTask(
+                                                id = nearbyTask.id,
+                                                type = nearbyTask.type,
+                                                location = nearbyTask.location,
+                                                description = nearbyTask.description,
+                                            ),
+                                        )
+                                },
+                            )
+                        } else {
+                            HomeScreen(
+                                role = s.role,
+                                onCreateTask = { appScreen = AppScreen.CreateTask },
+                                onSettings = { appScreen = AppScreen.Settings },
+                            )
+                        }
 
                     AppScreen.CreateTask ->
                         TaskCreationScreen(

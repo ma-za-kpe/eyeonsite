@@ -84,6 +84,8 @@ kotlin {
             implementation(libs.camerax.view)
             implementation(libs.accompanist.permissions)
             implementation(libs.play.services.location)
+            implementation(libs.maps.compose)
+            implementation(libs.play.services.maps)
         }
         commonMain.dependencies {
             api(projects.core)
