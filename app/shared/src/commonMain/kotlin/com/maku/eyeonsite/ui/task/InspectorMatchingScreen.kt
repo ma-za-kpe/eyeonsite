@@ -26,13 +26,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.maku.eyeonsite.domain.TaskType
 import com.maku.eyeonsite.domain.VerificationTask
-import com.maku.eyeonsite.ui.theme.DeepForest
+import com.maku.eyeonsite.ui.theme.AppVariant
 import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
-import com.maku.eyeonsite.ui.theme.Forest
 import com.maku.eyeonsite.ui.theme.SavannaGold
 import com.maku.eyeonsite.ui.theme.SignalGreen
-import com.maku.eyeonsite.ui.theme.Stone
-import com.maku.eyeonsite.ui.theme.White
 
 private const val AVATAR_SIZE_DP = 48
 private const val TASK_DESCRIPTION_MAX_LINES = 2
@@ -63,7 +60,7 @@ fun InspectorMatchingScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(DeepForest),
+                .background(MaterialTheme.colorScheme.background),
     ) {
         TopBar(title = "Available Inspectors", onBack = onBack)
 
@@ -80,7 +77,7 @@ fun InspectorMatchingScreen(
             Text(
                 text = "Inspectors near ${task.location}",
                 style = MaterialTheme.typography.labelMedium,
-                color = Stone,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
             MOCK_INSPECTORS.forEach { inspector ->
@@ -99,8 +96,8 @@ private fun TaskSummaryCard(task: VerificationTask) {
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
-                .background(Forest.copy(alpha = 0.2f))
-                .border(1.dp, Forest, RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
                 .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -124,13 +121,13 @@ private fun TaskSummaryCard(task: VerificationTask) {
             Text(
                 text = task.location,
                 style = MaterialTheme.typography.bodySmall,
-                color = Stone,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Text(
             text = task.description,
             style = MaterialTheme.typography.bodyMedium,
-            color = White,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = TASK_DESCRIPTION_MAX_LINES,
         )
     }
@@ -143,8 +140,8 @@ private fun InspectorCard(inspector: MockInspector) {
             Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(10.dp))
-                .background(White.copy(alpha = 0.05f))
-                .border(1.dp, White.copy(alpha = 0.12f), RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(10.dp))
                 .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -154,13 +151,13 @@ private fun InspectorCard(inspector: MockInspector) {
                 Modifier
                     .size(AVATAR_SIZE_DP.dp)
                     .clip(CircleShape)
-                    .background(Forest),
+                    .background(MaterialTheme.colorScheme.primary),
             contentAlignment = Alignment.Center,
         ) {
             Text(
                 text = inspector.initials,
                 style = MaterialTheme.typography.labelMedium,
-                color = White,
+                color = MaterialTheme.colorScheme.onPrimary,
             )
         }
 
@@ -175,7 +172,7 @@ private fun InspectorCard(inspector: MockInspector) {
                 Text(
                     text = inspector.name,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = White,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Box(
                     modifier =
@@ -200,18 +197,18 @@ private fun InspectorCard(inspector: MockInspector) {
                 Text(
                     text = inspector.distance,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Stone,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     text = inspector.responseTime,
                     style = MaterialTheme.typography.bodySmall,
-                    color = Stone,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Text(
                 text = "${inspector.tasksCompleted} tasks completed",
                 style = MaterialTheme.typography.bodySmall,
-                color = Stone,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
 
@@ -219,14 +216,14 @@ private fun InspectorCard(inspector: MockInspector) {
             modifier =
                 Modifier
                     .clip(RoundedCornerShape(6.dp))
-                    .background(Forest)
+                    .background(MaterialTheme.colorScheme.primary)
                     .clickable { }
                     .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
             Text(
                 text = "Assign",
                 style = MaterialTheme.typography.labelMedium,
-                color = White,
+                color = MaterialTheme.colorScheme.onPrimary,
             )
         }
     }
@@ -234,8 +231,8 @@ private fun InspectorCard(inspector: MockInspector) {
 
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
-fun InspectorMatchingScreenPreview() {
-    EyeOnSiteTheme {
+fun InspectorMatchingScreenClientLightPreview() {
+    EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = false) {
         InspectorMatchingScreen(
             task =
                 VerificationTask(
@@ -250,8 +247,40 @@ fun InspectorMatchingScreenPreview() {
 
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
-fun InspectorMatchingScreenFarmPreview() {
-    EyeOnSiteTheme {
+fun InspectorMatchingScreenClientDarkPreview() {
+    EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = true) {
+        InspectorMatchingScreen(
+            task =
+                VerificationTask(
+                    type = TaskType.CONSTRUCTION,
+                    location = "East Legon, Accra",
+                    description = "Confirm the third floor slab has been poured and columns are in place",
+                ),
+            onBack = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun InspectorMatchingScreenInspectorDarkPreview() {
+    EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = true) {
+        InspectorMatchingScreen(
+            task =
+                VerificationTask(
+                    type = TaskType.FARM,
+                    location = "Kumasi, Ghana",
+                    description = "Verify 5-acre cocoa farm — confirm maturity stage and tree count",
+                ),
+            onBack = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun InspectorMatchingScreenInspectorLightPreview() {
+    EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = false) {
         InspectorMatchingScreen(
             task =
                 VerificationTask(
