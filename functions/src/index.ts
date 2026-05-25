@@ -33,7 +33,7 @@ export const notifyWaitlistSignup = onDocumentCreated(
   {
     document: "waitlist/{docId}",
     secrets: ["GMAIL_APP_PASSWORD"],
-    region: "us-central1",
+    region: "africa-south1",
   },
   async (event) => {
     const rawData = event.data?.data();

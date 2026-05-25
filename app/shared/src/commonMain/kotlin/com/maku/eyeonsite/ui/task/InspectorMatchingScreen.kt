@@ -55,6 +55,7 @@ private val MOCK_INSPECTORS =
 fun InspectorMatchingScreen(
     task: VerificationTask,
     onBack: () -> Unit,
+    onAssign: () -> Unit = {},
 ) {
     Column(
         modifier =
@@ -81,7 +82,7 @@ fun InspectorMatchingScreen(
             )
 
             MOCK_INSPECTORS.forEach { inspector ->
-                InspectorCard(inspector)
+                InspectorCard(inspector, onAssign = onAssign)
             }
 
             Spacer(Modifier.height(24.dp))
@@ -134,7 +135,10 @@ private fun TaskSummaryCard(task: VerificationTask) {
 }
 
 @Composable
-private fun InspectorCard(inspector: MockInspector) {
+private fun InspectorCard(
+    inspector: MockInspector,
+    onAssign: () -> Unit,
+) {
     Row(
         modifier =
             Modifier
@@ -217,7 +221,7 @@ private fun InspectorCard(inspector: MockInspector) {
                 Modifier
                     .clip(RoundedCornerShape(6.dp))
                     .background(MaterialTheme.colorScheme.primary)
-                    .clickable { }
+                    .clickable { onAssign() }
                     .padding(horizontal = 14.dp, vertical = 10.dp),
         ) {
             Text(

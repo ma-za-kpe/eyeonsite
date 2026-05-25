@@ -15,6 +15,8 @@ import com.maku.eyeonsite.ui.auth.AuthViewModel
 import com.maku.eyeonsite.ui.auth.OtpScreen
 import com.maku.eyeonsite.ui.auth.RoleSelectionScreen
 import com.maku.eyeonsite.ui.auth.SignInScreen
+import com.maku.eyeonsite.ui.evidence.EvidenceCaptureScreen
+import com.maku.eyeonsite.ui.evidence.EvidenceCaptureViewModel
 import com.maku.eyeonsite.ui.home.HomeScreen
 import com.maku.eyeonsite.ui.settings.SettingsScreen
 import com.maku.eyeonsite.ui.settings.SettingsViewModel
@@ -34,6 +36,10 @@ private sealed class AppScreen {
         val task: VerificationTask,
     ) : AppScreen()
 
+    data class CaptureEvidence(
+        val task: VerificationTask,
+    ) : AppScreen()
+
     data object Settings : AppScreen()
 }
 
@@ -41,6 +47,7 @@ private sealed class AppScreen {
 fun App() {
     val authVm: AuthViewModel = viewModel { GlobalContext.get().get() }
     val settingsVm: SettingsViewModel = viewModel { GlobalContext.get().get() }
+    val evidenceVm: EvidenceCaptureViewModel = viewModel { GlobalContext.get().get() }
 
     val authState by authVm.state.collectAsState()
     val phone by authVm.phone.collectAsState()
@@ -114,6 +121,15 @@ fun App() {
                         InspectorMatchingScreen(
                             task = screen.task,
                             onBack = { appScreen = AppScreen.CreateTask },
+                            onAssign = { appScreen = AppScreen.CaptureEvidence(screen.task) },
+                        )
+
+                    is AppScreen.CaptureEvidence ->
+                        EvidenceCaptureScreen(
+                            task = screen.task,
+                            vm = evidenceVm,
+                            onBack = { appScreen = AppScreen.MatchInspectors(screen.task) },
+                            onSubmitted = { appScreen = AppScreen.Home },
                         )
 
                     AppScreen.Settings ->
