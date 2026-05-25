@@ -78,6 +78,12 @@ kotlin {
             implementation(libs.firebase.analytics)
             implementation(libs.firebase.auth)
             implementation(libs.koin.android)
+            implementation(libs.camerax.core)
+            implementation(libs.camerax.camera2)
+            implementation(libs.camerax.lifecycle)
+            implementation(libs.camerax.view)
+            implementation(libs.accompanist.permissions)
+            implementation(libs.play.services.location)
         }
         commonMain.dependencies {
             api(projects.core)
@@ -91,10 +97,12 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.koin.core)
+            implementation(libs.kotlinx.datetime)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.turbine)
         }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)
