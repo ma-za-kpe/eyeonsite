@@ -4,6 +4,23 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.detekt)
+}
+
+spotless {
+    kotlin {
+        target("src/**/*.kt")
+        ktlint(libs.versions.ktlint.get())
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}
+
+detekt {
+    config.setFrom(rootProject.files("config/detekt/detekt.yml"))
+    baseline = rootProject.file("config/detekt/baseline.xml")
+    buildUponDefaultConfig = true
 }
 
 kotlin {

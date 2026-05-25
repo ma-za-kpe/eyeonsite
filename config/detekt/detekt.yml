@@ -1,0 +1,53 @@
+build:
+  maxIssues: 0
+
+config:
+  validation: true
+  warningsAsErrors: false
+
+complexity:
+  ComplexMethod:
+    threshold: 15
+  LongMethod:
+    threshold: 60
+  LongParameterList:
+    functionThreshold: 8
+    constructorThreshold: 8
+  TooManyFunctions:
+    thresholdInFiles: 20
+    thresholdInClasses: 15
+
+style:
+  MaxLineLength:
+    maxLineLength: 120
+    excludeCommentStatements: true
+  WildcardImport:
+    excludeImports:
+      - 'androidx.compose.foundation.layout.*'
+      - 'androidx.compose.material3.*'
+      - 'androidx.compose.ui.*'
+      - 'org.jetbrains.compose.ui.*'
+  MagicNumber:
+    ignoreNumbers:
+      - '-1'
+      - '0'
+      - '1'
+      - '2'
+      - '100'
+    ignoreAnnotated:
+      - 'Preview'
+      - 'Composable'
+
+naming:
+  FunctionNaming:
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+    excludes: ['**/ui/**']
+
+comments:
+  UndocumentedPublicClass:
+    active: false
+  UndocumentedPublicFunction:
+    active: false
+
+formatting:
+  active: false  # handled by Spotless/ktlint
