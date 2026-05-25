@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.maku.eyeonsite.analytics.FirebaseAnalyticsService
 import com.maku.eyeonsite.ui.auth.ActivityHolder
 
 class MainActivity : ComponentActivity() {
@@ -14,9 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         ActivityHolder.activity = this
-        setContent {
-            App(analytics = FirebaseAnalyticsService(this))
-        }
+        setContent { App() }
     }
 
     override fun onDestroy() {
@@ -28,5 +25,8 @@ class MainActivity : ComponentActivity() {
 @Preview
 @Composable
 fun AppAndroidPreview() {
-    App()
+    com.maku.eyeonsite.ui.theme.EyeOnSiteTheme {
+        com.maku.eyeonsite.ui.auth
+            .SignInScreen()
+    }
 }

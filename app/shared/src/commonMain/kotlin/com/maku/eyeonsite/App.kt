@@ -3,21 +3,19 @@ package com.maku.eyeonsite
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.maku.eyeonsite.analytics.AnalyticsService
 import com.maku.eyeonsite.ui.auth.AuthState
 import com.maku.eyeonsite.ui.auth.AuthViewModel
 import com.maku.eyeonsite.ui.auth.OtpScreen
 import com.maku.eyeonsite.ui.auth.RoleSelectionScreen
 import com.maku.eyeonsite.ui.auth.SignInScreen
-import com.maku.eyeonsite.ui.auth.createFirebaseAuthProvider
 import com.maku.eyeonsite.ui.home.HomeScreen
 import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun App(analytics: AnalyticsService = NoOpAnalyticsService) {
+fun App() {
     EyeOnSiteTheme {
-        val vm: AuthViewModel = viewModel { AuthViewModel(createFirebaseAuthProvider(), analytics) }
+        val vm: AuthViewModel = koinViewModel()
         val state by vm.state.collectAsState()
         val phone by vm.phone.collectAsState()
 
@@ -52,13 +50,4 @@ fun App(analytics: AnalyticsService = NoOpAnalyticsService) {
             is AuthState.Authenticated -> HomeScreen(role = s.role)
         }
     }
-}
-
-private object NoOpAnalyticsService : AnalyticsService {
-    override fun logEvent(
-        name: String,
-        params: Map<String, String>,
-    ) = Unit
-
-    override fun logScreenView(screenName: String) = Unit
 }
