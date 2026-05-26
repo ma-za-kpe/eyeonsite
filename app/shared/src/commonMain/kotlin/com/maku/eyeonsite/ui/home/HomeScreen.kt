@@ -29,6 +29,7 @@ fun HomeScreen(
     role: UserRole,
     onCreateTask: () -> Unit = {},
     onSettings: () -> Unit = {},
+    onViewDashboard: () -> Unit = {},
     onReviewEvidence: () -> Unit = {},
 ) {
     Column(
@@ -87,6 +88,40 @@ fun HomeScreen(
                         text = "Hire a local inspector to verify your property, construction, or business",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                    )
+                }
+            }
+
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                        .clickable { onViewDashboard() }
+                        .padding(horizontal = 24.dp, vertical = 20.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = "My Tasks",
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = "View active tasks, escrow, and history",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        )
+                    }
+                    Text(
+                        text = ">",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
