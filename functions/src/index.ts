@@ -8,6 +8,7 @@ export { onTaskCreated } from "./matching/onTaskCreated";
 export { acceptTask } from "./matching/acceptTask";
 export { expireStaleTasks } from "./matching/expireTasks";
 export { onEvidenceSubmitted } from "./evidence/onEvidenceSubmitted";
+export { fundTask, releaseEscrow } from "./escrow/escrow";
 export { seedFirestore } from "./seed/seedFirestore";
 
 // HTML-escape for email templates. Prevents XSS in notification emails.
