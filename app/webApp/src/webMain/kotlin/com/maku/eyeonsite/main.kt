@@ -26,7 +26,7 @@ private object WebAnalytics : AnalyticsService {
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    ComposeViewport {
+    ComposeViewport("ComposeTarget") {
         EyeOnSiteTheme {
             when (currentPath()) {
                 "/mazakpe" -> AdminPage()

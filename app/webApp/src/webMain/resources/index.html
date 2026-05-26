@@ -54,16 +54,28 @@
       gtag('js', new Date());
       gtag('config', 'G-J1X286KNHJ', { 'send_page_view': false });
     </script>
+
+    <!--
+      Skiko WebGL fix: force failIfMajorPerformanceCaveat=false so WebGL
+      initialises even when hardware acceleration is unavailable (software
+      renderer fallback). Must run before webApp.js loads.
+    -->
+    <script>
+      (function () {
+        var _orig = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function (type, attrs) {
+          if (type === 'webgl2' || type === 'webgl') {
+            return _orig.call(this, type, Object.assign({}, attrs || {}, {
+              failIfMajorPerformanceCaveat: false
+            }));
+          }
+          return _orig.call(this, type, attrs);
+        };
+      })();
+    </script>
 </head>
 <body>
-    <svg class="loading-mark" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 50 50" role="presentation">
-        <circle cx="25" cy="25" r="20" stroke="#0B6E4F" stroke-width="3" fill="none" opacity="0.3"/>
-        <circle cx="25" cy="25" r="20" stroke="#0B6E4F" stroke-width="3" fill="none" stroke-linecap="round"
-                stroke-dasharray="90 125">
-            <animateTransform attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="1s"
-                              repeatCount="indefinite"/>
-        </circle>
-    </svg>
+    <canvas id="ComposeTarget"></canvas>
     <script type="application/javascript" src="webApp.js"></script>
 </body>
 </html>

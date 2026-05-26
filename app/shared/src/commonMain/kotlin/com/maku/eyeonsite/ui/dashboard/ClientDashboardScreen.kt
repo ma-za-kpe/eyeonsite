@@ -399,6 +399,9 @@ private fun TaskStatus.displayLabel(): String =
         TaskStatus.ACCEPTED -> "Accepted"
         TaskStatus.DISPUTED -> "Disputed"
         TaskStatus.REVISION_REQUESTED -> "Revision Needed"
+        TaskStatus.CANCELLED -> "Cancelled"
+        TaskStatus.EXPIRED -> "Expired"
+        TaskStatus.AUTO_ACCEPTED -> "Auto-Accepted"
     }
 
 @Composable
@@ -416,6 +419,9 @@ private fun TaskStatus.statusColor(): Color =
         TaskStatus.DISPUTED -> AlertCoral
         TaskStatus.DRAFT,
         TaskStatus.POSTED,
+        TaskStatus.CANCELLED,
+        TaskStatus.EXPIRED,
+        TaskStatus.AUTO_ACCEPTED,
         -> Stone
     }
 
