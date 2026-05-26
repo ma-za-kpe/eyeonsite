@@ -19,6 +19,8 @@ import com.maku.eyeonsite.ui.auth.AuthViewModel
 import com.maku.eyeonsite.ui.auth.OtpScreen
 import com.maku.eyeonsite.ui.auth.RoleSelectionScreen
 import com.maku.eyeonsite.ui.auth.SignInScreen
+import com.maku.eyeonsite.ui.dashboard.ClientDashboardScreen
+import com.maku.eyeonsite.ui.dashboard.ClientDashboardViewModel
 import com.maku.eyeonsite.ui.evidence.EvidenceCaptureScreen
 import com.maku.eyeonsite.ui.evidence.EvidenceCaptureViewModel
 import com.maku.eyeonsite.ui.home.HomeScreen
@@ -90,6 +92,8 @@ private sealed class AppScreen {
         val photos: List<EvidencePhoto>,
     ) : AppScreen()
 
+    data object ClientDashboard : AppScreen()
+
     data object Settings : AppScreen()
 }
 
@@ -100,6 +104,7 @@ fun App() {
     val evidenceVm: EvidenceCaptureViewModel = viewModel { GlobalContext.get().get() }
     val mapVm: TaskMapViewModel = viewModel { GlobalContext.get().get() }
     val reviewVm: EvidenceReviewViewModel = viewModel { GlobalContext.get().get() }
+    val dashboardVm: ClientDashboardViewModel = viewModel { GlobalContext.get().get() }
 
     val authState by authVm.state.collectAsState()
     val phone by authVm.phone.collectAsState()
@@ -177,11 +182,20 @@ fun App() {
                                 role = s.role,
                                 onCreateTask = { appScreen = AppScreen.CreateTask },
                                 onSettings = { appScreen = AppScreen.Settings },
+                                onViewDashboard = { appScreen = AppScreen.ClientDashboard },
                                 onReviewEvidence = {
                                     appScreen = AppScreen.ReviewEvidence(MOCK_REVIEW_TASK, MOCK_REVIEW_PHOTOS)
                                 },
                             )
                         }
+
+                    AppScreen.ClientDashboard ->
+                        ClientDashboardScreen(
+                            vm = dashboardVm,
+                            clientUid = s.uid,
+                            onCreateTask = { appScreen = AppScreen.CreateTask },
+                            onBack = { appScreen = AppScreen.Home },
+                        )
 
                     AppScreen.CreateTask ->
                         TaskCreationScreen(

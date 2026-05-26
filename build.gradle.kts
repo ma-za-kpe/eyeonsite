@@ -17,6 +17,19 @@ val detektAll = tasks.register("detektAll") {
     description = "Runs Detekt on all subprojects"
 }
 
+// Single command that mirrors the pre-commit hook: spotless → detekt → tests → builds
+tasks.register("validate") {
+    group = "verification"
+    description = "Full validation pipeline: spotless check, detekt, shared tests, Android build, web bundle"
+    dependsOn(
+        "spotlessCheck",
+        "detektAll",
+        ":app:shared:testAndroid",
+        ":app:androidApp:assembleDebug",
+        ":app:webApp:jsBrowserProductionWebpack",
+    )
+}
+
 subprojects {
     plugins.withId("io.gitlab.arturbosch.detekt") {
         this@subprojects.tasks.withType(io.gitlab.arturbosch.detekt.Detekt::class.java).configureEach {
