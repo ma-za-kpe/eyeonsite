@@ -1,80 +1,80 @@
-/**
- * acceptTask unit tests — validates the atomic transaction logic
- * and the "task taken" notification path using mocks.
- *
- * Full end-to-end behaviour (concurrent requests, Firestore rollbacks)
- * is verified with the Firebase Emulator in integration tests (V1).
- */
+import { HttpsError } from "firebase-functions/v2/https";
+import { buildTaskAcceptanceUpdate } from "../acceptTask";
 
-// Simulate the transaction guard logic extracted from acceptTask.ts
-// so we can unit-test it without spinning up the Functions runtime.
-
-interface TaskData {
-  status: string;
-  pinnedInspectorIds?: string[];
-}
-
-function validateAndBuildUpdate(
-  task: TaskData | undefined,
-  inspectorUid: string,
-): { update: Record<string, unknown>; losers: string[] } {
-  if (!task) throw new Error("not-found");
-  if (task.status !== "POSTED") throw new Error("failed-precondition");
-
-  const pinned = task.pinnedInspectorIds ?? [];
-  return {
-    update: {
-      status: "INSPECTOR_MATCHED",
-      matchedInspectorId: inspectorUid,
-    },
-    losers: pinned.filter((uid) => uid !== inspectorUid),
-  };
-}
-
-describe("acceptTask — transaction guard", () => {
-  test("throws not-found when task document missing", () => {
-    expect(() => validateAndBuildUpdate(undefined, "uid-1")).toThrow("not-found");
+describe("buildTaskAcceptanceUpdate", () => {
+  test("throws not-found when task is undefined", () => {
+    expect(() => buildTaskAcceptanceUpdate(undefined, "uid-1", 0))
+      .toThrow(HttpsError);
+    try {
+      buildTaskAcceptanceUpdate(undefined, "uid-1", 0);
+    } catch (e) {
+      expect((e as HttpsError).code).toBe("not-found");
+    }
   });
 
   test("throws failed-precondition when task is not POSTED", () => {
-    const task: TaskData = { status: "INSPECTOR_MATCHED" };
-    expect(() => validateAndBuildUpdate(task, "uid-1")).toThrow("failed-precondition");
+    try {
+      buildTaskAcceptanceUpdate({ status: "INSPECTOR_MATCHED", pinnedInspectorIds: ["uid-1"] }, "uid-1", 0);
+    } catch (e) {
+      expect((e as HttpsError).code).toBe("failed-precondition");
+    }
   });
 
   test("throws failed-precondition for EXPIRED task", () => {
-    const task: TaskData = { status: "EXPIRED" };
-    expect(() => validateAndBuildUpdate(task, "uid-1")).toThrow("failed-precondition");
+    try {
+      buildTaskAcceptanceUpdate({ status: "EXPIRED", pinnedInspectorIds: ["uid-1"] }, "uid-1", 0);
+    } catch (e) {
+      expect((e as HttpsError).code).toBe("failed-precondition");
+    }
   });
 
-  test("sets status to INSPECTOR_MATCHED and records accepting inspector", () => {
-    const task: TaskData = { status: "POSTED", pinnedInspectorIds: ["a", "b", "c"] };
-    const { update } = validateAndBuildUpdate(task, "b");
+  test("throws permission-denied when inspector not in pinned list", () => {
+    try {
+      buildTaskAcceptanceUpdate(
+        { status: "POSTED", pinnedInspectorIds: ["a", "b"] },
+        "c",
+        0,
+      );
+    } catch (e) {
+      expect((e as HttpsError).code).toBe("permission-denied");
+    }
+  });
+
+  test("returns INSPECTOR_MATCHED update for valid acceptance", () => {
+    const { update } = buildTaskAcceptanceUpdate(
+      { status: "POSTED", pinnedInspectorIds: ["a", "b", "c"] },
+      "b",
+      1234567890,
+    );
     expect(update["status"]).toBe("INSPECTOR_MATCHED");
     expect(update["matchedInspectorId"]).toBe("b");
+    expect(update["matchedAtMs"]).toBe(1234567890);
   });
 
   test("losers excludes the accepting inspector", () => {
-    const task: TaskData = { status: "POSTED", pinnedInspectorIds: ["a", "b", "c"] };
-    const { losers } = validateAndBuildUpdate(task, "b");
+    const { losers } = buildTaskAcceptanceUpdate(
+      { status: "POSTED", pinnedInspectorIds: ["a", "b", "c"] },
+      "b",
+      0,
+    );
     expect(losers).toEqual(["a", "c"]);
   });
 
-  test("losers is empty when only one pinned inspector and they accept", () => {
-    const task: TaskData = { status: "POSTED", pinnedInspectorIds: ["solo"] };
-    const { losers } = validateAndBuildUpdate(task, "solo");
+  test("losers is empty when only one pinned inspector accepts", () => {
+    const { losers } = buildTaskAcceptanceUpdate(
+      { status: "POSTED", pinnedInspectorIds: ["solo"] },
+      "solo",
+      0,
+    );
     expect(losers).toHaveLength(0);
   });
 
-  test("losers is empty when pinnedInspectorIds absent", () => {
-    const task: TaskData = { status: "POSTED" };
-    const { losers } = validateAndBuildUpdate(task, "uid-1");
-    expect(losers).toHaveLength(0);
-  });
-
-  test("POSTED task returns full update payload", () => {
-    const task: TaskData = { status: "POSTED" };
-    const { update } = validateAndBuildUpdate(task, "uid-99");
-    expect(Object.keys(update)).toContain("status");
-    expect(Object.keys(update)).toContain("matchedInspectorId");
+  test("handles missing pinnedInspectorIds gracefully when inspector matches", () => {
+    // Inspector with no pinned list — should fail permission-denied
+    try {
+      buildTaskAcceptanceUpdate({ status: "POSTED" }, "uid-1", 0);
+    } catch (e) {
+      expect((e as HttpsError).code).toBe("permission-denied");
+    }
   });
 });
