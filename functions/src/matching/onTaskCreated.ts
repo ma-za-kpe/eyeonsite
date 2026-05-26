@@ -51,7 +51,7 @@ export async function sendTaskPings(
     tokens,
     notification: {
       title: "New verification task nearby",
-      body: `$${task.bountyUsd} — ${distanceStr} km away`,
+      body: `$${task.bountyUsd} - ${distanceStr} km away`,
     },
     data: { taskId, type: "TASK_PING" },
   });
@@ -77,16 +77,16 @@ export const onTaskCreated = onDocumentCreated(
 
     if (candidates.length === 0) {
       await snap.ref.update({ status: "EXPIRED" });
-      console.log(`Task ${taskId}: no inspectors in radius — marked EXPIRED`);
+      console.log(`Task ${taskId}: no inspectors in radius - marked EXPIRED`);
       return;
     }
-
-    await sendTaskPings(admin.messaging(), taskId, task, candidates);
 
     await snap.ref.update({
       pinnedInspectorIds: candidates.map((c) => c.uid),
       expiresAtMs: Date.now() + EXPIRY_MS,
     });
+
+    await sendTaskPings(admin.messaging(), taskId, task, candidates);
 
     console.log(`Task ${taskId}: pinged ${candidates.length} inspector(s)`);
   },

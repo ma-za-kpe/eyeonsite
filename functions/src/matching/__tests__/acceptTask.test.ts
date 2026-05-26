@@ -1,54 +1,74 @@
 import { HttpsError } from "firebase-functions/v2/https";
 import { buildTaskAcceptanceUpdate } from "../acceptTask";
 
+function expectHttpsErrorCode(action: () => unknown, code: string): void {
+  try {
+    action();
+    throw new Error("Expected HttpsError");
+  } catch (err) {
+    expect(err).toBeInstanceOf(HttpsError);
+    expect((err as HttpsError).code).toBe(code);
+  }
+}
+
 describe("buildTaskAcceptanceUpdate", () => {
   test("throws not-found when task is undefined", () => {
-    expect(() => buildTaskAcceptanceUpdate(undefined, "uid-1", 0))
-      .toThrow(HttpsError);
-    try {
-      buildTaskAcceptanceUpdate(undefined, "uid-1", 0);
-    } catch (e) {
-      expect((e as HttpsError).code).toBe("not-found");
-    }
+    expectHttpsErrorCode(
+      () => buildTaskAcceptanceUpdate(undefined, "uid-1", 0),
+      "not-found",
+    );
   });
 
   test("throws failed-precondition when task is not POSTED", () => {
-    try {
-      buildTaskAcceptanceUpdate({ status: "INSPECTOR_MATCHED", pinnedInspectorIds: ["uid-1"] }, "uid-1", 0);
-    } catch (e) {
-      expect((e as HttpsError).code).toBe("failed-precondition");
-    }
+    expectHttpsErrorCode(
+      () => buildTaskAcceptanceUpdate(
+        { status: "INSPECTOR_MATCHED", pinnedInspectorIds: ["uid-1"] },
+        "uid-1",
+        0,
+      ),
+      "failed-precondition",
+    );
   });
 
   test("throws failed-precondition for EXPIRED task", () => {
-    try {
-      buildTaskAcceptanceUpdate({ status: "EXPIRED", pinnedInspectorIds: ["uid-1"] }, "uid-1", 0);
-    } catch (e) {
-      expect((e as HttpsError).code).toBe("failed-precondition");
-    }
+    expectHttpsErrorCode(
+      () => buildTaskAcceptanceUpdate(
+        { status: "EXPIRED", pinnedInspectorIds: ["uid-1"] },
+        "uid-1",
+        0,
+      ),
+      "failed-precondition",
+    );
   });
 
   test("throws permission-denied when inspector not in pinned list", () => {
-    try {
-      buildTaskAcceptanceUpdate(
+    expectHttpsErrorCode(
+      () => buildTaskAcceptanceUpdate(
         { status: "POSTED", pinnedInspectorIds: ["a", "b"] },
         "c",
         0,
-      );
-    } catch (e) {
-      expect((e as HttpsError).code).toBe("permission-denied");
-    }
+      ),
+      "permission-denied",
+    );
+  });
+
+  test("throws permission-denied when pinned list is missing", () => {
+    expectHttpsErrorCode(
+      () => buildTaskAcceptanceUpdate({ status: "POSTED" }, "uid-1", 0),
+      "permission-denied",
+    );
   });
 
   test("returns INSPECTOR_MATCHED update for valid acceptance", () => {
     const { update } = buildTaskAcceptanceUpdate(
       { status: "POSTED", pinnedInspectorIds: ["a", "b", "c"] },
       "b",
-      1234567890,
+      1_234_567_890,
     );
+
     expect(update["status"]).toBe("INSPECTOR_MATCHED");
     expect(update["matchedInspectorId"]).toBe("b");
-    expect(update["matchedAtMs"]).toBe(1234567890);
+    expect(update["matchedAtMs"]).toBe(1_234_567_890);
   });
 
   test("losers excludes the accepting inspector", () => {
@@ -57,6 +77,7 @@ describe("buildTaskAcceptanceUpdate", () => {
       "b",
       0,
     );
+
     expect(losers).toEqual(["a", "c"]);
   });
 
@@ -66,15 +87,7 @@ describe("buildTaskAcceptanceUpdate", () => {
       "solo",
       0,
     );
-    expect(losers).toHaveLength(0);
-  });
 
-  test("handles missing pinnedInspectorIds gracefully when inspector matches", () => {
-    // Inspector with no pinned list — should fail permission-denied
-    try {
-      buildTaskAcceptanceUpdate({ status: "POSTED" }, "uid-1", 0);
-    } catch (e) {
-      expect((e as HttpsError).code).toBe("permission-denied");
-    }
+    expect(losers).toHaveLength(0);
   });
 });

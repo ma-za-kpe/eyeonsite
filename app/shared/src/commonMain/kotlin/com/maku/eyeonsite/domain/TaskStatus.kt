@@ -11,4 +11,7 @@ enum class TaskStatus {
     ACCEPTED,
     DISPUTED,
     REVISION_REQUESTED,
+    CANCELLED,
+    EXPIRED,
+    AUTO_ACCEPTED,
 }

@@ -41,7 +41,7 @@ async function notifyExpiredClients(
     tokens,
     notification: {
       title: "No inspector available",
-      body: "Try posting your task again — more inspectors are on the way",
+      body: "Try posting your task again - more inspectors are on the way",
     },
     data: { type: "TASK_EXPIRED" },
   });
