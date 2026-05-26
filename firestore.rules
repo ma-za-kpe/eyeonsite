@@ -2,13 +2,16 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Waitlist: public create, admin-only read, no update/delete
+    // ── Waitlist ──────────────────────────────────────────────────────────────
+    // Unauthenticated users may create (landing-page signup form).
+    // Reads and mutations go through the Admin SDK (notifyWaitlistSignup),
+    // which bypasses these rules — clients never read waitlist directly.
     match /waitlist/{docId} {
       allow create: if request.resource.data.keys().hasAll(['name', 'email', 'role', 'location'])
         && request.resource.data.name is string
         && request.resource.data.name.size() <= 120
         && request.resource.data.email is string
-        && request.resource.data.email.matches('.*@.*')
+        && request.resource.data.email.matches('.*@.*\\..*')
         && request.resource.data.role in ['diaspora_client', 'field_agent']
         && request.resource.data.location is string
         && request.resource.data.location.size() <= 120;
@@ -17,9 +20,95 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // All other collections require authentication (locked down for now)
-    match /{document=**} {
-      allow read, write: if false;
+    // ── Users ─────────────────────────────────────────────────────────────────
+    // Each user can read and write only their own profile document.
+    // Cloud Functions use the Admin SDK for FCM token writes, bypassing rules.
+    match /users/{uid} {
+      allow read, write: if request.auth != null
+        && request.auth.uid == uid;
+    }
+
+    // ── Tasks ─────────────────────────────────────────────────────────────────
+    // Create: authenticated client; clientUid must match caller.
+    // Read:   task owner OR matched inspector OR any pinned inspector.
+    // Update: task owner may edit draft/description fields only;
+    //         status transitions happen exclusively through Cloud Functions.
+    // Delete: task owner, but only while still in DRAFT.
+    match /tasks/{taskId} {
+      allow create: if request.auth != null
+        && request.resource.data.clientUid == request.auth.uid
+        && request.resource.data.status in ['DRAFT', 'POSTED'];
+
+      allow read: if request.auth != null
+        && (resource.data.clientUid == request.auth.uid
+            || resource.data.matchedInspectorId == request.auth.uid
+            || (resource.data.pinnedInspectorIds is list
+                && resource.data.pinnedInspectorIds.hasAny([request.auth.uid])));
+
+      allow update: if request.auth != null
+        && resource.data.clientUid == request.auth.uid
+        && resource.data.status in ['DRAFT']
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['description', 'instructions', 'bountyUsd', 'locationLabel']);
+
+      allow delete: if request.auth != null
+        && resource.data.clientUid == request.auth.uid
+        && resource.data.status == 'DRAFT';
+    }
+
+    // ── Inspectors ────────────────────────────────────────────────────────────
+    // Authenticated users can read any inspector profile (needed for matching
+    // display — name, rating, location, available flag).
+    // Inspectors can update their own profile (location, available, fcmToken).
+    // Status changes (available=false, activeTaskId) come from Cloud Functions.
+    match /inspectors/{uid} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.auth.uid == uid;
+      allow update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['location', 'fcmToken', 'name', 'city', 'photoUrl']);
+      allow delete: if false;
+    }
+
+    // ── Evidence ──────────────────────────────────────────────────────────────
+    // The matched inspector creates and updates evidence documents.
+    // The task client can read evidence for their task.
+    // Status changes (qualityScore, gpsValid) come from the onEvidenceSubmitted
+    // Cloud Function via the Admin SDK.
+    match /evidence/{evidenceId} {
+      allow create: if request.auth != null
+        && request.resource.data.inspectorUid == request.auth.uid
+        && request.resource.data.keys().hasAll(['taskId', 'inspectorUid', 'photos', 'submittedAtMs'])
+        && request.resource.data.photos is list;
+
+      allow read: if request.auth != null
+        && (resource.data.inspectorUid == request.auth.uid
+            || isTaskClient(resource.data.taskId, request.auth.uid));
+
+      allow update: if request.auth != null
+        && resource.data.inspectorUid == request.auth.uid
+        && resource.data.status == 'DRAFT'
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['photos', 'notes', 'status']);
+
+      allow delete: if false;
+    }
+
+    // ── Escrow transactions ───────────────────────────────────────────────────
+    // Written exclusively by Cloud Functions (Admin SDK bypasses these rules).
+    // Clients and inspectors can read their own transaction records.
+    match /escrow_transactions/{txId} {
+      allow read: if request.auth != null
+        && (resource.data.clientUid == request.auth.uid
+            || resource.data.inspectorUid == request.auth.uid);
+      allow write: if false;
+    }
+
+    // ── Helper ────────────────────────────────────────────────────────────────
+    function isTaskClient(taskId, uid) {
+      return get(/databases/$(database)/documents/tasks/$(taskId)).data.clientUid == uid;
     }
   }
 }
