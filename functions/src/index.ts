@@ -4,7 +4,11 @@ import * as nodemailer from "nodemailer";
 
 admin.initializeApp();
 
-// HTML-escape for email templates — prevents XSS in notification emails.
+export { onTaskCreated } from "./matching/onTaskCreated";
+export { acceptTask } from "./matching/acceptTask";
+export { expireStaleTasks } from "./matching/expireTasks";
+
+// HTML-escape for email templates. Prevents XSS in notification emails.
 function escHtml(str: unknown): string {
   return String(str ?? "")
     .replace(/&/g, "&amp;")
@@ -42,7 +46,7 @@ export const notifyWaitlistSignup = onDocumentCreated(
 
     const appPassword = process.env.GMAIL_APP_PASSWORD;
     if (!appPassword) {
-      console.error("GMAIL_APP_PASSWORD secret not set — skipping email.");
+      console.error("GMAIL_APP_PASSWORD secret not set. Skipping email.");
       return;
     }
 
@@ -75,7 +79,7 @@ export const notifyWaitlistSignup = onDocumentCreated(
           <hr style="border:none;border-top:1px solid #e8e6dd;margin:16px 0">
           <a href="https://console.firebase.google.com/project/eyeonsite-3b8e0/firestore/data/waitlist"
              style="background:#0b6e4f;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:14px">
-            View in Firestore →
+            View in Firestore
           </a>
         </div>
       </div>
@@ -84,7 +88,7 @@ export const notifyWaitlistSignup = onDocumentCreated(
     await transporter.sendMail({
       from: '"EyeOnSite" <makpalyy@gmail.com>',
       to: "makpalyy@gmail.com",
-      subject: `🔔 New waitlist signup — ${data.name} (${roleLabel})`,
+      subject: `New waitlist signup - ${data.name} (${roleLabel})`,
       html,
     });
 
