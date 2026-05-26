@@ -4,6 +4,10 @@ import * as nodemailer from "nodemailer";
 
 admin.initializeApp();
 
+export { onTaskCreated } from "./matching/onTaskCreated";
+export { acceptTask } from "./matching/acceptTask";
+export { expireStaleTasks } from "./matching/expireTasks";
+
 // HTML-escape for email templates — prevents XSS in notification emails.
 function escHtml(str: unknown): string {
   return String(str ?? "")
