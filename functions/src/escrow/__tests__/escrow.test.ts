@@ -1,5 +1,5 @@
 import { HttpsError } from "firebase-functions/v2/https";
-import { buildFundUpdate, buildReleaseUpdate } from "../escrow";
+import { buildFundUpdate, buildReleaseUpdate, calculateEscrowBreakdown } from "../escrow";
 
 function expectCode(fn: () => unknown, code: string): void {
   try {
@@ -68,6 +68,18 @@ describe("buildFundUpdate", () => {
     expect(ledgerEntry["platformFeeUsd"]).toBe(18);    // 18 %
     expect(ledgerEntry["inspectorShareUsd"]).toBe(80); // 80 %
   });
+
+  test("fee breakdown always balances to the bounty", () => {
+    for (const amountUsd of [1, 33.33, 99.99, 100, 250.75]) {
+      const breakdown = calculateEscrowBreakdown(amountUsd);
+      const total =
+        breakdown.platformFeeUsd +
+        breakdown.escrowFeeUsd +
+        breakdown.inspectorShareUsd;
+
+      expect(total).toBe(breakdown.amountUsd);
+    }
+  });
 });
 
 // ── buildReleaseUpdate ────────────────────────────────────────────────────────
@@ -117,6 +129,15 @@ describe("buildReleaseUpdate", () => {
     );
     expect(inspectorPayoutUsd).toBe(80);
     expect(inspectorUid).toBe(INSPECTOR);
+  });
+
+  test("release ledger uses the same fee breakdown as funding ledger", () => {
+    const { ledgerEntry } = buildReleaseUpdate(EVIDENCE_SUBMITTED_TASK, TASK_ID, CLIENT, NOW);
+
+    expect(ledgerEntry["amountUsd"]).toBe(100);
+    expect(ledgerEntry["escrowFeeUsd"]).toBe(2);
+    expect(ledgerEntry["platformFeeUsd"]).toBe(18);
+    expect(ledgerEntry["inspectorPayoutUsd"]).toBe(80);
   });
 
   test("payout rounds to 2 decimal places for fractional bounty", () => {

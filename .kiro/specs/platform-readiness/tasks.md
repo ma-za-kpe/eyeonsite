@@ -69,13 +69,14 @@ Validated on 2026-05-25:
 - [~] Inspector onboarding: ID upload, liveness/selfie check, training, test task.
 - [~] Cloud Vision quality scoring behind a replaceable interface.
 - [ ] Fraud pipeline: GPS spoof checks, EXIF verification, device attestation, perceptual hashes.
-- [ ] Firebase Storage rules for evidence photos, KYC documents, path ownership, size limits, and content types.
-- [ ] Firestore and Storage emulator tests for rules, task ownership, evidence access, waitlist writes, and onboarding data.
-- [ ] Firebase Emulator Suite local workflow with mocked Functions, Firestore, Storage, Auth, and deterministic seed data.
+- [~] Firebase Storage rules for evidence photos, KYC documents, path ownership, size limits, and content types.
+- [~] Firestore and Storage emulator tests for rules, task ownership, evidence access, waitlist writes, and onboarding data.
+- [~] Firebase Emulator Suite local workflow with mocked Functions, Firestore, Storage, Auth, deterministic seed data, and JDK 21+ runtime.
 - [ ] Environment separation: local, staging, and production Firebase projects with explicit Secret Manager bindings.
 - [ ] Cloud Functions region strategy and deploy inventory so orphaned/stale functions cannot block release.
-- [ ] Firestore index plan for matching, evidence review, admin queues, onboarding, and waitlist operations.
+- [x] Firestore index plan for matching, evidence review, admin queues, onboarding, and waitlist operations.
 - [ ] Observability: Crashlytics, Performance Monitoring, structured Function logs, alerts, and error budgets.
+- [ ] Resolve Functions npm audit moderate `uuid` advisory through safe upstream Firebase/Google Cloud dependency updates.
 - [ ] Admin review queues for onboarding approvals, fraud flags, disputes, and payout exceptions.
 - [ ] KYC data retention, PII minimisation, private media access, and deletion policy.
 - [ ] Resolve text encoding issues before merge so source comments and user-facing strings stay clean ASCII or intentional Unicode.
@@ -93,29 +94,29 @@ Implementation order for the post-demo hardening pass. Keep these items mocked o
 - [ ] Establish DDD boundaries and shared contracts for H3, evidence trust, KYC, escrow ledger, and fraud signals.
 - [ ] Enforce TDD for the first pass of each new module: red test, green implementation, refactor.
 - [ ] Keep local development on mock adapters and test keys only.
-- [ ] Add validation gates for every milestone: build, lint, detekt, unit tests, shared tests, and E2E checks.
-- [ ] Validate current in-progress onboarding, offline queue, Storage upload, and Vision code before building the next layer.
+- [~] Add validation gates for every milestone: build, lint, detekt, unit tests, shared tests, and E2E checks.
+- [x] Validate current in-progress onboarding, offline queue, Storage upload, and Vision code before building the next layer.
 - [ ] Add schema and domain fields for H3 cells, EXIF metadata, attestation verdicts, pHash, quality score, and escrow state.
 - [ ] Replace shared no-op paths with Firebase-backed repositories and a deterministic storage uploader where needed.
-- [ ] Add Storage rules and rules tests before enabling real evidence or KYC media in production.
-- [ ] Add emulator-first integration tests for Auth, Firestore, Storage, Functions, FCM stubs, and offline sync recovery.
+- [~] Add Storage rules and rules tests before enabling real evidence or KYC media in production.
+- [~] Add emulator-first integration tests for Auth, Firestore, Storage, Functions, FCM stubs, and offline sync recovery.
 - [ ] Add immutable audit events for task state changes, evidence processing, KYC decisions, escrow ledger entries, and payouts.
 - [ ] Implement H3-based task and inspector matching in Cloud Functions, with haversine as the final tie-breaker.
-- [ ] Add required Firestore composite indexes for H3/geospatial matching and admin review queues.
+- [~] Add required Firestore composite indexes for H3/geospatial matching and admin review queues.
 - [ ] Implement the evidence trust pipeline: GPS validation, EXIF verification, timestamp drift checks, speed plausibility, pHash, and fraud scoring.
 - [ ] Add capture integrity controls: in-app-only capture, mock-location detection, accuracy thresholds, provider source, clock skew, and device motion where available.
 - [ ] Add private media access controls: store paths instead of public URLs where possible, generate short-lived access for authorized review, and preserve original bytes.
 - [ ] Add Play Integrity plus Firebase App Check enforcement for Android submissions.
 - [ ] Enforce App Check or equivalent attestation on callable/HTTP Functions that mutate production data.
 - [ ] Build Stripe and Flutterwave mock adapters first, then promote them to test-mode adapters with webhook verification, idempotency, and replay protection.
-- [ ] Add a double-entry escrow ledger model with invariants, reconciliation jobs, and explicit fee constants.
+- [~] Add a double-entry escrow ledger model with invariants, reconciliation jobs, and explicit fee constants.
 - [ ] Complete payment and escrow compliance review for UK, US, Canada, Ghana, Nigeria, Kenya, and Uganda launch paths.
 - [ ] Add Smile ID onboarding flows behind server-side adapters and webhook handlers.
 - [ ] Add Smile ID mock and sandbox adapters, webhook signature verification, retry handling, and KYC provider audit trail.
 - [ ] Add SQLDelight offline queueing and pending upload sync for unreliable network conditions.
 - [ ] Add offline failure UX and telemetry for queued photos, retry count, exhausted retries, and manual retry.
 - [ ] Add C2PA-style provenance manifests and server-side signing for evidence bundles.
-- [ ] Add release environment checks: project ID guardrails, required secrets, rules version, index deployment, and rollback notes.
+- [~] Add release environment checks: project ID guardrails, required secrets, rules version, index deployment, and rollback notes.
 - [ ] Finish with dispute, revision, rating, tiering, and release-readiness validation.
 
 ### Delivery Principles

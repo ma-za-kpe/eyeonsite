@@ -5,6 +5,7 @@ package com.maku.eyeonsite.onboarding
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageMetadata
 import com.maku.eyeonsite.domain.InspectorOnboardingStatus
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -32,8 +33,13 @@ class FirestoreInspectorOnboardingRepository : InspectorOnboardingRepository {
     ): String =
         suspendCancellableCoroutine { cont ->
             val ref = storage.reference.child(path)
+            val metadata =
+                StorageMetadata
+                    .Builder()
+                    .setContentType("image/jpeg")
+                    .build()
             ref
-                .putBytes(bytes)
+                .putBytes(bytes, metadata)
                 .continueWithTask { ref.downloadUrl }
                 .addOnSuccessListener { uri -> cont.resume(uri.toString()) }
                 .addOnFailureListener { cont.resumeWithException(it) }

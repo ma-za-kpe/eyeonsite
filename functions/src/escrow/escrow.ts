@@ -3,7 +3,8 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { initiateInspectorPayout } from "../payments/flutterwavePayout";
 
 const REGION = "africa-south1";
-const INSPECTOR_SHARE = 0.8; // inspector receives 80 %, platform keeps 20 %
+const INSPECTOR_SHARE_RATE = 0.8;
+const PLATFORM_FEE_RATE = 0.18;
 
 // Statuses from which escrow can be funded (client posts a task)
 const FUNDABLE_STATUS = "POSTED";
@@ -31,6 +32,35 @@ export interface ReleasableTask {
   matchedInspectorId?: string;
 }
 
+export interface EscrowFeeBreakdown {
+  amountUsd: number;
+  escrowFeeUsd: number;
+  platformFeeUsd: number;
+  inspectorShareUsd: number;
+}
+
+function centsToUsd(cents: number): number {
+  return Math.round(cents) / 100;
+}
+
+function usdToCents(amountUsd: number): number {
+  return Math.round(amountUsd * 100);
+}
+
+export function calculateEscrowBreakdown(amountUsd: number): EscrowFeeBreakdown {
+  const amountCents = usdToCents(amountUsd);
+  const inspectorShareCents = Math.round(amountCents * INSPECTOR_SHARE_RATE);
+  const platformFeeCents = Math.round(amountCents * PLATFORM_FEE_RATE);
+  const escrowFeeCents = amountCents - inspectorShareCents - platformFeeCents;
+
+  return {
+    amountUsd: centsToUsd(amountCents),
+    escrowFeeUsd: centsToUsd(escrowFeeCents),
+    platformFeeUsd: centsToUsd(platformFeeCents),
+    inspectorShareUsd: centsToUsd(inspectorShareCents),
+  };
+}
+
 // ── Pure helpers (exported for unit testing) ─────────────────────────────────
 
 export function buildFundUpdate(
@@ -49,23 +79,22 @@ export function buildFundUpdate(
   if (task.status !== FUNDABLE_STATUS) {
     throw new HttpsError("failed-precondition", `Task must be POSTED to fund escrow, current: ${task.status}`);
   }
-  const bounty = task.bountyUsd ?? 0;
-  const escrowFee = Math.round(bounty * 0.02 * 100) / 100;
+  const fees = calculateEscrowBreakdown(task.bountyUsd ?? 0);
 
   return {
     taskUpdate: {
       status: "ESCROW_FUNDED",
       escrowFundedAtMs: nowMs,
-      escrowAmountUsd: bounty,
+      escrowAmountUsd: fees.amountUsd,
     },
     ledgerEntry: {
       txType: "ESCROW_HOLD",
       taskId,
       clientUid: callerUid,
-      amountUsd: bounty,
-      escrowFeeUsd: escrowFee,
-      platformFeeUsd: Math.round(bounty * 0.18 * 100) / 100,
-      inspectorShareUsd: Math.round(bounty * INSPECTOR_SHARE * 100) / 100,
+      amountUsd: fees.amountUsd,
+      escrowFeeUsd: fees.escrowFeeUsd,
+      platformFeeUsd: fees.platformFeeUsd,
+      inspectorShareUsd: fees.inspectorShareUsd,
       status: "HELD",
       createdAtMs: nowMs,
     },
@@ -97,8 +126,8 @@ export function buildReleaseUpdate(
     throw new HttpsError("failed-precondition", "No matched inspector on this task");
   }
 
-  const bounty = task.bountyUsd ?? 0;
-  const inspectorPayoutUsd = Math.round(bounty * INSPECTOR_SHARE * 100) / 100;
+  const fees = calculateEscrowBreakdown(task.bountyUsd ?? 0);
+  const inspectorPayoutUsd = fees.inspectorShareUsd;
 
   return {
     taskUpdate: {
@@ -111,9 +140,10 @@ export function buildReleaseUpdate(
       taskId,
       clientUid: callerUid,
       inspectorUid: task.matchedInspectorId,
-      amountUsd: bounty,
+      amountUsd: fees.amountUsd,
+      escrowFeeUsd: fees.escrowFeeUsd,
       inspectorPayoutUsd,
-      platformFeeUsd: Math.round(bounty * 0.2 * 100) / 100,
+      platformFeeUsd: fees.platformFeeUsd,
       status: "RELEASED",
       createdAtMs: nowMs,
     },
