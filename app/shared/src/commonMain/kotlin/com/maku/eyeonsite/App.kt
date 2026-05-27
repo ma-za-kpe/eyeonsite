@@ -2,6 +2,7 @@ package com.maku.eyeonsite
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -121,7 +122,7 @@ private sealed class AppScreen {
 }
 
 @Composable
-fun App() {
+fun App(forcedVariant: AppVariant? = null) {
     val authVm: AuthViewModel = viewModel { GlobalContext.get().get() }
     val settingsVm: SettingsViewModel = viewModel { GlobalContext.get().get() }
     val evidenceVm: EvidenceCaptureViewModel = viewModel { GlobalContext.get().get() }
@@ -145,7 +146,7 @@ fun App() {
         }
 
     val variant =
-        if (authState is AuthState.Authenticated &&
+        forcedVariant ?: if (authState is AuthState.Authenticated &&
             (authState as AuthState.Authenticated).role == UserRole.INSPECTOR
         ) {
             AppVariant.INSPECTOR
@@ -180,10 +181,17 @@ fun App() {
                 )
 
             is AuthState.NeedsRole ->
-                RoleSelectionScreen(
-                    uid = s.uid,
-                    onRoleSelected = { uid, role -> authVm.selectRole(uid, role) },
-                )
+                if (forcedVariant != null) {
+                    // Flavored build — auto-assign the role that matches this APK's purpose.
+                    val autoRole =
+                        if (forcedVariant == AppVariant.INSPECTOR) UserRole.INSPECTOR else UserRole.CLIENT
+                    LaunchedEffect(s.uid) { authVm.selectRole(s.uid, autoRole) }
+                } else {
+                    RoleSelectionScreen(
+                        uid = s.uid,
+                        onRoleSelected = { uid, role -> authVm.selectRole(uid, role) },
+                    )
+                }
 
             is AuthState.Authenticated ->
                 when (val screen = appScreen) {

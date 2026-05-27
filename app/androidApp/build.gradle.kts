@@ -70,6 +70,21 @@ android {
         versionName = "1.0"
         manifestPlaceholders["MAPS_API_KEY"] = localProps.getProperty("MAPS_API_KEY", "")
     }
+    flavorDimensions += "variant"
+    productFlavors {
+        // Both flavors share applicationId (single Firebase project registration).
+        // Separate applicationIds require registering additional Android apps in the Firebase
+        // console and updating google-services.json — defer to production release.
+        create("client") {
+            dimension = "variant"
+        }
+        create("inspector") {
+            dimension = "variant"
+        }
+    }
+    buildFeatures {
+        buildConfig = true
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
