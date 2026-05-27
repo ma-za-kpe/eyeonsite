@@ -18,12 +18,17 @@ val detektAll = tasks.register("detektAll") {
     description = "Runs Detekt on all subprojects"
 }
 
+val spotlessAll = tasks.register("spotlessAll") {
+    group = "verification"
+    description = "Runs Spotless checks on all subprojects"
+}
+
 // Single command that mirrors the pre-commit hook: spotless → detekt → tests → builds
 tasks.register("validate") {
     group = "verification"
     description = "Full validation pipeline: spotless check, detekt, shared tests, Android build, web bundle"
     dependsOn(
-        "spotlessCheck",
+        "spotlessAll",
         "detektAll",
         ":app:shared:testAndroid",
         ":app:androidApp:assembleDebug",
@@ -32,6 +37,16 @@ tasks.register("validate") {
 }
 
 subprojects {
+    plugins.withId("com.diffplug.spotless") {
+        spotlessAll.configure {
+            dependsOn(
+                this@subprojects.tasks.matching {
+                    it.name == "spotlessCheck"
+                },
+            )
+        }
+    }
+
     plugins.withId("io.gitlab.arturbosch.detekt") {
         this@subprojects.tasks.withType(io.gitlab.arturbosch.detekt.Detekt::class.java).configureEach {
             // The Spec<FileTreeElement> overload of exclude() runs at execution time and filters

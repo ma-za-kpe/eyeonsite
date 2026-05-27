@@ -1,0 +1,66 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function maxImageBytes() {
+      return 10 * 1024 * 1024;
+    }
+
+    function isJpegImage() {
+      return request.resource != null
+        && request.resource.size > 0
+        && request.resource.size <= maxImageBytes()
+        && request.resource.contentType == 'image/jpeg';
+    }
+
+    function taskDoc(taskId) {
+      return firestore.get(/databases/(default)/documents/tasks/$(taskId));
+    }
+
+    function canReadEvidence(taskId) {
+      return signedIn()
+        && (
+          taskDoc(taskId).data.clientUid == request.auth.uid
+          || taskDoc(taskId).data.matchedInspectorId == request.auth.uid
+        );
+    }
+
+    function canWriteEvidence(taskId) {
+      return signedIn()
+        && taskDoc(taskId).data.matchedInspectorId == request.auth.uid;
+    }
+
+    function validEvidenceFile(fileName) {
+      return fileName.matches('^[A-Za-z0-9_-]+\\.jpg$');
+    }
+
+    function validKycFile(fileName) {
+      return fileName in ['govt_id.jpg', 'selfie.jpg'];
+    }
+
+    match /evidence/{taskId}/{fileName} {
+      allow read: if canReadEvidence(taskId);
+      allow create: if canWriteEvidence(taskId)
+        && validEvidenceFile(fileName)
+        && isJpegImage();
+      allow update, delete: if false;
+    }
+
+    match /id_docs/{uid}/{fileName} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn()
+        && request.auth.uid == uid
+        && validKycFile(fileName)
+        && isJpegImage();
+      allow delete: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
