@@ -78,8 +78,6 @@ Prerequisites:
 - APKs built (see Gradle Build Tasks above)
 
 ```bash
-FIREBASE_APP_ID="1:922315268903:android:9a262a3db6364511fb7f02"
-
 # Edit release notes first (optional)
 echo "Testing the inspector map improvements" > RELEASE_NOTES.txt
 
@@ -87,7 +85,7 @@ echo "Testing the inspector map improvements" > RELEASE_NOTES.txt
 ./gradlew :app:androidApp:assembleClientDebug
 firebase appdistribution:distribute \
   app/androidApp/build/outputs/apk/client/debug/androidApp-client-debug.apk \
-  --app "$FIREBASE_APP_ID" \
+  --app "1:922315268903:android:9a262a3db6364511fb7f02" \
   --groups "internal" \
   --release-notes-file RELEASE_NOTES.txt
 
@@ -95,12 +93,14 @@ firebase appdistribution:distribute \
 ./gradlew :app:androidApp:assembleInspectorDebug
 firebase appdistribution:distribute \
   app/androidApp/build/outputs/apk/inspector/debug/androidApp-inspector-debug.apk \
-  --app "$FIREBASE_APP_ID" \
+  --app "1:922315268903:android:9a262a3db6364511fb7f02" \
   --groups "internal" \
   --release-notes-file RELEASE_NOTES.txt
 ```
 
 The CLI reads your local Firebase credentials from `~/.config/firebase/`. No token env var needed when running locally as an authenticated user.
+
+> **Note:** Do not use a shell variable for `--app` — the Firebase CLI does not expand env vars in this argument position on Windows (PowerShell/bash interop). Pass the app ID as a literal string.
 
 ### CI Distribution (GitHub Actions)
 

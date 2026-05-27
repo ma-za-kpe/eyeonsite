@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.unit.dp
 import com.maku.eyeonsite.ui.theme.DeepForest
+import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
 import com.maku.eyeonsite.ui.theme.Forest
 
 @Composable
@@ -61,5 +62,13 @@ internal fun LogoMark() {
             drawCircle(color = Color.White, radius = 16f * scale, center = Offset(tx(60f), ty(62f)))
             drawCircle(color = dark, radius = 8f * scale, center = Offset(tx(60f), ty(62f)))
         }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true, backgroundColor = 0xFF0B6E4F)
+@Composable
+fun LogoMarkPreview() {
+    EyeOnSiteTheme {
+        LogoMark()
     }
 }
