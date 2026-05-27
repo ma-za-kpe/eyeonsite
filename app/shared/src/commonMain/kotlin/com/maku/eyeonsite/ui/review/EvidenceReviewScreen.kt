@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,12 +26,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.maku.eyeonsite.analytics.NoOpAnalyticsService
+import com.maku.eyeonsite.domain.ChecklistResponse
 import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.domain.ReviewDecision
 import com.maku.eyeonsite.domain.TaskType
@@ -42,8 +47,14 @@ import com.maku.eyeonsite.ui.theme.DeepForest
 import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
 import com.maku.eyeonsite.ui.theme.Forest
 import com.maku.eyeonsite.ui.theme.SignalGreen
+import kotlinx.coroutines.delay
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 private const val GPS_DECIMAL_PLACES = 4
+private const val REVIEW_WINDOW_SECONDS = 48L * 3600
 
 private fun Double.gpsFormat(): String {
     val s = toString()
@@ -71,6 +82,16 @@ fun EvidenceReviewScreen(
         vm.loadEvidence(task.id, task.description, task.type, photos)
     }
 
+    // Countdown timer ticks every second via coroutine
+    LaunchedEffect(Unit) {
+        var seconds = REVIEW_WINDOW_SECONDS
+        while (seconds >= 0) {
+            vm.updateCountdown(seconds)
+            delay(1000L)
+            seconds--
+        }
+    }
+
     val state by vm.state.collectAsState()
 
     when (val s = state) {
@@ -78,6 +99,8 @@ fun EvidenceReviewScreen(
         is EvidenceReviewUiState.Reviewing ->
             ReviewingContent(
                 state = s,
+                taskLat = task.locationLat,
+                taskLng = task.locationLng,
                 onBack = onBack,
                 onPhotoSelect = { vm.selectPhoto(it) },
                 onDecisionChange = { vm.setDecision(it) },
@@ -108,6 +131,8 @@ private fun LoadingContent() {
 @Composable
 private fun ReviewingContent(
     state: EvidenceReviewUiState.Reviewing,
+    taskLat: Double,
+    taskLng: Double,
     onBack: () -> Unit,
     onPhotoSelect: (Int) -> Unit,
     onDecisionChange: (ReviewDecision?) -> Unit,
@@ -150,6 +175,11 @@ private fun ReviewingContent(
             }
         }
 
+        // Auto-accept countdown
+        state.secondsRemaining?.let { secs ->
+            CountdownBanner(secondsRemaining = secs)
+        }
+
         // Task info header
         Row(
             modifier =
@@ -178,10 +208,25 @@ private fun ReviewingContent(
             PhotoViewer(
                 photos = state.photos,
                 selectedIndex = state.selectedPhotoIndex,
+                qualityScore = state.qualityScore,
                 onPhotoSelect = onPhotoSelect,
             )
         } else {
             NoPhotosPlaceholder()
+        }
+
+        // Checklist responses
+        if (state.checklistResponses.isNotEmpty()) {
+            ChecklistSection(responses = state.checklistResponses)
+        }
+
+        // GPS location verification
+        if (state.hasPhotos && (taskLat != 0.0 || taskLng != 0.0)) {
+            LocationVerificationCard(
+                taskLat = taskLat,
+                taskLng = taskLng,
+                photos = state.photos,
+            )
         }
 
         // Decision section
@@ -294,6 +339,7 @@ private fun ReviewingContent(
 private fun PhotoViewer(
     photos: List<EvidencePhoto>,
     selectedIndex: Int,
+    qualityScore: Float?,
     onPhotoSelect: (Int) -> Unit,
 ) {
     val photo = photos.getOrNull(selectedIndex) ?: return
@@ -327,7 +373,7 @@ private fun PhotoViewer(
                 )
             }
 
-            // GPS badge
+            // GPS badge — JetBrains Mono via bodySmall
             Box(
                 modifier =
                     Modifier
@@ -339,12 +385,12 @@ private fun PhotoViewer(
             ) {
                 Text(
                     text = "📍 ${photo.latitude.gpsFormat()}, ${photo.longitude.gpsFormat()}",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.bodySmall,
                     color = Color.White,
                 )
             }
 
-            // Upload status badge
+            // GPS verified badge
             Box(
                 modifier =
                     Modifier
@@ -356,9 +402,34 @@ private fun PhotoViewer(
             ) {
                 Text(
                     text = "✓ GPS verified",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.bodySmall,
                     color = Color.White,
                 )
+            }
+
+            // Quality score badge (top-right)
+            qualityScore?.let { score ->
+                val (badgeColor, badgeLabel) =
+                    when {
+                        score >= 0.8f -> Pair(SignalGreen, "Quality ${(score * 100).toInt()}%")
+                        score >= 0.6f -> Pair(CautionAmber, "Quality ${(score * 100).toInt()}%")
+                        else -> Pair(AlertCoral, "Quality ${(score * 100).toInt()}%")
+                    }
+                Box(
+                    modifier =
+                        Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(10.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(badgeColor.copy(alpha = 0.9f))
+                            .padding(horizontal = 8.dp, vertical = 5.dp),
+                ) {
+                    Text(
+                        text = badgeLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                    )
+                }
             }
         }
 
@@ -431,6 +502,85 @@ private fun NavArrow(
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 },
         )
+    }
+}
+
+@Composable
+private fun CountdownBanner(secondsRemaining: Long) {
+    val hours = secondsRemaining / 3600
+    val minutes = (secondsRemaining % 3600) / 60
+    val seconds = secondsRemaining % 60
+    val isUrgent = secondsRemaining < 3600
+    val bannerColor = if (isUrgent) AlertCoral else CautionAmber
+
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 4.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(bannerColor.copy(alpha = 0.1f))
+                .border(1.dp, bannerColor.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "Auto-accepts in",
+            style = MaterialTheme.typography.labelSmall,
+            color = bannerColor,
+        )
+        Text(
+            text = "${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s",
+            style = MaterialTheme.typography.bodySmall,
+            color = bannerColor,
+        )
+    }
+}
+
+@Composable
+private fun ChecklistSection(responses: List<ChecklistResponse>) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Text(
+            text = "Inspector Checklist",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        responses.forEach { response ->
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .size(18.dp)
+                            .clip(RoundedCornerShape(3.dp))
+                            .background(if (response.checked) SignalGreen.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant)
+                            .border(
+                                1.dp,
+                                if (response.checked) SignalGreen else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                RoundedCornerShape(3.dp),
+                            ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (response.checked) {
+                        Text("✓", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = SignalGreen)
+                    }
+                }
+                Text(
+                    text = response.item,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (response.checked) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 
@@ -718,6 +868,105 @@ private fun ErrorContent(
     }
 }
 
+// ── GPS verification ─────────────────────────────────────────────────────────
+
+@Suppress("MagicNumber")
+private fun haversineMeters(
+    lat1: Double,
+    lng1: Double,
+    lat2: Double,
+    lng2: Double,
+): Double {
+    val r = 6_371_000.0
+    val dLat = (lat2 - lat1) * kotlin.math.PI / 180
+    val dLng = (lng2 - lng1) * kotlin.math.PI / 180
+    val sinDLat = sin(dLat / 2)
+    val sinDLng = sin(dLng / 2)
+    val a = sinDLat * sinDLat + cos(lat1 * kotlin.math.PI / 180) * cos(lat2 * kotlin.math.PI / 180) * sinDLng * sinDLng
+    return r * 2 * atan2(sqrt(a), sqrt(1 - a))
+}
+
+@Composable
+private fun LocationVerificationCard(
+    taskLat: Double,
+    taskLng: Double,
+    photos: List<EvidencePhoto>,
+) {
+    val inspectorLat = photos.sumOf { it.latitude } / photos.size
+    val inspectorLng = photos.sumOf { it.longitude } / photos.size
+    val distM = haversineMeters(taskLat, taskLng, inspectorLat, inspectorLng)
+    val (distLabel, distColor) =
+        when {
+            distM < 500 -> "${distM.toInt()}m — on-site" to SignalGreen
+            distM < 2_000 -> "${distM.toInt()}m — nearby" to CautionAmber
+            else -> "${(distM / 1_000 * 10).toLong() / 10.0}km — far" to AlertCoral
+        }
+
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 8.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .border(
+                    1.dp,
+                    MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    RoundedCornerShape(10.dp),
+                ).background(MaterialTheme.colorScheme.surface)
+                .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "GPS Verification",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Box(
+                modifier =
+                    Modifier
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(distColor.copy(alpha = 0.15f))
+                        .padding(horizontal = 8.dp, vertical = 3.dp),
+            ) {
+                Text(text = distLabel, style = MaterialTheme.typography.labelSmall, color = distColor)
+            }
+        }
+        GpsRow(pin = "📍", label = "Task", lat = taskLat, lng = taskLng)
+        GpsRow(pin = "📷", label = "Inspector", lat = inspectorLat, lng = inspectorLng)
+    }
+}
+
+@Composable
+private fun GpsRow(
+    pin: String,
+    label: String,
+    lat: Double,
+    lng: Double,
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = pin, style = MaterialTheme.typography.bodySmall)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(60.dp),
+        )
+        Text(
+            text = "${lat.gpsFormat()}, ${lng.gpsFormat()}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
 // ── Previews ─────────────────────────────────────────────────────────────────
 
 private fun fakePhoto(id: String) =
@@ -734,7 +983,18 @@ private val previewTask =
         id = "task-preview",
         type = TaskType.CONSTRUCTION,
         location = "East Legon, Accra",
+        locationLat = 5.5502,
+        locationLng = -0.2174,
         description = "Verify floor slab and column placement on floors 3–5 of the residential block",
+    )
+
+private val previewChecklist =
+    listOf(
+        ChecklistResponse("Exterior facade progress", checked = true),
+        ChecklistResponse("Floor slab status", checked = true),
+        ChecklistResponse("Column/beam placement", checked = true),
+        ChecklistResponse("Materials on site", checked = false),
+        ChecklistResponse("Safety barriers present", checked = true),
     )
 
 private class FakeReviewer : EvidenceReviewer {
@@ -745,12 +1005,15 @@ private class FakeReviewer : EvidenceReviewer {
     ) = Result.success(Unit)
 }
 
+private fun makeVm(block: EvidenceReviewViewModel.() -> Unit = {}): EvidenceReviewViewModel =
+    EvidenceReviewViewModel(FakeReviewer(), NoOpAnalyticsService).apply(block)
+
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun EvidenceReviewLoadingPreview() {
     EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = true) {
         EvidenceReviewScreen(
-            vm = EvidenceReviewViewModel(FakeReviewer()),
+            vm = makeVm(),
             task = previewTask,
             photos = emptyList(),
             onBack = {},
@@ -763,13 +1026,16 @@ fun EvidenceReviewLoadingPreview() {
 @Composable
 fun EvidenceReviewWithPhotosPreview() {
     val vm =
-        EvidenceReviewViewModel(FakeReviewer()).also {
-            it.loadEvidence(
+        makeVm {
+            loadEvidence(
                 "task-preview",
                 previewTask.description,
                 previewTask.type,
                 listOf(fakePhoto("p1"), fakePhoto("p2"), fakePhoto("p3")),
+                qualityScore = 0.87f,
+                checklistResponses = previewChecklist,
             )
+            updateCountdown(172_433L)
         }
     EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = true) {
         EvidenceReviewScreen(
@@ -786,14 +1052,17 @@ fun EvidenceReviewWithPhotosPreview() {
 @Composable
 fun EvidenceReviewDecisionSelectedPreview() {
     val vm =
-        EvidenceReviewViewModel(FakeReviewer()).also {
-            it.loadEvidence(
+        makeVm {
+            loadEvidence(
                 "task-preview",
                 previewTask.description,
                 previewTask.type,
                 listOf(fakePhoto("p1"), fakePhoto("p2")),
+                qualityScore = 0.62f,
+                checklistResponses = previewChecklist,
             )
-            it.setDecision(ReviewDecision.ACCEPTED)
+            setDecision(ReviewDecision.ACCEPTED)
+            updateCountdown(3240L)
         }
     EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = false) {
         EvidenceReviewScreen(
@@ -809,10 +1078,6 @@ fun EvidenceReviewDecisionSelectedPreview() {
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun EvidenceReviewSubmittedPreview() {
-    val vm =
-        EvidenceReviewViewModel(FakeReviewer()).also {
-            it.loadEvidence("task-preview", previewTask.description, previewTask.type, listOf(fakePhoto("p1")))
-        }
     EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = true) {
         SubmittedContent(decision = ReviewDecision.ACCEPTED, onDone = {})
     }

@@ -10,6 +10,7 @@ export { expireStaleTasks } from "./matching/expireTasks";
 export { onEvidenceSubmitted } from "./evidence/onEvidenceSubmitted";
 export { fundTask, releaseEscrow } from "./escrow/escrow";
 export { seedFirestore } from "./seed/seedFirestore";
+export { submitWaitlist } from "./waitlist";
 
 // HTML-escape for email templates. Prevents XSS in notification emails.
 function escHtml(str: unknown): string {

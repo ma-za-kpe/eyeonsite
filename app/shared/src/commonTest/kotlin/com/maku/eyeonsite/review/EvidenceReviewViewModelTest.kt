@@ -1,5 +1,6 @@
 package com.maku.eyeonsite.review
 
+import com.maku.eyeonsite.analytics.NoOpAnalyticsService
 import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.domain.ReviewDecision
 import com.maku.eyeonsite.domain.TaskType
@@ -31,7 +32,7 @@ class EvidenceReviewViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         reviewer = FakeEvidenceReviewer()
-        vm = EvidenceReviewViewModel(reviewer)
+        vm = EvidenceReviewViewModel(reviewer, NoOpAnalyticsService)
     }
 
     @AfterTest
@@ -238,7 +239,7 @@ class EvidenceReviewViewModelTest {
     fun `reviewer failure produces Error state with message`() =
         runTest {
             reviewer = FakeEvidenceReviewer(shouldFail = true)
-            vm = EvidenceReviewViewModel(reviewer)
+            vm = EvidenceReviewViewModel(reviewer, NoOpAnalyticsService)
             load()
             vm.setDecision(ReviewDecision.ACCEPTED)
             vm.submitReview()
@@ -247,10 +248,26 @@ class EvidenceReviewViewModelTest {
         }
 
     @Test
+    fun `updateCountdown sets secondsRemaining`() =
+        runTest {
+            load()
+            vm.updateCountdown(172800L)
+            val state = assertIs<EvidenceReviewUiState.Reviewing>(vm.state.value)
+            assertEquals(172800L, state.secondsRemaining)
+        }
+
+    @Test
+    fun `updateCountdown on Loading state is no-op`() =
+        runTest {
+            vm.updateCountdown(100L)
+            assertIs<EvidenceReviewUiState.Loading>(vm.state.value)
+        }
+
+    @Test
     fun `clearError restores Reviewing state with isSubmitting false`() =
         runTest {
             reviewer = FakeEvidenceReviewer(shouldFail = true)
-            vm = EvidenceReviewViewModel(reviewer)
+            vm = EvidenceReviewViewModel(reviewer, NoOpAnalyticsService)
             load()
             vm.setDecision(ReviewDecision.REVISION_REQUESTED)
             vm.submitReview()

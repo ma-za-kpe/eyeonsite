@@ -25,10 +25,10 @@
 
 ## Remaining
 
-- [ ] Firebase Emulator integration test for concurrent `acceptTask` calls.
-- [ ] Firestore security rules for task/inspector matching documents.
-- [ ] FCM token cleanup for invalid or unregistered tokens.
-- [ ] Geo-query optimization with geohash bounds for V1.
-- [ ] Inspector tier/trust scoring in ranking for V1.
-- [ ] Backoff or retry strategy for failed FCM sends.
-- [ ] Client notification when a task expires after the scheduled sweep.
+- [x] Firebase Emulator integration test for concurrent `acceptTask` calls.
+- [x] Firestore security rules for task/inspector matching documents.
+- [x] FCM token cleanup for invalid or unregistered tokens.
+- [x] Geo-query optimization with geohash bounds for V1.
+- [x] Inspector tier/trust scoring in ranking for V1.
+- [x] Backoff or retry strategy for failed FCM sends.
+- [x] Client notification when a task expires after the scheduled sweep.

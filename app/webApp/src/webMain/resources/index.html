@@ -10,7 +10,7 @@
     <link rel="canonical" href="https://eyeonsite-3b8e0.web.app">
 
     <!-- Open Graph -->
-    <meta property="og:title" content="EyeOnSite — Trust, Verified.">
+    <meta property="og:title" content="EyeOnSite - Trust, Verified.">
     <meta property="og:description" content="On-demand, GPS-verified inspections for diaspora families sending money home to Africa. Escrow-backed. 48h turnaround.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://eyeonsite-3b8e0.web.app">
@@ -20,11 +20,11 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="EyeOnSite — Trust, Verified.">
+    <meta name="twitter:title" content="EyeOnSite - Trust, Verified.">
     <meta name="twitter:description" content="GPS-verified property inspections for the African diaspora. Escrow-backed. From $20.">
     <meta name="twitter:image" content="https://eyeonsite-3b8e0.web.app/android-chrome-512.svg">
 
-    <title>EyeOnSite — Trust, Verified.</title>
+    <title>EyeOnSite - Trust, Verified.</title>
 
     <!-- Favicons -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -55,27 +55,81 @@
       gtag('config', 'G-J1X286KNHJ', { 'send_page_view': false });
     </script>
 
-    <!--
-      Skiko WebGL fix: force failIfMajorPerformanceCaveat=false so WebGL
-      initialises even when hardware acceleration is unavailable (software
-      renderer fallback). Must run before webApp.js loads.
-    -->
     <script>
-      (function () {
-        var _orig = HTMLCanvasElement.prototype.getContext;
-        HTMLCanvasElement.prototype.getContext = function (type, attrs) {
-          if (type === 'webgl2' || type === 'webgl') {
-            return _orig.call(this, type, Object.assign({}, attrs || {}, {
-              failIfMajorPerformanceCaveat: false
-            }));
+      window.__EOS_WEBGL_AVAILABLE__ = (function () {
+        var attrs = { failIfMajorPerformanceCaveat: false };
+
+        function canCreateWebGl2Context() {
+          try {
+            var canvas = document.createElement('canvas');
+            return !!(canvas.getContext('webgl2', attrs) || canvas.getContext('webgl2'));
+          } catch (e) {
+            return false;
           }
-          return _orig.call(this, type, attrs);
-        };
+        }
+
+        return canCreateWebGl2Context();
       })();
+
+      window.__EOS_SHOW_WEBGL_FALLBACK__ = function (reason) {
+        document.documentElement.classList.add('webgl-unavailable');
+        var fallback = document.getElementById('WebGlFallback');
+        if (fallback) fallback.hidden = false;
+        if (reason) {
+          console.error('[EyeOnSite] WebGL startup failed. Compose Web fallback shown.', reason);
+        }
+      };
+
+      function isWebGlStartupFailure(value) {
+        var message = String(value && (value.stack || value.message || value) || '');
+        return /getParameter|_glGetString|WebGL|Skiko|DirectContext/i.test(message);
+      }
+
+      window.addEventListener('error', function (event) {
+        var detail = [
+          event.message,
+          event.filename,
+          event.error && event.error.stack
+        ].filter(Boolean).join('\n');
+
+        if (isWebGlStartupFailure(detail)) {
+          window.__EOS_SHOW_WEBGL_FALLBACK__(detail);
+          event.preventDefault();
+        }
+      });
+
+      window.addEventListener('unhandledrejection', function (event) {
+        if (isWebGlStartupFailure(event.reason)) {
+          window.__EOS_SHOW_WEBGL_FALLBACK__(event.reason);
+          event.preventDefault();
+        }
+      });
     </script>
 </head>
 <body>
-    <canvas id="ComposeTarget"></canvas>
-    <script type="application/javascript" src="webApp.js"></script>
+    <canvas id="ComposeTarget" aria-hidden="true"></canvas>
+    <section id="WebGlFallback" hidden>
+        <div class="fallback-panel">
+            <div class="fallback-brand">EyeOnSite</div>
+            <h1>Graphics acceleration is unavailable</h1>
+            <p>
+                This browser session cannot start the secure inspection workspace because WebGL is disabled or blocked.
+                Enable hardware acceleration, allow WebGL for this site, or open EyeOnSite in a clean browser profile.
+            </p>
+        </div>
+    </section>
+    <script>
+      (function () {
+        if (!window.WebGL2RenderingContext || !window.__EOS_WEBGL_AVAILABLE__) {
+          window.__EOS_SHOW_WEBGL_FALLBACK__('WebGL2 is unavailable in this browser session.');
+          return;
+        }
+
+        var script = document.createElement('script');
+        script.type = 'application/javascript';
+        script.src = 'webApp.js';
+        document.body.appendChild(script);
+      })();
+    </script>
 </body>
 </html>

@@ -1,15 +1,15 @@
 # Evidence Capture — Tasks
 
-- [ ] `InAppCamera` expect/actual (CameraX Android + AVFoundation iOS)
-- [ ] GPS provider expect/actual (FusedLocation Android + CoreLocation iOS)
-- [ ] `CaptureState` + `CaptureViewModel`
-- [ ] `CaptureScreen` — viewfinder, GPS indicator, progress bar, angle guide, thumbnail strip
-- [ ] `ChecklistScreen` — yes/no, number, text, multi-select item types
-- [ ] `EvidenceSummaryScreen` — photo grid review + notes + submit
+- [x] `InAppCamera` expect/actual (CameraX Android + AVFoundation iOS)
+- [x] GPS provider expect/actual (FusedLocation Android + CoreLocation iOS)
+- [x] `CaptureState` + `CaptureViewModel`
+- [x] `CaptureScreen` — viewfinder, GPS indicator, progress bar, angle guide, thumbnail strip
+- [x] `ChecklistScreen` — yes/no + text item types (number + multi-select deferred to V1)
+- [x] `EvidenceSummaryScreen` — photo grid review + notes + submit
 - [ ] SQLDelight `pending_upload` table + sync worker
 - [ ] Cloud Storage upload with progress reporting
 - [ ] Firestore evidence doc write
-- [ ] `computeQualityScore()` in commonMain
-- [ ] Unit tests: CaptureViewModel, quality score calculation
-- [ ] `@Preview` for CaptureScreen, ChecklistScreen, EvidenceSummaryScreen
-- [ ] Analytics: `capture_started`, `photo_captured`, `evidence_submitted`
+- [x] `computeQualityScore()` in commonMain
+- [x] Unit tests: CaptureViewModel, ChecklistViewModel
+- [x] `@Preview` for CaptureScreen, ChecklistScreen
+- [x] Analytics: `capture_started`, `photo_captured`, `evidence_submitted`, `checklist_opened`, `checklist_completed`

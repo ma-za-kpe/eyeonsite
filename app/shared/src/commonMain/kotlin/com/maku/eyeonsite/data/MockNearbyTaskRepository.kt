@@ -3,12 +3,14 @@ package com.maku.eyeonsite.data
 import com.maku.eyeonsite.domain.NearbyTask
 import com.maku.eyeonsite.domain.TaskType
 import com.maku.eyeonsite.ui.map.NearbyTaskRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class MockNearbyTaskRepository : NearbyTaskRepository {
-    override suspend fun fetchNearby(
+    override fun observeNearby(
         lat: Double,
         lng: Double,
-    ): List<NearbyTask> = MOCK_TASKS
+    ): Flow<List<NearbyTask>> = flowOf(MOCK_TASKS)
 }
 
 private val MOCK_TASKS =

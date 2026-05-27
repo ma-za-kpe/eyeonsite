@@ -3,20 +3,21 @@ package com.maku.eyeonsite.map
 import com.maku.eyeonsite.domain.NearbyTask
 import com.maku.eyeonsite.domain.TaskType
 import com.maku.eyeonsite.ui.map.NearbyTaskRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class FakeNearbyTaskRepository(
     private val tasks: List<NearbyTask> = emptyList(),
-    private val delay: Boolean = false,
 ) : NearbyTaskRepository {
     var fetchCallCount = 0
         private set
 
-    override suspend fun fetchNearby(
+    override fun observeNearby(
         lat: Double,
         lng: Double,
-    ): List<NearbyTask> {
+    ): Flow<List<NearbyTask>> {
         fetchCallCount++
-        return tasks
+        return flowOf(tasks)
     }
 }
 

@@ -31,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import com.maku.eyeonsite.analytics.NoOpAnalyticsService
 import com.maku.eyeonsite.domain.EvidencePackage
 import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.domain.UploadStatus
@@ -50,12 +51,12 @@ fun EvidenceCaptureScreen(
     task: VerificationTask,
     vm: EvidenceCaptureViewModel,
     onBack: () -> Unit,
-    onSubmitted: () -> Unit,
+    onSubmitted: (List<EvidencePhoto>) -> Unit,
 ) {
     val state by vm.state.collectAsState()
 
     LaunchedEffect(task.id) { vm.initTask(task.id) }
-    LaunchedEffect(state.isSubmitted) { if (state.isSubmitted) onSubmitted() }
+    LaunchedEffect(state.isSubmitted) { if (state.isSubmitted) onSubmitted(state.photos) }
 
     Column(
         modifier =
@@ -368,7 +369,7 @@ fun EvidenceCaptureScreenEmptyPreview() {
                     location = "East Legon, Accra",
                     description = "Verify third floor slab",
                 ),
-            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader()),
+            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader(), NoOpAnalyticsService),
             onBack = {},
             onSubmitted = {},
         )
@@ -387,7 +388,7 @@ fun EvidenceCaptureScreenInspectorLightPreview() {
                     location = "Kumasi, Ghana",
                     description = "Verify cocoa farm",
                 ),
-            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader()),
+            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader(), NoOpAnalyticsService),
             onBack = {},
             onSubmitted = {},
         )

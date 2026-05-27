@@ -73,6 +73,20 @@ describe("rankCandidates", () => {
 
 // ── sendTaskPings ─────────────────────────────────────────────────────────────
 
+function makeDb() {
+  return { doc: jest.fn().mockReturnValue({ update: jest.fn().mockResolvedValue(undefined) }), batch: jest.fn() } as any;
+}
+
+function makeMessaging(allSucceed = true) {
+  return {
+    sendEachForMulticast: jest.fn().mockResolvedValue({
+      responses: allSucceed
+        ? [{ success: true }, { success: true }]
+        : [{ success: false, error: { code: "messaging/registration-token-not-registered" } }],
+    }),
+  } as any;
+}
+
 describe("sendTaskPings", () => {
   const mockTask: TaskDocument = {
     status: "POSTED",
@@ -83,36 +97,36 @@ describe("sendTaskPings", () => {
   };
 
   test("does nothing when no candidates have fcmToken", async () => {
-    const mockMessaging = { sendEachForMulticast: jest.fn() } as any;
+    const mockMessaging = makeMessaging();
     const candidates = [{ uid: "a", distanceKm: 1 }]; // no fcmToken
-    await sendTaskPings(mockMessaging, "task-1", mockTask, candidates);
+    await sendTaskPings(makeDb(), mockMessaging, "task-1", mockTask, candidates);
     expect(mockMessaging.sendEachForMulticast).not.toHaveBeenCalled();
   });
 
   test("sends to all candidates with tokens", async () => {
-    const mockMessaging = { sendEachForMulticast: jest.fn().mockResolvedValue({}) } as any;
+    const mockMessaging = makeMessaging();
     const candidates = [
       { uid: "a", fcmToken: "tok-1", distanceKm: 1.2 },
       { uid: "b", fcmToken: "tok-2", distanceKm: 3.4 },
     ];
-    await sendTaskPings(mockMessaging, "task-1", mockTask, candidates);
+    await sendTaskPings(makeDb(), mockMessaging, "task-1", mockTask, candidates);
     const call = mockMessaging.sendEachForMulticast.mock.calls[0][0];
     expect(call.tokens).toEqual(["tok-1", "tok-2"]);
   });
 
   test("notification body includes bounty and distance", async () => {
-    const mockMessaging = { sendEachForMulticast: jest.fn().mockResolvedValue({}) } as any;
+    const mockMessaging = makeMessaging();
     const candidates = [{ uid: "a", fcmToken: "tok", distanceKm: 2.567 }];
-    await sendTaskPings(mockMessaging, "task-1", mockTask, candidates);
+    await sendTaskPings(makeDb(), mockMessaging, "task-1", mockTask, candidates);
     const notification = mockMessaging.sendEachForMulticast.mock.calls[0][0].notification;
     expect(notification.body).toContain("45");
     expect(notification.body).toContain("2.6");
   });
 
   test("data payload contains taskId and type", async () => {
-    const mockMessaging = { sendEachForMulticast: jest.fn().mockResolvedValue({}) } as any;
+    const mockMessaging = makeMessaging();
     const candidates = [{ uid: "a", fcmToken: "tok", distanceKm: 1 }];
-    await sendTaskPings(mockMessaging, "task-xyz", mockTask, candidates);
+    await sendTaskPings(makeDb(), mockMessaging, "task-xyz", mockTask, candidates);
     const data = mockMessaging.sendEachForMulticast.mock.calls[0][0].data;
     expect(data.taskId).toBe("task-xyz");
     expect(data.type).toBe("TASK_PING");

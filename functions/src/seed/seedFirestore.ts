@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { GeoPoint } from "firebase-admin/firestore";
+import { geohashForPoint } from "../utils/geohash";
 
 const REGION = "africa-south1";
 const ALLOWED_EMAIL = "makpalyy@gmail.com";
@@ -116,8 +117,10 @@ export const seedFirestore = onCall(
 
     // Create inspectors
     for (const inspector of INSPECTORS) {
+      const { latitude, longitude } = inspector.location;
       const ref = await db.collection("inspectors").add({
         ...inspector,
+        geohash: geohashForPoint(latitude, longitude),
         createdAtMs: Date.now(),
       });
       results.inspectors.push(ref.id);

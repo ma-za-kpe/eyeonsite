@@ -2,6 +2,8 @@ package com.maku.eyeonsite.ui.review
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.maku.eyeonsite.analytics.AnalyticsService
+import com.maku.eyeonsite.domain.ChecklistResponse
 import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.domain.ReviewDecision
 import com.maku.eyeonsite.domain.TaskType
@@ -22,6 +24,9 @@ sealed class EvidenceReviewUiState {
         val selectedPhotoIndex: Int = 0,
         val isSubmitting: Boolean = false,
         val notes: String = "",
+        val secondsRemaining: Long? = null,
+        val qualityScore: Float? = null,
+        val checklistResponses: List<ChecklistResponse> = emptyList(),
     ) : EvidenceReviewUiState() {
         val hasPhotos: Boolean get() = photos.isNotEmpty()
         val canSubmit: Boolean get() = decision != null && !isSubmitting
@@ -41,6 +46,7 @@ sealed class EvidenceReviewUiState {
 
 class EvidenceReviewViewModel(
     private val reviewer: EvidenceReviewer,
+    private val analytics: AnalyticsService,
 ) : ViewModel() {
     private val _state = MutableStateFlow<EvidenceReviewUiState>(EvidenceReviewUiState.Loading)
     val state: StateFlow<EvidenceReviewUiState> = _state.asStateFlow()
@@ -50,6 +56,8 @@ class EvidenceReviewViewModel(
         taskDescription: String,
         taskType: TaskType,
         photos: List<EvidencePhoto>,
+        qualityScore: Float? = null,
+        checklistResponses: List<ChecklistResponse> = emptyList(),
     ) {
         _state.value =
             EvidenceReviewUiState.Reviewing(
@@ -57,7 +65,18 @@ class EvidenceReviewViewModel(
                 taskDescription = taskDescription,
                 taskType = taskType,
                 photos = photos,
+                qualityScore = qualityScore,
+                checklistResponses = checklistResponses,
             )
+        analytics.logEvent(
+            name = "evidence_review_opened",
+            params = mapOf("task_id" to taskId, "photo_count" to photos.size.toString()),
+        )
+    }
+
+    fun updateCountdown(secondsRemaining: Long) {
+        val current = _state.value as? EvidenceReviewUiState.Reviewing ?: return
+        _state.value = current.copy(secondsRemaining = secondsRemaining)
     }
 
     fun selectPhoto(index: Int) {
@@ -86,8 +105,19 @@ class EvidenceReviewViewModel(
         viewModelScope.launch {
             reviewer
                 .submitDecision(current.taskId, decision, current.notes)
-                .onSuccess { _state.value = EvidenceReviewUiState.Submitted(decision) }
-                .onFailure { e ->
+                .onSuccess {
+                    _state.value = EvidenceReviewUiState.Submitted(decision)
+                    val eventName =
+                        when (decision) {
+                            ReviewDecision.ACCEPTED -> "evidence_accepted"
+                            ReviewDecision.DISPUTED -> "evidence_disputed"
+                            ReviewDecision.REVISION_REQUESTED -> "evidence_revision_requested"
+                        }
+                    analytics.logEvent(
+                        name = eventName,
+                        params = mapOf("task_id" to current.taskId),
+                    )
+                }.onFailure { e ->
                     _state.value =
                         EvidenceReviewUiState.Error(
                             message = e.message ?: "Failed to submit review",

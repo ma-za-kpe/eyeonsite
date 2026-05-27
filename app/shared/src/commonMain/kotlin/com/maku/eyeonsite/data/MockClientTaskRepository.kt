@@ -4,9 +4,11 @@ import com.maku.eyeonsite.domain.ClientTaskSummary
 import com.maku.eyeonsite.domain.TaskStatus
 import com.maku.eyeonsite.domain.TaskType
 import com.maku.eyeonsite.ui.dashboard.ClientTaskRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 class MockClientTaskRepository : ClientTaskRepository {
-    override suspend fun fetchTasksForClient(clientUid: String): List<ClientTaskSummary> = MOCK_TASKS
+    override fun observeTasksForClient(clientUid: String): Flow<List<ClientTaskSummary>> = flowOf(MOCK_TASKS)
 }
 
 private val MOCK_TASKS =

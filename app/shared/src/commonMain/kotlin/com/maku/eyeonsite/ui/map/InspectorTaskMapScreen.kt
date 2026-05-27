@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,8 +20,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -28,7 +32,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.maku.eyeonsite.analytics.NoOpAnalyticsService
+import com.maku.eyeonsite.data.NoOpInspectorAvailabilityRepository
 import com.maku.eyeonsite.domain.NearbyTask
 import com.maku.eyeonsite.domain.TaskType
 import com.maku.eyeonsite.platform.TaskMapView
@@ -38,17 +45,24 @@ import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
 import com.maku.eyeonsite.ui.theme.Forest
 import com.maku.eyeonsite.ui.theme.SavannaGold
 import com.maku.eyeonsite.ui.theme.SignalGreen
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import kotlin.math.roundToInt
 
 private const val MAP_HEIGHT_DP = 320
 private const val INSPECTOR_LAT = 5.5502
 private const val INSPECTOR_LNG = -0.2174
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InspectorTaskMapScreen(
     vm: TaskMapViewModel,
+    homeVm: InspectorHomeViewModel,
+    inspectorUid: String,
     onAcceptTask: (NearbyTask) -> Unit,
 ) {
     val state by vm.state.collectAsState()
+    val homeState by homeVm.state.collectAsState()
 
     LaunchedEffect(Unit) { vm.loadNearbyTasks(INSPECTOR_LAT, INSPECTOR_LNG) }
 
@@ -59,42 +73,61 @@ fun InspectorTaskMapScreen(
                 .background(MaterialTheme.colorScheme.background),
     ) {
         // Header
-        Row(
+        Column(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 16.dp, bottom = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Text(
-                    text = "Task Map",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
-                )
-                when (val s = state) {
-                    is TaskMapUiState.HasTasks ->
-                        Text(
-                            text = "${s.visibleTasks.size} task${if (s.visibleTasks.size == 1) "" else "s"} near you",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    else -> Unit
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = "Task Map",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                    when (val s = state) {
+                        is TaskMapUiState.HasTasks ->
+                            Text(
+                                text = "${s.visibleTasks.size} task${if (s.visibleTasks.size == 1) "" else "s"} near you",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        else -> Unit
+                    }
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    AvailabilityToggle(
+                        isAvailable = homeState.isAvailable,
+                        onToggle = { homeVm.toggleAvailability(inspectorUid) },
+                    )
+                    Box(
+                        modifier =
+                            Modifier
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                .clickable { vm.refresh(INSPECTOR_LAT, INSPECTOR_LNG) }
+                                .padding(10.dp),
+                    ) {
+                        Text("↻", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
+                    }
                 }
             }
 
-            // Refresh button
-            Box(
-                modifier =
-                    Modifier
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                        .clickable { vm.refresh(INSPECTOR_LAT, INSPECTOR_LNG) }
-                        .padding(10.dp),
-            ) {
-                Text("↻", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
-            }
+            EarningsCard(
+                earningsThisWeekUsd = homeState.earningsThisWeekUsd,
+                completedTasksCount = homeState.completedTasksCount,
+            )
         }
 
         when (val s = state) {
@@ -105,9 +138,98 @@ fun InspectorTaskMapScreen(
                     state = s,
                     onMarkerClick = { vm.selectTask(it.id) },
                     onFilterChange = { vm.setFilter(it) },
-                    onAcceptTask = onAcceptTask,
+                    onAcceptTask = { task ->
+                        homeVm.logTaskAccepted(task.id, task.type, task.bountyUsd)
+                        onAcceptTask(task)
+                    },
                     onDismissSelection = { vm.selectTask(null) },
                 )
+        }
+    }
+}
+
+@Composable
+private fun AvailabilityToggle(
+    isAvailable: Boolean,
+    onToggle: () -> Unit,
+) {
+    Row(
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(20.dp))
+                .background(
+                    if (isAvailable) {
+                        SignalGreen.copy(alpha = 0.12f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant.copy(
+                            alpha = 0.5f,
+                        )
+                    },
+                ).border(
+                    1.dp,
+                    if (isAvailable) SignalGreen else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    RoundedCornerShape(20.dp),
+                ).clickable { onToggle() }
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .size(7.dp)
+                    .clip(CircleShape)
+                    .background(if (isAvailable) SignalGreen else MaterialTheme.colorScheme.onSurfaceVariant),
+        )
+        Text(
+            text = if (isAvailable) "Available" else "Off duty",
+            style = MaterialTheme.typography.labelSmall,
+            color = if (isAvailable) SignalGreen else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun EarningsCard(
+    earningsThisWeekUsd: Int,
+    completedTasksCount: Int,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = "This week",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "$$earningsThisWeekUsd",
+                style = MaterialTheme.typography.titleMedium,
+                color = SignalGreen,
+            )
+        }
+        Column(
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalAlignment = Alignment.End,
+        ) {
+            Text(
+                text = "Tasks done",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "$completedTasksCount",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
         }
     }
 }
@@ -169,6 +291,7 @@ private fun EmptyContent(onRefresh: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HasTasksContent(
     state: TaskMapUiState.HasTasks,
@@ -210,15 +333,6 @@ private fun HasTasksContent(
             }
         }
 
-        // Selected task detail card
-        state.selectedTask?.let { task ->
-            SelectedTaskCard(
-                task = task,
-                onAccept = { onAcceptTask(task) },
-                onDismiss = onDismissSelection,
-            )
-        }
-
         // Task list
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -234,13 +348,188 @@ private fun HasTasksContent(
             }
         }
     }
+
+    // Task detail bottom sheet
+    state.selectedTask?.let { task ->
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = onDismissSelection,
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            TaskDetailSheet(
+                task = task,
+                onAccept = { onAcceptTask(task) },
+                onDismiss = onDismissSelection,
+            )
+        }
+    }
 }
+
+@Composable
+private fun TaskDetailSheet(
+    task: NearbyTask,
+    onAccept: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val etaMin = (task.distanceKm * 20).roundToInt().coerceAtLeast(5)
+    val checklist = checklistForType(task.type)
+
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        // Type badge + dismiss row
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TypeBadge(task.type)
+            Text(
+                text = "×",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.clickable { onDismiss() }.padding(4.dp),
+            )
+        }
+
+        // Description
+        Text(
+            text = task.description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+
+        // Location, distance, ETA row
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            InfoChip(label = "📍 ${task.location}")
+            InfoChip(label = "${task.distanceKm} km · ~$etaMin min")
+        }
+
+        // Bounty
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Bounty",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "$${task.bountyUsd}",
+                style = MaterialTheme.typography.titleMedium,
+                color = SignalGreen,
+            )
+        }
+
+        // Checklist preview
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                text = "Checklist (${checklist.size} items)",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            checklist.forEach { item ->
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .size(16.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f), RoundedCornerShape(3.dp)),
+                    )
+                    Text(
+                        text = item,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Accept button
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable { onAccept() }
+                    .padding(vertical = 14.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "Accept Task · $${task.bountyUsd}",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onPrimary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun InfoChip(label: String) {
+    Box(
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(6.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+private fun checklistForType(type: TaskType): List<String> =
+    when (type) {
+        TaskType.CONSTRUCTION ->
+            listOf(
+                "Exterior facade progress",
+                "Floor slab status",
+                "Column/beam placement",
+                "Materials on site",
+                "Safety barriers present",
+            )
+        TaskType.PROPERTY ->
+            listOf(
+                "Boundary fencing complete",
+                "Gate installation",
+                "Interior access confirmed",
+                "Utilities connected",
+                "Occupancy status",
+            )
+        TaskType.FARM -> listOf("Crop coverage & health", "Irrigation channels", "Acreage estimate", "Livestock count", "Storage condition")
+        TaskType.BUSINESS ->
+            listOf(
+                "Signage visible & correct",
+                "Shop open & operational",
+                "Stock present on shelves",
+                "Staff present",
+                "Customer activity",
+            )
+    }
 
 @Composable
 private fun FilterChip(
     label: String,
     selected: Boolean,
-    accentColor: androidx.compose.ui.graphics.Color,
+    accentColor: Color,
     onClick: () -> Unit,
 ) {
     Box(
@@ -260,76 +549,6 @@ private fun FilterChip(
             style = MaterialTheme.typography.labelMedium,
             color = if (selected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
         )
-    }
-}
-
-@Composable
-private fun SelectedTaskCard(
-    task: NearbyTask,
-    onAccept: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
-                .border(1.5.dp, typeAccent(task.type), RoundedCornerShape(12.dp))
-                .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TypeBadge(task.type)
-            Text(
-                text = "×",
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.clickable { onDismiss() }.padding(4.dp),
-            )
-        }
-        Text(
-            text = task.description,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 2,
-        )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "${task.distanceKm} km away",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                text = "$${ task.bountyUsd}",
-                style = MaterialTheme.typography.labelMedium,
-                color = SignalGreen,
-            )
-        }
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.primary)
-                    .clickable { onAccept() }
-                    .padding(vertical = 12.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "Accept Task",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onPrimary,
-            )
-        }
     }
 }
 
@@ -357,7 +576,6 @@ private fun TaskFeedCard(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Type indicator dot
         Box(
             modifier =
                 Modifier
@@ -401,7 +619,7 @@ private fun TaskFeedCard(
 
         Column(verticalArrangement = Arrangement.spacedBy(6.dp), horizontalAlignment = Alignment.End) {
             Text(
-                text = "$${ task.bountyUsd}",
+                text = "$${task.bountyUsd}",
                 style = MaterialTheme.typography.labelMedium,
                 color = SignalGreen,
             )
@@ -445,9 +663,7 @@ private fun TypeBadge(type: TaskType) {
 private fun typeAccent(type: TaskType) =
     when (type) {
         TaskType.CONSTRUCTION -> CautionAmber
-        TaskType.PROPERTY ->
-            androidx.compose.ui.graphics
-                .Color(0xFF4A90D9)
+        TaskType.PROPERTY -> Color(0xFF4A90D9)
         TaskType.FARM -> Forest
         TaskType.BUSINESS -> SavannaGold
     }
@@ -484,11 +700,17 @@ private fun makeTasks(
 private class FakeRepo(
     private val tasks: List<NearbyTask>,
 ) : NearbyTaskRepository {
-    override suspend fun fetchNearby(
+    override fun observeNearby(
         lat: Double,
         lng: Double,
-    ) = tasks
+    ): Flow<List<NearbyTask>> = flowOf(tasks)
 }
+
+private fun previewHomeVm() =
+    InspectorHomeViewModel(
+        analytics = NoOpAnalyticsService,
+        availabilityRepo = NoOpInspectorAvailabilityRepository(),
+    )
 
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
@@ -496,6 +718,8 @@ fun TaskMapScreenEmptyPreview() {
     EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = true) {
         InspectorTaskMapScreen(
             vm = TaskMapViewModel(FakeRepo(emptyList())).also { it.loadNearbyTasks(0.0, 0.0) },
+            homeVm = previewHomeVm(),
+            inspectorUid = "preview-uid",
             onAcceptTask = {},
         )
     }
@@ -507,6 +731,8 @@ fun TaskMapScreenFewTasksPreview() {
     EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = true) {
         InspectorTaskMapScreen(
             vm = TaskMapViewModel(FakeRepo(makeTasks(3))).also { it.loadNearbyTasks(0.0, 0.0) },
+            homeVm = previewHomeVm(),
+            inspectorUid = "preview-uid",
             onAcceptTask = {},
         )
     }
@@ -518,6 +744,8 @@ fun TaskMapScreenManyTasksPreview() {
     EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = true) {
         InspectorTaskMapScreen(
             vm = TaskMapViewModel(FakeRepo(makeTasks(15))).also { it.loadNearbyTasks(0.0, 0.0) },
+            homeVm = previewHomeVm(),
+            inspectorUid = "preview-uid",
             onAcceptTask = {},
         )
     }
@@ -529,7 +757,37 @@ fun TaskMapScreenLightPreview() {
     EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = false) {
         InspectorTaskMapScreen(
             vm = TaskMapViewModel(FakeRepo(makeTasks(5))).also { it.loadNearbyTasks(0.0, 0.0) },
+            homeVm = previewHomeVm(),
+            inspectorUid = "preview-uid",
             onAcceptTask = {},
         )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun TaskDetailSheetPreview() {
+    EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = true) {
+        Box(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
+            TaskDetailSheet(
+                task = makeTasks(1).first(),
+                onAccept = {},
+                onDismiss = {},
+            )
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun AvailabilityTogglePreview() {
+    EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = true) {
+        Column(
+            modifier = Modifier.background(MaterialTheme.colorScheme.background).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            AvailabilityToggle(isAvailable = true, onToggle = {})
+            AvailabilityToggle(isAvailable = false, onToggle = {})
+        }
     }
 }

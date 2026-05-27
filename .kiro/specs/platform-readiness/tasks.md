@@ -32,8 +32,8 @@ Validated on 2026-05-25:
 - [x] Complete hero, problem, how-it-works, evidence preview, verticals, trust, pricing, and footer sections.
 - [x] Ensure every CTA emits `cta_clicked` with stable `cta_id` and `section`.
 - [x] Ensure each landing section emits `section_viewed` when displayed.
-- [ ] Replace web analytics console stub with Firebase Analytics JS or gtag integration.
-- [ ] Add responsive layouts for desktop/tablet/mobile.
+- [x] Replace web analytics console stub with Firebase Analytics JS or gtag integration.
+- [x] Add responsive layouts for desktop/tablet/mobile.
 - [ ] Add visual QA screenshots for desktop and mobile before deploy.
 - [ ] Deploy Firebase Hosting only after build and checks are green.
 

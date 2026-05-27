@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
-import { onCall } from "firebase-functions/v2/https";
-import { HttpsError } from "firebase-functions/v2/https";
+import { HttpsError, onCall } from "firebase-functions/v2/https";
+import { sendAndCleanup } from "../utils/fcm";
 
 interface AcceptableTaskData {
   status?: unknown;
@@ -102,18 +102,18 @@ async function notifyTaskTaken(
   const snaps = await Promise.all(
     inspectorUids.map((uid) => db.doc(`inspectors/${uid}`).get()),
   );
-  const tokens = snaps
-    .map((s) => (s.data() as { fcmToken?: string } | undefined)?.fcmToken)
-    .filter((t): t is string => !!t);
+  const recipients = snaps
+    .map((s, i) => {
+      const token = (s.data() as { fcmToken?: string } | undefined)?.fcmToken;
+      return token ? { docPath: `inspectors/${inspectorUids[i]}`, token } : null;
+    })
+    .filter((r): r is NonNullable<typeof r> => r !== null);
 
-  if (tokens.length === 0) return;
-
-  await messaging.sendEachForMulticast({
-    tokens,
-    notification: {
-      title: "Task taken",
-      body: "Another inspector accepted this task first",
-    },
-    data: { taskId, type: "TASK_TAKEN" },
-  });
+  await sendAndCleanup(
+    db,
+    messaging,
+    recipients,
+    { title: "Task taken", body: "Another inspector accepted this task first" },
+    { taskId, type: "TASK_TAKEN" },
+  );
 }

@@ -15,10 +15,15 @@ export interface InspectorDocument {
   available: boolean;
   location: GeoPoint;
   fcmToken?: string;
+  geohash?: string;
+  rating?: number;
+  tierLevel?: number;
 }
 
 export interface InspectorCandidate {
   uid: string;
   fcmToken?: string;
   distanceKm: number;
+  rating?: number;
+  tierLevel?: number;
 }

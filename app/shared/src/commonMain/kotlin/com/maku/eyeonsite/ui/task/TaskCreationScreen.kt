@@ -12,41 +12,51 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+import com.maku.eyeonsite.analytics.NoOpAnalyticsService
+import com.maku.eyeonsite.data.NoOpTaskRepository
 import com.maku.eyeonsite.domain.TaskType
 import com.maku.eyeonsite.domain.VerificationTask
+import com.maku.eyeonsite.platform.MapLocationPicker
+import com.maku.eyeonsite.platform.NoOpGeocoderService
 import com.maku.eyeonsite.ui.theme.AlertCoral
 import com.maku.eyeonsite.ui.theme.AppVariant
 import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
+import com.maku.eyeonsite.ui.theme.Forest
+import com.maku.eyeonsite.ui.theme.SavannaGold
 
 @Composable
 fun TaskCreationScreen(
+    vm: CreateTaskViewModel,
     onBack: () -> Unit,
     onTaskCreated: (VerificationTask) -> Unit,
 ) {
-    var selectedType by remember { mutableStateOf<TaskType?>(null) }
-    var location by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var submitted by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { vm.reset() }
 
-    val typeError = submitted && selectedType == null
-    val locationError = submitted && location.isBlank()
-    val descriptionError = submitted && description.isBlank()
+    val state by vm.state.collectAsState()
+
+    LaunchedEffect(state) {
+        val s = state
+        if (s is CreateTaskUiState.Matched) {
+            onTaskCreated(s.task)
+        }
+    }
 
     Column(
         modifier =
@@ -56,110 +66,289 @@ fun TaskCreationScreen(
     ) {
         TopBar(title = "New Verification Task", onBack = onBack)
 
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(28.dp),
-        ) {
-            // Task type
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SectionLabel(
-                    text = "What needs verification?",
-                    isError = typeError,
+        when (val s = state) {
+            is CreateTaskUiState.Form ->
+                FormContent(
+                    form = s,
+                    onTypeSelected = { vm.setTaskType(it) },
+                    onLocationChange = { vm.setLocation(it) },
+                    onLocationCoordsChange = { lat, lng -> vm.setLocationCoords(lat, lng) },
+                    onDescriptionChange = { vm.setDescription(it) },
+                    onBountyChange = { vm.setBounty(it) },
+                    onPost = { vm.post() },
                 )
-                if (typeError) {
-                    ErrorCaption("Please select a task type")
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    TaskTypeCard(
-                        type = TaskType.CONSTRUCTION,
-                        selected = selectedType == TaskType.CONSTRUCTION,
-                        modifier = Modifier.weight(1f),
-                        onClick = { selectedType = TaskType.CONSTRUCTION },
-                    )
-                    TaskTypeCard(
-                        type = TaskType.PROPERTY,
-                        selected = selectedType == TaskType.PROPERTY,
-                        modifier = Modifier.weight(1f),
-                        onClick = { selectedType = TaskType.PROPERTY },
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    TaskTypeCard(
-                        type = TaskType.FARM,
-                        selected = selectedType == TaskType.FARM,
-                        modifier = Modifier.weight(1f),
-                        onClick = { selectedType = TaskType.FARM },
-                    )
-                    TaskTypeCard(
-                        type = TaskType.BUSINESS,
-                        selected = selectedType == TaskType.BUSINESS,
-                        modifier = Modifier.weight(1f),
-                        onClick = { selectedType = TaskType.BUSINESS },
-                    )
-                }
-            }
 
-            // Location
+            is CreateTaskUiState.FindingInspector ->
+                FindingInspectorContent(task = s.task)
+
+            is CreateTaskUiState.Matched ->
+                FindingInspectorContent(task = s.task)
+
+            is CreateTaskUiState.Error ->
+                ErrorContent(message = s.message, onRetry = { vm.reset() })
+        }
+    }
+}
+
+@Composable
+private fun FormContent(
+    form: CreateTaskUiState.Form,
+    onTypeSelected: (TaskType) -> Unit,
+    onLocationChange: (String) -> Unit,
+    onLocationCoordsChange: (Double, Double) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onBountyChange: (Int) -> Unit,
+    onPost: () -> Unit,
+) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(28.dp),
+    ) {
+        TaskTypeSection(
+            selected = form.taskType,
+            isError = form.typeError,
+            onTypeSelected = onTypeSelected,
+        )
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             TaskField(
                 label = "Location / Address",
-                value = location,
+                value = form.location,
                 hint = "e.g. East Legon, Accra",
-                isError = locationError,
+                isError = form.locationError,
                 errorMessage = "Location is required",
-                onValueChange = { location = it },
+                onValueChange = onLocationChange,
             )
 
-            // Description
-            TaskField(
-                label = "What should the inspector verify?",
-                value = description,
-                hint = "e.g. Confirm the third floor slab has been poured and columns are in place",
-                isError = descriptionError,
-                errorMessage = "Description is required",
-                singleLine = false,
-                onValueChange = { description = it },
+            MapLocationPicker(
+                initialLat = form.locationLat,
+                initialLng = form.locationLng,
+                onLocationPicked = { lat, lng -> onLocationCoordsChange(lat, lng) },
+                modifier = Modifier.fillMaxWidth().height(180.dp),
             )
+        }
 
-            // Submit
+        TaskField(
+            label = "What should the inspector verify?",
+            value = form.description,
+            hint = "e.g. Confirm the third floor slab has been poured and columns are in place",
+            isError = form.descriptionError,
+            errorMessage = "Description is required",
+            singleLine = false,
+            onValueChange = onDescriptionChange,
+        )
+
+        BountySection(
+            bountyUsd = form.bountyUsd,
+            onDecrease = { onBountyChange(form.bountyUsd - CreateTaskViewModel.BOUNTY_STEP) },
+            onIncrease = { onBountyChange(form.bountyUsd + CreateTaskViewModel.BOUNTY_STEP) },
+        )
+
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable { onPost() }
+                    .padding(vertical = 18.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "Find Inspectors",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onPrimary,
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun TaskTypeSection(
+    selected: TaskType?,
+    isError: Boolean,
+    onTypeSelected: (TaskType) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionLabel(text = "What needs verification?", isError = isError)
+        if (isError) ErrorCaption("Please select a task type")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            TaskTypeCard(
+                type = TaskType.CONSTRUCTION,
+                selected = selected == TaskType.CONSTRUCTION,
+                modifier = Modifier.weight(1f),
+                onClick = { onTypeSelected(TaskType.CONSTRUCTION) },
+            )
+            TaskTypeCard(
+                type = TaskType.PROPERTY,
+                selected = selected == TaskType.PROPERTY,
+                modifier = Modifier.weight(1f),
+                onClick = { onTypeSelected(TaskType.PROPERTY) },
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            TaskTypeCard(
+                type = TaskType.FARM,
+                selected = selected == TaskType.FARM,
+                modifier = Modifier.weight(1f),
+                onClick = { onTypeSelected(TaskType.FARM) },
+            )
+            TaskTypeCard(
+                type = TaskType.BUSINESS,
+                selected = selected == TaskType.BUSINESS,
+                modifier = Modifier.weight(1f),
+                onClick = { onTypeSelected(TaskType.BUSINESS) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun BountySection(
+    bountyUsd: Int,
+    onDecrease: () -> Unit,
+    onIncrease: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        SectionLabel(text = "Bounty (USD)")
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            BountyStepButton(
+                label = "−",
+                enabled = bountyUsd > CreateTaskViewModel.BOUNTY_MIN,
+                onClick = onDecrease,
+            )
+            Text(
+                text = "$$bountyUsd",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
+            )
+            BountyStepButton(
+                label = "+",
+                enabled = bountyUsd < CreateTaskViewModel.BOUNTY_MAX,
+                onClick = onIncrease,
+            )
+        }
+        val min = CreateTaskViewModel.BOUNTY_MIN
+        val max = CreateTaskViewModel.BOUNTY_MAX
+        val step = CreateTaskViewModel.BOUNTY_STEP
+        Text(
+            text = "Min \$$min · Max \$$max · Step \$$step",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun BountyStepButton(
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier =
+            Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(
+                    if (enabled) {
+                        SavannaGold.copy(alpha = 0.15f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                    },
+                ).then(if (enabled) Modifier.clickable { onClick() } else Modifier),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.titleLarge,
+            color = if (enabled) SavannaGold else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+        )
+    }
+}
+
+@Composable
+private fun FindingInspectorContent(task: VerificationTask) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(40.dp),
+        ) {
             Box(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                        .clickable {
-                            submitted = true
-                            val type = selectedType
-                            if (type != null && location.isNotBlank() && description.isNotBlank()) {
-                                onTaskCreated(
-                                    VerificationTask(
-                                        type = type,
-                                        location = location.trim(),
-                                        description = description.trim(),
-                                    ),
-                                )
-                            }
-                        }.padding(vertical = 18.dp),
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(Forest.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = "Find Inspectors",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    text =
+                        task.type.label
+                            .first()
+                            .toString(),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Forest,
                 )
             }
+            Text(
+                text = "Finding Inspectors...",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = "Pinging nearby inspectors for ${task.type.label.lowercase()} in ${task.location}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
 
-            Spacer(Modifier.height(24.dp))
+@Composable
+private fun ErrorContent(
+    message: String,
+    onRetry: () -> Unit,
+) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(40.dp),
+        ) {
+            Text(text = message, style = MaterialTheme.typography.bodyMedium, color = AlertCoral)
+            Box(
+                modifier =
+                    Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                        .clickable { onRetry() }
+                        .padding(horizontal = 20.dp, vertical = 10.dp),
+            ) {
+                Text(
+                    text = "Try Again",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
         }
     }
 }
@@ -177,10 +366,20 @@ private fun TaskTypeCard(
         modifier =
             modifier
                 .clip(RoundedCornerShape(10.dp))
-                .background(if (selected) accentColor.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
-                .border(
+                .background(
+                    if (selected) {
+                        accentColor.copy(alpha = 0.12f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                    },
+                ).border(
                     width = if (selected) 1.5.dp else 1.dp,
-                    color = if (selected) accentColor else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    color =
+                        if (selected) {
+                            accentColor
+                        } else {
+                            MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                        },
                     shape = RoundedCornerShape(10.dp),
                 ).clickable { onClick() }
                 .padding(14.dp),
@@ -227,7 +426,12 @@ private fun TaskField(
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                             .border(
                                 width = 1.dp,
-                                color = if (isError) AlertCoral else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                                color =
+                                    if (isError) {
+                                        AlertCoral
+                                    } else {
+                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                                    },
                                 shape = RoundedCornerShape(8.dp),
                             ).padding(horizontal = 14.dp, vertical = 14.dp),
                 ) {
@@ -242,9 +446,7 @@ private fun TaskField(
                 }
             },
         )
-        if (isError) {
-            ErrorCaption(errorMessage)
-        }
+        if (isError) ErrorCaption(errorMessage)
     }
 }
 
@@ -262,11 +464,7 @@ private fun SectionLabel(
 
 @Composable
 private fun ErrorCaption(message: String) {
-    Text(
-        text = message,
-        style = MaterialTheme.typography.bodySmall,
-        color = AlertCoral,
-    )
+    Text(text = message, style = MaterialTheme.typography.bodySmall, color = AlertCoral)
 }
 
 @Composable
@@ -287,10 +485,7 @@ internal fun TopBar(
                 text = "←",
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onBackground,
-                modifier =
-                    Modifier
-                        .clickable { onBack() }
-                        .padding(8.dp),
+                modifier = Modifier.clickable { onBack() }.padding(8.dp),
             )
             Text(
                 text = title,
@@ -308,34 +503,36 @@ internal fun TopBar(
     }
 }
 
+private fun makePreviewVm() = CreateTaskViewModel(NoOpAnalyticsService, NoOpGeocoderService, NoOpTaskRepository())
+
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
-fun TaskCreationScreenClientLightPreview() {
+fun TaskCreationFormLightPreview() {
     EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = false) {
-        TaskCreationScreen(onBack = {}, onTaskCreated = {})
+        TaskCreationScreen(vm = makePreviewVm(), onBack = {}, onTaskCreated = {})
     }
 }
 
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
-fun TaskCreationScreenClientDarkPreview() {
+fun TaskCreationFormDarkPreview() {
     EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = true) {
-        TaskCreationScreen(onBack = {}, onTaskCreated = {})
+        TaskCreationScreen(vm = makePreviewVm(), onBack = {}, onTaskCreated = {})
     }
 }
 
 @androidx.compose.ui.tooling.preview.Preview
 @Composable
-fun TaskCreationScreenInspectorLightPreview() {
-    EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = false) {
-        TaskCreationScreen(onBack = {}, onTaskCreated = {})
-    }
-}
-
-@androidx.compose.ui.tooling.preview.Preview
-@Composable
-fun TaskCreationScreenInspectorDarkPreview() {
-    EyeOnSiteTheme(variant = AppVariant.INSPECTOR, darkTheme = true) {
-        TaskCreationScreen(onBack = {}, onTaskCreated = {})
+fun TaskCreationFindingInspectorPreview() {
+    EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = false) {
+        FindingInspectorContent(
+            task =
+                VerificationTask(
+                    type = TaskType.CONSTRUCTION,
+                    location = "East Legon, Accra",
+                    description = "Verify floor slab",
+                    bountyUsd = 45,
+                ),
+        )
     }
 }

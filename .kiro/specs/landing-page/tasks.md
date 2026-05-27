@@ -61,7 +61,7 @@
 
 - [x] Every CTA button fires `cta_clicked`
 - [x] Every section fires `section_viewed` on composition
-- [ ] Replace console analytics with Firebase Analytics JS or gtag production integration
+- [x] Replace console analytics with Firebase Analytics JS or gtag production integration
 
 ### T12: firebase.json security headers
 

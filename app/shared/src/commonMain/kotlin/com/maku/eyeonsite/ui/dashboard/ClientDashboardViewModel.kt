@@ -2,15 +2,18 @@ package com.maku.eyeonsite.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.maku.eyeonsite.analytics.AnalyticsService
 import com.maku.eyeonsite.domain.ClientTaskSummary
 import com.maku.eyeonsite.domain.TaskStatus
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 interface ClientTaskRepository {
-    suspend fun fetchTasksForClient(clientUid: String): List<ClientTaskSummary>
+    fun observeTasksForClient(clientUid: String): Flow<List<ClientTaskSummary>>
 }
 
 sealed class ClientDashboardUiState {
@@ -56,25 +59,33 @@ sealed class ClientDashboardUiState {
 
 class ClientDashboardViewModel(
     private val repository: ClientTaskRepository,
+    private val analytics: AnalyticsService,
 ) : ViewModel() {
     private val _state = MutableStateFlow<ClientDashboardUiState>(ClientDashboardUiState.Loading)
     val state: StateFlow<ClientDashboardUiState> = _state.asStateFlow()
 
+    private var observeJob: Job? = null
+
+    @Suppress("TooGenericExceptionCaught")
     fun loadDashboard(clientUid: String) {
+        observeJob?.cancel()
         _state.value = ClientDashboardUiState.Loading
-        viewModelScope.launch {
-            runCatching { repository.fetchTasksForClient(clientUid) }
-                .onSuccess { tasks ->
-                    _state.value =
-                        if (tasks.isEmpty()) {
-                            ClientDashboardUiState.Empty
-                        } else {
-                            ClientDashboardUiState.Dashboard(tasks)
-                        }
-                }.onFailure { e ->
+        analytics.logEvent(name = "client_dashboard_opened", params = mapOf("client_uid" to clientUid))
+        observeJob =
+            viewModelScope.launch {
+                try {
+                    repository.observeTasksForClient(clientUid).collect { tasks ->
+                        _state.value =
+                            if (tasks.isEmpty()) {
+                                ClientDashboardUiState.Empty
+                            } else {
+                                ClientDashboardUiState.Dashboard(tasks)
+                            }
+                    }
+                } catch (e: Exception) {
                     _state.value = ClientDashboardUiState.Error(e.message ?: "Failed to load dashboard")
                 }
-        }
+            }
     }
 
     fun refresh(clientUid: String) = loadDashboard(clientUid)

@@ -1,13 +1,13 @@
 # Task Creation — Tasks
 
-- [ ] `CreateTaskState` + `CreateTaskViewModel`
-- [ ] `CreateTaskScreen` — map pin step
-- [ ] `CreateTaskScreen` — instructions + budget step
-- [ ] `MapLocationPicker` expect/actual (Android Maps Compose + JS Maps API)
-- [ ] Geocoding: lat/lng → address string
-- [ ] ULID generator in commonMain
-- [ ] Firestore write + real-time status listener
-- [ ] "Finding inspector..." loading state after post
-- [ ] Unit tests: CreateTaskViewModel state transitions
-- [ ] `@Preview` for CreateTaskScreen steps
-- [ ] Analytics events on task_posted
+- [x] `CreateTaskState` + `CreateTaskViewModel`
+- [x] `CreateTaskScreen` — map pin step
+- [x] `CreateTaskScreen` — instructions + budget step
+- [x] `MapLocationPicker` expect/actual (Android Maps Compose + JS Maps API)
+- [x] Geocoding: lat/lng → address string
+- [x] ULID generator in commonMain
+- [x] Firestore write + real-time status listener
+- [x] "Finding inspector..." loading state after post
+- [x] Unit tests: CreateTaskViewModel state transitions
+- [x] `@Preview` for CreateTaskScreen steps
+- [x] Analytics events on task_posted

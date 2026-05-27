@@ -27,6 +27,54 @@ canvas {
     border: none;
 }
 
+.webgl-unavailable #ComposeTarget {
+    display: none;
+}
+
+#WebGlFallback {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: #022B1E;
+    color: #F5F4F0;
+}
+
+#WebGlFallback[hidden] {
+    display: none;
+}
+
+.fallback-panel {
+    max-width: 520px;
+    border: 1px solid rgba(212, 168, 67, 0.32);
+    border-radius: 12px;
+    padding: 28px;
+    background: rgba(245, 244, 240, 0.06);
+}
+
+.fallback-brand {
+    margin-bottom: 12px;
+    color: #D4A843;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.fallback-panel h1 {
+    margin: 0 0 12px;
+    font-size: 28px;
+    line-height: 1.15;
+}
+
+.fallback-panel p {
+    margin: 0;
+    color: rgba(245, 244, 240, 0.82);
+    font-size: 15px;
+    line-height: 1.6;
+}
+
 .loading-mark {
     position: fixed;
     top: 50%;

@@ -2,6 +2,7 @@ package com.maku.eyeonsite.ui.evidence
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.maku.eyeonsite.analytics.AnalyticsService
 import com.maku.eyeonsite.domain.EvidencePackage
 import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.domain.UploadStatus
@@ -28,12 +29,14 @@ data class EvidenceCaptureUiState(
 @OptIn(ExperimentalUuidApi::class)
 class EvidenceCaptureViewModel(
     private val uploader: EvidenceUploader,
+    private val analytics: AnalyticsService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(EvidenceCaptureUiState())
     val state: StateFlow<EvidenceCaptureUiState> = _state.asStateFlow()
 
     fun initTask(taskId: String) {
         _state.value = EvidenceCaptureUiState(taskId = taskId)
+        analytics.logEvent("capture_started", mapOf("task_id" to taskId))
     }
 
     fun addPhoto(
@@ -62,6 +65,7 @@ class EvidenceCaptureViewModel(
                 pendingBytes = current.pendingBytes + (photo.id to bytes),
                 error = null,
             )
+        analytics.logEvent("photo_captured", mapOf("task_id" to current.taskId, "count" to (current.photos.size + 1).toString()))
     }
 
     fun removePhoto(photoId: String) {
@@ -108,13 +112,18 @@ class EvidenceCaptureViewModel(
                 if (failed) return@launch
             }
 
-            _state.value =
+            val finalState =
                 _state.value.copy(
                     photos = updatedPhotos.toList(),
                     pendingBytes = emptyMap(),
                     isUploading = false,
                     isSubmitted = true,
                 )
+            _state.value = finalState
+            analytics.logEvent(
+                "evidence_submitted",
+                mapOf("task_id" to current.taskId, "photo_count" to updatedPhotos.size.toString()),
+            )
         }
     }
 

@@ -1,5 +1,6 @@
 package com.maku.eyeonsite.dashboard
 
+import com.maku.eyeonsite.analytics.NoOpAnalyticsService
 import com.maku.eyeonsite.domain.ClientTaskSummary
 import com.maku.eyeonsite.domain.TaskStatus
 import com.maku.eyeonsite.domain.TaskType
@@ -29,7 +30,7 @@ class ClientDashboardViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         repo = FakeClientTaskRepository()
-        vm = ClientDashboardViewModel(repo)
+        vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
     }
 
     @AfterTest
@@ -70,7 +71,7 @@ class ClientDashboardViewModelTest {
     fun `tasks produce Dashboard state`() =
         runTest {
             repo = FakeClientTaskRepository(listOf(makeTask("t1", TaskStatus.IN_PROGRESS)))
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
         }
@@ -79,7 +80,7 @@ class ClientDashboardViewModelTest {
     fun `repository failure produces Error state`() =
         runTest {
             repo = FakeClientTaskRepository(shouldFail = true)
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Error>(vm.state.value)
             assertEquals("Network error", state.message)
@@ -98,7 +99,7 @@ class ClientDashboardViewModelTest {
                     makeTask("t4", TaskStatus.POSTED),
                 )
             repo = FakeClientTaskRepository(tasks)
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertEquals(3, state.activeTasks.size)
@@ -114,7 +115,7 @@ class ClientDashboardViewModelTest {
                     makeTask("t3", TaskStatus.IN_PROGRESS),
                 )
             repo = FakeClientTaskRepository(tasks)
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertEquals(2, state.pendingReview.size)
@@ -131,7 +132,7 @@ class ClientDashboardViewModelTest {
                     makeTask("t4", TaskStatus.IN_PROGRESS),
                 )
             repo = FakeClientTaskRepository(tasks)
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertEquals(3, state.completedTasks.size)
@@ -147,7 +148,7 @@ class ClientDashboardViewModelTest {
                     makeTask("t3", TaskStatus.ACCEPTED),
                 )
             repo = FakeClientTaskRepository(tasks)
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertEquals(2, state.draftTasks.size)
@@ -157,7 +158,7 @@ class ClientDashboardViewModelTest {
     fun `single task appears in exactly one category`() =
         runTest {
             repo = FakeClientTaskRepository(listOf(makeTask("t1", TaskStatus.IN_PROGRESS)))
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             val total =
@@ -179,7 +180,7 @@ class ClientDashboardViewModelTest {
                     makeTask("t4", TaskStatus.ACCEPTED, bountyUsd = 100),
                 )
             repo = FakeClientTaskRepository(tasks)
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertEquals(120, state.totalEscrowHeldUsd)
@@ -189,7 +190,7 @@ class ClientDashboardViewModelTest {
     fun `ACCEPTED tasks do not count toward escrow held`() =
         runTest {
             repo = FakeClientTaskRepository(listOf(makeTask("t1", TaskStatus.ACCEPTED, bountyUsd = 200)))
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertEquals(0, state.totalEscrowHeldUsd)
@@ -199,7 +200,7 @@ class ClientDashboardViewModelTest {
     fun `totalEscrowHeldUsd is zero when only draft tasks`() =
         runTest {
             repo = FakeClientTaskRepository(listOf(makeTask("t1", TaskStatus.DRAFT, bountyUsd = 50)))
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertEquals(0, state.totalEscrowHeldUsd)
@@ -211,7 +212,7 @@ class ClientDashboardViewModelTest {
     fun `hasPendingReview true when evidence submitted`() =
         runTest {
             repo = FakeClientTaskRepository(listOf(makeTask("t1", TaskStatus.EVIDENCE_SUBMITTED)))
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertTrue(state.hasPendingReview)
@@ -221,7 +222,7 @@ class ClientDashboardViewModelTest {
     fun `hasPendingReview false when no review tasks`() =
         runTest {
             repo = FakeClientTaskRepository(listOf(makeTask("t1", TaskStatus.IN_PROGRESS)))
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertFalse(state.hasPendingReview)
@@ -233,10 +234,10 @@ class ClientDashboardViewModelTest {
     fun `refresh calls repository again`() =
         runTest {
             repo = FakeClientTaskRepository(listOf(makeTask("t1", TaskStatus.IN_PROGRESS)))
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             vm.refresh("uid-1")
-            assertEquals(2, repo.fetchCallCount)
+            assertEquals(2, repo.observeCallCount)
         }
 
     @Test
@@ -244,12 +245,12 @@ class ClientDashboardViewModelTest {
         runTest {
             val tasks = listOf(makeTask("t1", TaskStatus.IN_PROGRESS))
             repo = FakeClientTaskRepository(tasks)
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             vm.loadDashboard("uid-1")
             assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
-            assertEquals(2, repo.fetchCallCount)
+            assertEquals(2, repo.observeCallCount)
         }
 
     // ── mixed data ────────────────────────────────────────────────────────────
@@ -266,7 +267,7 @@ class ClientDashboardViewModelTest {
                     makeTask("t5", TaskStatus.INSPECTOR_MATCHED),
                 )
             repo = FakeClientTaskRepository(tasks)
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertEquals(5, state.allTasks.size)
@@ -276,7 +277,7 @@ class ClientDashboardViewModelTest {
     fun `UNDER_REVIEW is included in pending review`() =
         runTest {
             repo = FakeClientTaskRepository(listOf(makeTask("t1", TaskStatus.UNDER_REVIEW)))
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertTrue(state.pendingReview.any { it.id == "t1" })
@@ -286,7 +287,7 @@ class ClientDashboardViewModelTest {
     fun `UNDER_REVIEW counts toward escrow held`() =
         runTest {
             repo = FakeClientTaskRepository(listOf(makeTask("t1", TaskStatus.UNDER_REVIEW, bountyUsd = 75)))
-            vm = ClientDashboardViewModel(repo)
+            vm = ClientDashboardViewModel(repo, NoOpAnalyticsService)
             vm.loadDashboard("uid-1")
             val state = assertIs<ClientDashboardUiState.Dashboard>(vm.state.value)
             assertEquals(75, state.totalEscrowHeldUsd)

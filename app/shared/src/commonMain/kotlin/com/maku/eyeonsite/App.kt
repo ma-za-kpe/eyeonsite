@@ -8,6 +8,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.maku.eyeonsite.domain.ChecklistAnswer
+import com.maku.eyeonsite.domain.ClientTaskSummary
 import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.domain.TaskStatus
 import com.maku.eyeonsite.domain.TaskType
@@ -21,15 +23,21 @@ import com.maku.eyeonsite.ui.auth.RoleSelectionScreen
 import com.maku.eyeonsite.ui.auth.SignInScreen
 import com.maku.eyeonsite.ui.dashboard.ClientDashboardScreen
 import com.maku.eyeonsite.ui.dashboard.ClientDashboardViewModel
+import com.maku.eyeonsite.ui.dashboard.TaskDetailScreen
+import com.maku.eyeonsite.ui.evidence.ChecklistScreen
+import com.maku.eyeonsite.ui.evidence.ChecklistViewModel
 import com.maku.eyeonsite.ui.evidence.EvidenceCaptureScreen
 import com.maku.eyeonsite.ui.evidence.EvidenceCaptureViewModel
+import com.maku.eyeonsite.ui.evidence.EvidenceSummaryScreen
 import com.maku.eyeonsite.ui.home.HomeScreen
+import com.maku.eyeonsite.ui.map.InspectorHomeViewModel
 import com.maku.eyeonsite.ui.map.InspectorTaskMapScreen
 import com.maku.eyeonsite.ui.map.TaskMapViewModel
 import com.maku.eyeonsite.ui.review.EvidenceReviewScreen
 import com.maku.eyeonsite.ui.review.EvidenceReviewViewModel
 import com.maku.eyeonsite.ui.settings.SettingsScreen
 import com.maku.eyeonsite.ui.settings.SettingsViewModel
+import com.maku.eyeonsite.ui.task.CreateTaskViewModel
 import com.maku.eyeonsite.ui.task.InspectorMatchingScreen
 import com.maku.eyeonsite.ui.task.TaskCreationScreen
 import com.maku.eyeonsite.ui.theme.AppVariant
@@ -92,6 +100,21 @@ private sealed class AppScreen {
         val photos: List<EvidencePhoto>,
     ) : AppScreen()
 
+    data class Checklist(
+        val task: VerificationTask,
+        val photos: List<EvidencePhoto>,
+    ) : AppScreen()
+
+    data class EvidenceSummary(
+        val task: VerificationTask,
+        val photos: List<EvidencePhoto>,
+        val answers: List<ChecklistAnswer>,
+    ) : AppScreen()
+
+    data class TaskDetail(
+        val task: ClientTaskSummary,
+    ) : AppScreen()
+
     data object ClientDashboard : AppScreen()
 
     data object Settings : AppScreen()
@@ -103,8 +126,11 @@ fun App() {
     val settingsVm: SettingsViewModel = viewModel { GlobalContext.get().get() }
     val evidenceVm: EvidenceCaptureViewModel = viewModel { GlobalContext.get().get() }
     val mapVm: TaskMapViewModel = viewModel { GlobalContext.get().get() }
+    val homeVm: InspectorHomeViewModel = viewModel { GlobalContext.get().get() }
     val reviewVm: EvidenceReviewViewModel = viewModel { GlobalContext.get().get() }
     val dashboardVm: ClientDashboardViewModel = viewModel { GlobalContext.get().get() }
+    val createTaskVm: CreateTaskViewModel = viewModel { GlobalContext.get().get() }
+    val checklistVm: ChecklistViewModel = viewModel { GlobalContext.get().get() }
 
     val authState by authVm.state.collectAsState()
     val phone by authVm.phone.collectAsState()
@@ -165,6 +191,8 @@ fun App() {
                         if (s.role == UserRole.INSPECTOR) {
                             InspectorTaskMapScreen(
                                 vm = mapVm,
+                                homeVm = homeVm,
+                                inspectorUid = s.uid,
                                 onAcceptTask = { nearbyTask ->
                                     appScreen =
                                         AppScreen.CaptureEvidence(
@@ -194,11 +222,55 @@ fun App() {
                             vm = dashboardVm,
                             clientUid = s.uid,
                             onCreateTask = { appScreen = AppScreen.CreateTask },
+                            onTaskDetail = { task -> appScreen = AppScreen.TaskDetail(task) },
+                            onReviewEvidence = { task ->
+                                appScreen =
+                                    AppScreen.ReviewEvidence(
+                                        VerificationTask(
+                                            id = task.id,
+                                            type = task.type,
+                                            location = task.location,
+                                            description = task.description,
+                                            status = task.status,
+                                        ),
+                                        MOCK_REVIEW_PHOTOS,
+                                    )
+                            },
                             onBack = { appScreen = AppScreen.Home },
+                        )
+
+                    is AppScreen.TaskDetail ->
+                        TaskDetailScreen(
+                            task = screen.task,
+                            onBack = { appScreen = AppScreen.ClientDashboard },
+                            onReviewEvidence =
+                                if (screen.task.status in
+                                    setOf(
+                                        TaskStatus.EVIDENCE_SUBMITTED,
+                                        TaskStatus.UNDER_REVIEW,
+                                    )
+                                ) {
+                                    {
+                                        appScreen =
+                                            AppScreen.ReviewEvidence(
+                                                VerificationTask(
+                                                    id = screen.task.id,
+                                                    type = screen.task.type,
+                                                    location = screen.task.location,
+                                                    description = screen.task.description,
+                                                    status = screen.task.status,
+                                                ),
+                                                MOCK_REVIEW_PHOTOS,
+                                            )
+                                    }
+                                } else {
+                                    null
+                                },
                         )
 
                     AppScreen.CreateTask ->
                         TaskCreationScreen(
+                            vm = createTaskVm,
                             onBack = { appScreen = AppScreen.Home },
                             onTaskCreated = { task -> appScreen = AppScreen.MatchInspectors(task) },
                         )
@@ -215,7 +287,26 @@ fun App() {
                             task = screen.task,
                             vm = evidenceVm,
                             onBack = { appScreen = AppScreen.MatchInspectors(screen.task) },
-                            onSubmitted = { appScreen = AppScreen.Home },
+                            onSubmitted = { photos -> appScreen = AppScreen.Checklist(screen.task, photos) },
+                        )
+
+                    is AppScreen.Checklist ->
+                        ChecklistScreen(
+                            vm = checklistVm,
+                            task = screen.task,
+                            onBack = { appScreen = AppScreen.Home },
+                            onDone = { answers ->
+                                appScreen = AppScreen.EvidenceSummary(screen.task, screen.photos, answers)
+                            },
+                        )
+
+                    is AppScreen.EvidenceSummary ->
+                        EvidenceSummaryScreen(
+                            task = screen.task,
+                            photos = screen.photos,
+                            checklistAnswers = screen.answers,
+                            onBack = { appScreen = AppScreen.Home },
+                            onConfirmed = { appScreen = AppScreen.Home },
                         )
 
                     is AppScreen.ReviewEvidence ->

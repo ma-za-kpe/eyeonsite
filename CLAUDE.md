@@ -74,6 +74,8 @@ Money is sacred. Every money movement:
 ```
 DRAFT → POSTED → ESCROW_FUNDED → INSPECTOR_MATCHED → IN_PROGRESS
 → EVIDENCE_SUBMITTED → UNDER_REVIEW → ACCEPTED | DISPUTED | REVISION_REQUESTED
+
+POSTED → EXPIRED  (Cloud Scheduler: expireStaleTasks fires when expiresAtMs elapses)
 ```
 Invalid transitions are rejected server-side. Clients never set status directly.
 

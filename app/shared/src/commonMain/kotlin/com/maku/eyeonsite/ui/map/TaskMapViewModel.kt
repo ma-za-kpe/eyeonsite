@@ -4,9 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maku.eyeonsite.domain.NearbyTask
 import com.maku.eyeonsite.domain.TaskType
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 sealed class TaskMapUiState {
@@ -34,10 +37,10 @@ sealed class TaskMapUiState {
 }
 
 interface NearbyTaskRepository {
-    suspend fun fetchNearby(
+    fun observeNearby(
         lat: Double,
         lng: Double,
-    ): List<NearbyTask>
+    ): Flow<List<NearbyTask>>
 }
 
 class TaskMapViewModel(
@@ -46,15 +49,20 @@ class TaskMapViewModel(
     private val _state = MutableStateFlow<TaskMapUiState>(TaskMapUiState.Loading)
     val state: StateFlow<TaskMapUiState> = _state.asStateFlow()
 
+    private var observeJob: Job? = null
+
     fun loadNearbyTasks(
         lat: Double,
         lng: Double,
     ) {
+        observeJob?.cancel()
         _state.value = TaskMapUiState.Loading
-        viewModelScope.launch {
-            val tasks = repository.fetchNearby(lat, lng)
-            _state.value = if (tasks.isEmpty()) TaskMapUiState.Empty else TaskMapUiState.HasTasks(tasks)
-        }
+        observeJob =
+            viewModelScope.launch {
+                repository.observeNearby(lat, lng).collect { tasks ->
+                    _state.value = if (tasks.isEmpty()) TaskMapUiState.Empty else TaskMapUiState.HasTasks(tasks)
+                }
+            }
     }
 
     fun selectTask(taskId: String?) {
