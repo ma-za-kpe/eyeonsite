@@ -15,8 +15,6 @@ import com.maku.eyeonsite.ui.map.InspectorHomeViewModel
 import com.maku.eyeonsite.ui.map.NearbyTaskRepository
 import com.maku.eyeonsite.ui.map.TaskMapViewModel
 import com.maku.eyeonsite.ui.review.EvidenceReviewViewModel
-import com.maku.eyeonsite.ui.review.EvidenceReviewer
-import com.maku.eyeonsite.ui.review.NoOpEvidenceReviewer
 import com.maku.eyeonsite.ui.settings.SettingsViewModel
 import com.maku.eyeonsite.ui.task.CreateTaskViewModel
 import org.koin.core.module.Module
@@ -33,7 +31,6 @@ val authModule =
         factory { TaskMapViewModel(get()) }
         factory<InspectorAvailabilityRepository> { NoOpInspectorAvailabilityRepository() }
         factory { InspectorHomeViewModel(get(), get()) }
-        factory<EvidenceReviewer> { NoOpEvidenceReviewer() }
         factory { EvidenceReviewViewModel(get(), get()) }
         factory<ClientTaskRepository> { MockClientTaskRepository() }
         factory { ClientDashboardViewModel(get(), get()) }

@@ -39,6 +39,7 @@ subprojects {
                 // detekt 1.23.x crashes on Firebase Storage/FieldValue type resolution
                 "**/FirestoreEvidenceRepository.android.kt",
                 "**/FirebaseStorageEvidenceUploader.android.kt",
+                "**/FirestoreEvidenceReviewer.android.kt",
             )
         }
 
