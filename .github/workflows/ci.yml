@@ -67,14 +67,21 @@ jobs:
           distribution: temurin
           cache: gradle
 
-      - name: Assemble debug APK
-        run: ./gradlew :app:androidApp:assembleDebug --no-daemon --stacktrace
+      - name: Assemble debug APKs (client + inspector)
+        run: ./gradlew :app:androidApp:assembleClientDebug :app:androidApp:assembleInspectorDebug --no-daemon --stacktrace
 
-      - name: Upload APK artifact
+      - name: Upload client APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: debug-apk
-          path: app/androidApp/build/outputs/apk/debug/*.apk
+          name: client-debug-apk
+          path: app/androidApp/build/outputs/apk/client/debug/*.apk
+          retention-days: 7
+
+      - name: Upload inspector APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: inspector-debug-apk
+          path: app/androidApp/build/outputs/apk/inspector/debug/*.apk
           retention-days: 7
 
   # ─── 4. BUILD WEB ───────────────────────────────────────────────────────────

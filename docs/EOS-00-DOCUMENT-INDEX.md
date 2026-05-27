@@ -36,6 +36,8 @@
 | **A5** | [Matching Algorithm](./EOS-A5-MATCHING-ALGORITHM.md) | V1 simple geo-distance → V3 scored matching → V4 optimization engine. Ping mechanics. Edge cases. SLAs. Monitoring. |
 | **A6** | [CLAUDE.md](./EOS-A6-CLAUDE-MD.md) | The complete CLAUDE.md for the monorepo. Copy to `eyeonsite/CLAUDE.md` at repo initialization. |
 | **A7** | [Decision Log](./EOS-A7-DECISION-LOG.md) | Every architecture and product decision with reasoning, trade-offs, and revisit triggers. 10 founding decisions + rejected ideas. |
+| **A8** | [Integration Mock Strategy](./EOS-A8-INTEGRATION-MOCK-STRATEGY.md) | How external services (Stripe, Flutterwave, Cloud Vision) are mocked during development and testing without leaking keys. |
+| **A9** | [CI/CD and Distribution](./EOS-A9-CICD-AND-DISTRIBUTION.md) | GitHub Actions workflows, Android product flavors, Firebase App Distribution setup, secrets reference, and pre-commit pipeline. |
 
 ---
 
