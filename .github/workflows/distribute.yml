@@ -14,10 +14,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  FIREBASE_APP_ID: "1:922315268903:android:9a262a3db6364511fb7f02"
-  TESTER_GROUPS: "internal"
-
 jobs:
   distribute:
     name: Build & distribute to Firebase App Distribution
@@ -58,8 +54,8 @@ jobs:
         run: |
           firebase appdistribution:distribute \
             app/androidApp/build/outputs/apk/client/debug/androidApp-client-debug.apk \
-            --app "$FIREBASE_APP_ID" \
-            --groups "$TESTER_GROUPS" \
+            --app "1:922315268903:android:9a262a3db6364511fb7f02" \
+            --groups "internal" \
             --release-notes-file RELEASE_NOTES.txt
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
@@ -71,8 +67,8 @@ jobs:
         run: |
           firebase appdistribution:distribute \
             app/androidApp/build/outputs/apk/inspector/debug/androidApp-inspector-debug.apk \
-            --app "$FIREBASE_APP_ID" \
-            --groups "$TESTER_GROUPS" \
+            --app "1:922315268903:android:9a262a3db6364511fb7f02" \
+            --groups "internal" \
             --release-notes-file RELEASE_NOTES.txt
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
