@@ -1,11 +1,28 @@
 import * as admin from "firebase-admin";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { haversine } from "../matching/haversine";
+import {
+  analyzePhotoWithVision,
+  photoGcsUri,
+  VisionPhotoResult,
+  visionScoreFromResults,
+} from "./visionQuality";
 
 const REGION = "africa-south1";
 const MIN_PHOTOS = 3;
 const GPS_TOLERANCE_KM = 0.5; // photos must be within 500 m of task location
 const SPREAD_THRESHOLD_KM = 0.01; // 10 m — minimum movement to earn full spread score
+
+// Score weights when Cloud Vision results are available.
+const W_COUNT_VISION = 25;
+const W_GPS_VISION = 40;
+const W_SPREAD_VISION = 15;
+const W_VISION = 20;
+
+// Score weights when Vision is unavailable (original behaviour).
+const W_COUNT = 30;
+const W_GPS = 50;
+const W_SPREAD = 20;
 
 interface PhotoPoint {
   latitude: number;
@@ -21,10 +38,16 @@ interface TaskData {
 /**
  * Pure quality-score function, exported for unit testing.
  *
- * Score breakdown (0–100):
+ * Without visionScore (undefined) — original weights (0–100):
  *   30 pts  photo count  — min(count, MIN_PHOTOS) / MIN_PHOTOS × 30
  *   50 pts  GPS proximity — fraction on-site × 50 (no task location → 25)
  *   20 pts  spatial spread — max inter-photo distance / SPREAD_THRESHOLD × 20
+ *
+ * With visionScore (0-1) — Vision-augmented weights (0–100):
+ *   25 pts  photo count
+ *   40 pts  GPS proximity (no task location → 20)
+ *   15 pts  spatial spread
+ *   20 pts  Vision quality (avg appropriate + colour-variety score)
  *
  * gpsValid = true when ≥ 80 % of photos are within GPS_TOLERANCE_KM of task,
  *            or when no task location is available (can't validate).
@@ -33,10 +56,16 @@ export function computeQualityScore(
   photos: PhotoPoint[],
   taskLat?: number,
   taskLng?: number,
+  visionScore?: number,
 ): { score: number; gpsValid: boolean } {
   if (photos.length === 0) return { score: 0, gpsValid: false };
 
-  const countScore = (Math.min(photos.length, MIN_PHOTOS) / MIN_PHOTOS) * 30;
+  const withVision = visionScore !== undefined;
+  const wCount = withVision ? W_COUNT_VISION : W_COUNT;
+  const wGps = withVision ? W_GPS_VISION : W_GPS;
+  const wSpread = withVision ? W_SPREAD_VISION : W_SPREAD;
+
+  const countScore = (Math.min(photos.length, MIN_PHOTOS) / MIN_PHOTOS) * wCount;
 
   let gpsScore: number;
   let gpsValid: boolean;
@@ -45,10 +74,10 @@ export function computeQualityScore(
       (p) => haversine(p.latitude, p.longitude, taskLat, taskLng) <= GPS_TOLERANCE_KM,
     );
     const ratio = onSite.length / photos.length;
-    gpsScore = ratio * 50;
+    gpsScore = ratio * wGps;
     gpsValid = ratio >= 0.8;
   } else {
-    gpsScore = 25;
+    gpsScore = wGps / 2; // partial credit when task location unknown
     gpsValid = true;
   }
 
@@ -62,10 +91,11 @@ export function computeQualityScore(
       if (d > maxDist) maxDist = d;
     }
   }
-  const spreadScore = Math.min(maxDist / SPREAD_THRESHOLD_KM, 1) * 20;
+  const spreadScore = Math.min(maxDist / SPREAD_THRESHOLD_KM, 1) * wSpread;
+  const visionPts = withVision ? (visionScore as number) * W_VISION : 0;
 
   return {
-    score: Math.round(countScore + gpsScore + spreadScore),
+    score: Math.round(countScore + gpsScore + spreadScore + visionPts),
     gpsValid,
   };
 }
@@ -112,13 +142,25 @@ export const onEvidenceSubmitted = onDocumentCreated(
 
     const taskLat = task.location?.latitude;
     const taskLng = task.location?.longitude;
-    const { score, gpsValid } = computeQualityScore(photos, taskLat, taskLng);
+
+    // Run Cloud Vision on all photos in parallel; degrade gracefully on failure.
+    const visionResults = await runVisionAnalysis(taskId, rawPhotos);
+    const visionScore = visionResults.length > 0
+      ? visionScoreFromResults(visionResults)
+      : undefined;
+
+    const { score, gpsValid } = computeQualityScore(photos, taskLat, taskLng, visionScore);
     const now = Date.now();
 
     await Promise.all([
       db.doc(`evidence/${evidenceId}`).update({
         qualityScore: score,
         gpsValid,
+        visionResults: visionResults.map((r) => ({
+          photoId: r.photoId,
+          appropriate: r.appropriate,
+          colorVariety: r.colorVariety,
+        })),
         status: "SUBMITTED",
         processedAtMs: now,
       }),
@@ -137,6 +179,36 @@ export const onEvidenceSubmitted = onDocumentCreated(
     console.log(`evidence/${evidenceId} processed — task=${taskId} score=${score} gpsValid=${gpsValid}`);
   },
 );
+
+/**
+ * Calls Cloud Vision API for each photo whose ID is present in the photos array.
+ * Errors for individual photos are caught and logged; they do not abort the batch.
+ */
+async function runVisionAnalysis(
+  taskId: string,
+  rawPhotos: unknown[],
+): Promise<VisionPhotoResult[]> {
+  const photoIds = rawPhotos
+    .filter((p): p is Record<string, unknown> => typeof p === "object" && p !== null)
+    .map((p) => (typeof p["id"] === "string" ? p["id"] : null))
+    .filter((id): id is string => id !== null);
+
+  const settled = await Promise.allSettled(
+    photoIds.map((id) =>
+      analyzePhotoWithVision(id, photoGcsUri(taskId, id)),
+    ),
+  );
+
+  const results: VisionPhotoResult[] = [];
+  for (const outcome of settled) {
+    if (outcome.status === "fulfilled") {
+      results.push(outcome.value);
+    } else {
+      console.warn(`Vision analysis failed for a photo in task ${taskId}:`, outcome.reason);
+    }
+  }
+  return results;
+}
 
 async function notifyClient(
   db: admin.firestore.Firestore,
