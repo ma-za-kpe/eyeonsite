@@ -1,5 +1,6 @@
 import * as admin from "firebase-admin";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { initiateInspectorPayout } from "../payments/flutterwavePayout";
 
 const REGION = "africa-south1";
 const INSPECTOR_SHARE = 0.8; // inspector receives 80 %, platform keeps 20 %
@@ -160,11 +161,10 @@ export const fundTask = onCall(
 /**
  * releaseEscrow — client callable.
  * Transitions task → ACCEPTED, writes a RELEASED ledger entry,
- * and notifies the inspector of their payout.
- * Demo MVP: no real Flutterwave payout (FR-1) — just the status change.
+ * and triggers the Flutterwave payout to the inspector.
  */
 export const releaseEscrow = onCall(
-  { region: REGION },
+  { region: REGION, secrets: ["FLW_SECRET_KEY"] },
   async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Must be signed in");
 
@@ -192,30 +192,9 @@ export const releaseEscrow = onCall(
       inspectorPayoutUsd = result.inspectorPayoutUsd;
     });
 
-    await notifyInspectorPayout(db, admin.messaging(), inspectorUid, taskId, inspectorPayoutUsd);
+    await initiateInspectorPayout(db, admin.messaging(), inspectorUid, inspectorPayoutUsd, taskId);
 
     console.log(`Task ${taskId} escrow released — inspector ${inspectorUid} payout $${inspectorPayoutUsd}`);
     return { success: true, inspectorPayoutUsd };
   },
 );
-
-async function notifyInspectorPayout(
-  db: admin.firestore.Firestore,
-  messaging: admin.messaging.Messaging,
-  inspectorUid: string,
-  taskId: string,
-  payoutUsd: number,
-): Promise<void> {
-  const snap = await db.doc(`inspectors/${inspectorUid}`).get();
-  const token = (snap.data() as { fcmToken?: string } | undefined)?.fcmToken;
-  if (!token) return;
-
-  await messaging.send({
-    token,
-    notification: {
-      title: "Payment released",
-      body: `$${payoutUsd.toFixed(2)} is on its way to you for task ${taskId}.`,
-    },
-    data: { taskId, type: "ESCROW_RELEASED", payoutUsd: String(payoutUsd) },
-  });
-}

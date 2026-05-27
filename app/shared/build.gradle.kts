@@ -80,6 +80,7 @@ kotlin {
             implementation(libs.firebase.auth)
             implementation(libs.firebase.firestore)
             implementation(libs.firebase.storage)
+            implementation(libs.firebase.functions)
             implementation(libs.sqldelight.android.driver)
             implementation(libs.koin.android)
             implementation(libs.camerax.core)

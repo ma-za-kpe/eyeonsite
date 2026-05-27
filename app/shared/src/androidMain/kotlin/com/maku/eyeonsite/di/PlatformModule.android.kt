@@ -14,6 +14,8 @@ import com.maku.eyeonsite.data.TaskRepository
 import com.maku.eyeonsite.db.createDatabase
 import com.maku.eyeonsite.onboarding.FirestoreInspectorOnboardingRepository
 import com.maku.eyeonsite.onboarding.InspectorOnboardingRepository
+import com.maku.eyeonsite.payment.FirebasePaymentRepository
+import com.maku.eyeonsite.payment.PaymentRepository
 import com.maku.eyeonsite.platform.AndroidGeocoderService
 import com.maku.eyeonsite.platform.GeocoderService
 import com.maku.eyeonsite.ui.dashboard.ClientTaskRepository
@@ -47,4 +49,5 @@ actual val analyticsModule: Module =
         single<PendingEvidenceRepository> { SqlDelightPendingEvidenceRepository(get()) }
         single<PhotoQualityAnalyzer> { LocalPhotoQualityAnalyzer() }
         single<InspectorOnboardingRepository> { FirestoreInspectorOnboardingRepository() }
+        single<PaymentRepository> { FirebasePaymentRepository() }
     }

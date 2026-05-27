@@ -9,6 +9,7 @@ export { acceptTask } from "./matching/acceptTask";
 export { expireStaleTasks } from "./matching/expireTasks";
 export { onEvidenceSubmitted } from "./evidence/onEvidenceSubmitted";
 export { fundTask, releaseEscrow } from "./escrow/escrow";
+export { createPaymentIntent, stripeWebhook } from "./payments/stripePayment";
 export { onTaskReviewed } from "./review/onTaskReviewed";
 export { onInspectorApplied } from "./onboarding/onInspectorApplied";
 export { seedFirestore } from "./seed/seedFirestore";
