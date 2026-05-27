@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.maku.eyeonsite.analytics.NoOpAnalyticsService
 import com.maku.eyeonsite.domain.ChecklistResponse
+import com.maku.eyeonsite.domain.DisputeReason
 import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.domain.ReviewDecision
 import com.maku.eyeonsite.domain.TaskType
@@ -104,6 +105,7 @@ fun EvidenceReviewScreen(
                 onBack = onBack,
                 onPhotoSelect = { vm.selectPhoto(it) },
                 onDecisionChange = { vm.setDecision(it) },
+                onDisputeReasonChange = { vm.setDisputeReason(it) },
                 onNotesChange = { vm.setNotes(it) },
                 onSubmit = { vm.submitReview() },
             )
@@ -136,6 +138,7 @@ private fun ReviewingContent(
     onBack: () -> Unit,
     onPhotoSelect: (Int) -> Unit,
     onDecisionChange: (ReviewDecision?) -> Unit,
+    onDisputeReasonChange: (DisputeReason?) -> Unit,
     onNotesChange: (String) -> Unit,
     onSubmit: () -> Unit,
 ) {
@@ -249,6 +252,13 @@ private fun ReviewingContent(
                     },
                 )
             }
+
+            if (state.decision == ReviewDecision.DISPUTED) {
+                DisputeReasonPicker(
+                    selected = state.disputeReason,
+                    onSelect = onDisputeReasonChange,
+                )
+            }
         }
 
         // Notes input
@@ -321,7 +331,12 @@ private fun ReviewingContent(
                 )
             } else {
                 Text(
-                    text = if (state.decision == null) "Select a decision above" else "Submit Review",
+                    text =
+                        when {
+                            state.decision == null -> "Select a decision above"
+                            state.decision == ReviewDecision.DISPUTED && state.disputeReason == null -> "Select a dispute reason"
+                            else -> "Submit Review"
+                        },
                     style = MaterialTheme.typography.labelLarge,
                     color =
                         if (state.canSubmit) {
@@ -868,6 +883,57 @@ private fun ErrorContent(
     }
 }
 
+// ── Dispute reason picker ─────────────────────────────────────────────────────
+
+private const val REASON_CHIP_RADIUS_DP = 20
+
+@Composable
+private fun DisputeReasonPicker(
+    selected: DisputeReason?,
+    onSelect: (DisputeReason?) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = "Reason for dispute",
+            style = MaterialTheme.typography.labelMedium,
+            color = AlertCoral,
+        )
+        androidx.compose.foundation.layout.FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            DisputeReason.entries.forEach { reason ->
+                val isSelected = reason == selected
+                Box(
+                    modifier =
+                        Modifier
+                            .clip(RoundedCornerShape(REASON_CHIP_RADIUS_DP.dp))
+                            .background(
+                                if (isSelected) {
+                                    AlertCoral.copy(
+                                        alpha = 0.15f,
+                                    )
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                },
+                            ).border(
+                                if (isSelected) 2.dp else 1.dp,
+                                if (isSelected) AlertCoral else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                RoundedCornerShape(REASON_CHIP_RADIUS_DP.dp),
+                            ).clickable { onSelect(if (isSelected) null else reason) }
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                ) {
+                    Text(
+                        text = reason.label,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (isSelected) AlertCoral else MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+        }
+    }
+}
+
 // ── GPS verification ─────────────────────────────────────────────────────────
 
 @Suppress("MagicNumber")
@@ -1002,6 +1068,7 @@ private class FakeReviewer : EvidenceReviewer {
         taskId: String,
         decision: ReviewDecision,
         notes: String,
+        disputeReason: com.maku.eyeonsite.domain.DisputeReason?,
     ) = Result.success(Unit)
 }
 

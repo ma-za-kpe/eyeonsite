@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maku.eyeonsite.analytics.AnalyticsService
 import com.maku.eyeonsite.domain.ChecklistResponse
+import com.maku.eyeonsite.domain.DisputeReason
 import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.domain.ReviewDecision
 import com.maku.eyeonsite.domain.TaskType
@@ -21,6 +22,7 @@ sealed class EvidenceReviewUiState {
         val taskType: TaskType,
         val photos: List<EvidencePhoto>,
         val decision: ReviewDecision? = null,
+        val disputeReason: DisputeReason? = null,
         val selectedPhotoIndex: Int = 0,
         val isSubmitting: Boolean = false,
         val notes: String = "",
@@ -29,7 +31,11 @@ sealed class EvidenceReviewUiState {
         val checklistResponses: List<ChecklistResponse> = emptyList(),
     ) : EvidenceReviewUiState() {
         val hasPhotos: Boolean get() = photos.isNotEmpty()
-        val canSubmit: Boolean get() = decision != null && !isSubmitting
+        val canSubmit: Boolean
+            get() =
+                decision != null &&
+                    !isSubmitting &&
+                    (decision != ReviewDecision.DISPUTED || disputeReason != null)
         val selectedPhoto: EvidencePhoto? get() = photos.getOrNull(selectedPhotoIndex)
         val photoCount: Int get() = photos.size
     }
@@ -87,7 +93,17 @@ class EvidenceReviewViewModel(
 
     fun setDecision(decision: ReviewDecision?) {
         val current = _state.value as? EvidenceReviewUiState.Reviewing ?: return
-        _state.value = current.copy(decision = decision)
+        _state.value =
+            current.copy(
+                decision = decision,
+                // Clear reason whenever decision changes away from DISPUTED
+                disputeReason = if (decision == ReviewDecision.DISPUTED) current.disputeReason else null,
+            )
+    }
+
+    fun setDisputeReason(reason: DisputeReason?) {
+        val current = _state.value as? EvidenceReviewUiState.Reviewing ?: return
+        _state.value = current.copy(disputeReason = reason)
     }
 
     fun setNotes(notes: String) {
@@ -97,14 +113,14 @@ class EvidenceReviewViewModel(
 
     fun submitReview() {
         val current =
-            (_state.value as? EvidenceReviewUiState.Reviewing)?.takeIf { !it.isSubmitting }
+            (_state.value as? EvidenceReviewUiState.Reviewing)?.takeIf { it.canSubmit }
                 ?: return
         val decision = current.decision ?: return
 
         _state.value = current.copy(isSubmitting = true)
         viewModelScope.launch {
             reviewer
-                .submitDecision(current.taskId, decision, current.notes)
+                .submitDecision(current.taskId, decision, current.notes, current.disputeReason)
                 .onSuccess {
                     _state.value = EvidenceReviewUiState.Submitted(decision)
                     val eventName =

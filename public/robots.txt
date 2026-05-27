@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /mazakpe
+
+Sitemap: https://geteyeonsite.com/sitemap.xml
