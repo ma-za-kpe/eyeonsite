@@ -76,6 +76,34 @@ Validated on 2026-05-25:
 - [ ] Admin dashboard in Compose for Web.
 - [ ] Release validation: changelog, release-please, tagged builds, release notes, rollback plan.
 
+## EOS-14 - Productionization Sequence
+
+Implementation order for the post-demo hardening pass. Keep these items mocked or test-mode until the corresponding production provider is ready.
+
+- [ ] Establish DDD boundaries and shared contracts for H3, evidence trust, KYC, escrow ledger, and fraud signals.
+- [ ] Enforce TDD for the first pass of each new module: red test, green implementation, refactor.
+- [ ] Keep local development on mock adapters and test keys only.
+- [ ] Add validation gates for every milestone: build, lint, detekt, unit tests, shared tests, and E2E checks.
+- [ ] Add schema and domain fields for H3 cells, EXIF metadata, attestation verdicts, pHash, quality score, and escrow state.
+- [ ] Replace shared no-op paths with Firebase-backed repositories and a deterministic storage uploader where needed.
+- [ ] Implement H3-based task and inspector matching in Cloud Functions, with haversine as the final tie-breaker.
+- [ ] Implement the evidence trust pipeline: GPS validation, EXIF verification, timestamp drift checks, speed plausibility, pHash, and fraud scoring.
+- [ ] Add Play Integrity plus Firebase App Check enforcement for Android submissions.
+- [ ] Build Stripe and Flutterwave mock adapters first, then promote them to test-mode adapters with webhook verification.
+- [ ] Add Smile ID onboarding flows behind server-side adapters and webhook handlers.
+- [ ] Add SQLDelight offline queueing and pending upload sync for unreliable network conditions.
+- [ ] Add C2PA-style provenance manifests and server-side signing for evidence bundles.
+- [ ] Finish with dispute, revision, rating, tiering, and release-readiness validation.
+
+### Delivery Principles
+
+- [ ] Keep code clean, small, and explicit; prefer simple composition over hidden coupling.
+- [ ] Keep domain logic in shared models and use cases, not in UI or transport layers.
+- [ ] Mock external services for local and CI runs; use real providers only in dedicated test-mode or production environments.
+- [ ] Run integration tests before merging any provider, sync, or security change.
+- [ ] Run E2E checks before release candidates, including at least one happy path and one failure path.
+- [ ] Keep release notes and changelog entries in the same pull request as the change.
+
 ## Firebase Console Checklist
 
 - [ ] Enable Authentication and Phone provider.

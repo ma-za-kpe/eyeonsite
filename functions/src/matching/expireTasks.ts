@@ -6,7 +6,7 @@ import { TaskDocument } from "./types";
 /** Sweeps POSTED tasks whose expiresAtMs is in the past and marks them EXPIRED. */
 // Cloud Scheduler is not available in africa-south1; europe-west1 is nearest supported region.
 export const expireStaleTasks = onSchedule(
-  { schedule: "every 5 minutes", region: "europe-west1" },
+  { schedule: "every 5 minutes", region: "africa-south1" },
   async () => {
     const db = admin.firestore();
     const now = Date.now();

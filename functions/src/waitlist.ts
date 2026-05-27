@@ -42,7 +42,7 @@ function getClientIp(req: { get(header: string): string | undefined; ip?: string
 
 export const submitWaitlist = onRequest(
   {
-    region: "africa-south1",
+    region: "europe-west1",
     invoker: "public",
   },
   async (req, res) => {
