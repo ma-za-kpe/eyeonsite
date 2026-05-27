@@ -23,7 +23,7 @@ val authModule =
         factory<FirebaseAuthProvider> { createFirebaseAuthProvider() }
         factory { AuthViewModel(get(), get()) }
         factory { SettingsViewModel() }
-        factory { EvidenceCaptureViewModel(get(), get(), get()) }
+        factory { EvidenceCaptureViewModel(get(), get(), get(), get()) }
         factory { ChecklistViewModel(get()) }
         factory<NearbyTaskRepository> { MockNearbyTaskRepository() }
         factory { TaskMapViewModel(get()) }

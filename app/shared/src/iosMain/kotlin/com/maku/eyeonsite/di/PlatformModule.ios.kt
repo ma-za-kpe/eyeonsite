@@ -14,6 +14,8 @@ import com.maku.eyeonsite.platform.NoOpGeocoderService
 import com.maku.eyeonsite.ui.dashboard.ClientTaskRepository
 import com.maku.eyeonsite.ui.evidence.EvidenceUploader
 import com.maku.eyeonsite.ui.evidence.NoOpEvidenceUploader
+import com.maku.eyeonsite.ui.evidence.NoOpPhotoQualityAnalyzer
+import com.maku.eyeonsite.ui.evidence.PhotoQualityAnalyzer
 import com.maku.eyeonsite.ui.review.EvidenceReviewer
 import com.maku.eyeonsite.ui.review.NoOpEvidenceReviewer
 import org.koin.core.module.Module
@@ -29,4 +31,5 @@ actual val analyticsModule: Module =
         single<EvidenceReviewer> { NoOpEvidenceReviewer() }
         single<ClientTaskRepository> { MockClientTaskRepository() }
         single<PendingUploadRepository> { NoOpPendingUploadRepository() }
+        single<PhotoQualityAnalyzer> { NoOpPhotoQualityAnalyzer }
     }

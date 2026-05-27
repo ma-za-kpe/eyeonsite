@@ -22,6 +22,7 @@ data class EvidenceCaptureUiState(
     val isUploading: Boolean = false,
     val isSubmitted: Boolean = false,
     val error: String? = null,
+    val photoQualityWarning: String? = null,
 ) {
     val canSubmit: Boolean get() = photos.isNotEmpty() && !isUploading && !isSubmitted
     val canAddMore: Boolean get() = photos.size < EvidencePackage.MAX_PHOTOS && !isUploading
@@ -32,6 +33,7 @@ data class EvidenceCaptureUiState(
 class EvidenceCaptureViewModel(
     private val uploader: EvidenceUploader,
     private val repository: EvidenceRepository,
+    private val analyzer: PhotoQualityAnalyzer,
     private val analytics: AnalyticsService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(EvidenceCaptureUiState())
@@ -67,8 +69,21 @@ class EvidenceCaptureViewModel(
                 photos = current.photos + photo,
                 pendingBytes = current.pendingBytes + (photo.id to bytes),
                 error = null,
+                photoQualityWarning = null,
             )
         analytics.logEvent("photo_captured", mapOf("task_id" to current.taskId, "count" to (current.photos.size + 1).toString()))
+
+        viewModelScope.launch {
+            val result = analyzer.analyze(bytes)
+            val warning = result.warningMessage
+            if (warning != null) {
+                _state.value = _state.value.copy(photoQualityWarning = warning)
+            }
+        }
+    }
+
+    fun dismissQualityWarning() {
+        _state.value = _state.value.copy(photoQualityWarning = null)
     }
 
     fun setNotes(notes: String) {

@@ -38,6 +38,7 @@ import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.domain.UploadStatus
 import com.maku.eyeonsite.domain.VerificationTask
 import com.maku.eyeonsite.platform.CameraCapture
+import com.maku.eyeonsite.ui.evidence.NoOpPhotoQualityAnalyzer
 import com.maku.eyeonsite.ui.task.TopBar
 import com.maku.eyeonsite.ui.theme.AlertCoral
 import com.maku.eyeonsite.ui.theme.AppVariant
@@ -370,7 +371,7 @@ fun EvidenceCaptureScreenEmptyPreview() {
                     location = "East Legon, Accra",
                     description = "Verify third floor slab",
                 ),
-            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader(), NoOpEvidenceRepository(), NoOpAnalyticsService),
+            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader(), NoOpEvidenceRepository(), NoOpPhotoQualityAnalyzer, NoOpAnalyticsService),
             onBack = {},
             onSubmitted = {},
         )
@@ -389,7 +390,7 @@ fun EvidenceCaptureScreenInspectorLightPreview() {
                     location = "Kumasi, Ghana",
                     description = "Verify cocoa farm",
                 ),
-            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader(), NoOpEvidenceRepository(), NoOpAnalyticsService),
+            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader(), NoOpEvidenceRepository(), NoOpPhotoQualityAnalyzer, NoOpAnalyticsService),
             onBack = {},
             onSubmitted = {},
         )

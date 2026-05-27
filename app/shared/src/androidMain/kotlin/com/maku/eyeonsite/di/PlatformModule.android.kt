@@ -15,6 +15,8 @@ import com.maku.eyeonsite.platform.GeocoderService
 import com.maku.eyeonsite.ui.dashboard.ClientTaskRepository
 import com.maku.eyeonsite.ui.evidence.EvidenceUploader
 import com.maku.eyeonsite.ui.evidence.FirebaseStorageEvidenceUploader
+import com.maku.eyeonsite.ui.evidence.LocalPhotoQualityAnalyzer
+import com.maku.eyeonsite.ui.evidence.PhotoQualityAnalyzer
 import com.maku.eyeonsite.ui.review.EvidenceReviewer
 import com.maku.eyeonsite.ui.review.FirestoreEvidenceReviewer
 import org.koin.android.ext.koin.androidContext
@@ -32,4 +34,5 @@ actual val analyticsModule: Module =
         single { createDatabase(androidContext()) }
         single<ClientTaskRepository> { FirestoreClientTaskRepository(get()) }
         single<PendingUploadRepository> { SqlDelightPendingUploadRepository(get()) }
+        single<PhotoQualityAnalyzer> { LocalPhotoQualityAnalyzer() }
     }
