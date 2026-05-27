@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.maku.eyeonsite.analytics.NoOpAnalyticsService
+import com.maku.eyeonsite.data.NoOpEvidenceRepository
 import com.maku.eyeonsite.domain.EvidencePackage
 import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.domain.UploadStatus
@@ -369,7 +370,7 @@ fun EvidenceCaptureScreenEmptyPreview() {
                     location = "East Legon, Accra",
                     description = "Verify third floor slab",
                 ),
-            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader(), NoOpAnalyticsService),
+            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader(), NoOpEvidenceRepository(), NoOpAnalyticsService),
             onBack = {},
             onSubmitted = {},
         )
@@ -388,7 +389,7 @@ fun EvidenceCaptureScreenInspectorLightPreview() {
                     location = "Kumasi, Ghana",
                     description = "Verify cocoa farm",
                 ),
-            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader(), NoOpAnalyticsService),
+            vm = EvidenceCaptureViewModel(NoOpEvidenceUploader(), NoOpEvidenceRepository(), NoOpAnalyticsService),
             onBack = {},
             onSubmitted = {},
         )

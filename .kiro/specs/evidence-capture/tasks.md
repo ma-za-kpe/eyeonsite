@@ -7,8 +7,8 @@
 - [x] `ChecklistScreen` — yes/no + text item types (number + multi-select deferred to V1)
 - [x] `EvidenceSummaryScreen` — photo grid review + notes + submit
 - [ ] SQLDelight `pending_upload` table + sync worker
-- [ ] Cloud Storage upload with progress reporting
-- [ ] Firestore evidence doc write
+- [x] Cloud Storage upload with progress reporting
+- [x] Firestore evidence doc write
 - [x] `computeQualityScore()` in commonMain
 - [x] Unit tests: CaptureViewModel, ChecklistViewModel
 - [x] `@Preview` for CaptureScreen, ChecklistScreen

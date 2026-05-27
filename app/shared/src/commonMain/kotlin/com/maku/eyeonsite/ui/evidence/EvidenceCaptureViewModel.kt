@@ -3,6 +3,7 @@ package com.maku.eyeonsite.ui.evidence
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maku.eyeonsite.analytics.AnalyticsService
+import com.maku.eyeonsite.data.EvidenceRepository
 import com.maku.eyeonsite.domain.EvidencePackage
 import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.domain.UploadStatus
@@ -17,6 +18,7 @@ data class EvidenceCaptureUiState(
     val taskId: String = "",
     val photos: List<EvidencePhoto> = emptyList(),
     val pendingBytes: Map<String, ByteArray> = emptyMap(),
+    val notes: String = "",
     val isUploading: Boolean = false,
     val isSubmitted: Boolean = false,
     val error: String? = null,
@@ -29,6 +31,7 @@ data class EvidenceCaptureUiState(
 @OptIn(ExperimentalUuidApi::class)
 class EvidenceCaptureViewModel(
     private val uploader: EvidenceUploader,
+    private val repository: EvidenceRepository,
     private val analytics: AnalyticsService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(EvidenceCaptureUiState())
@@ -66,6 +69,10 @@ class EvidenceCaptureViewModel(
                 error = null,
             )
         analytics.logEvent("photo_captured", mapOf("task_id" to current.taskId, "count" to (current.photos.size + 1).toString()))
+    }
+
+    fun setNotes(notes: String) {
+        _state.value = _state.value.copy(notes = notes)
     }
 
     fun removePhoto(photoId: String) {
@@ -112,18 +119,32 @@ class EvidenceCaptureViewModel(
                 if (failed) return@launch
             }
 
-            val finalState =
-                _state.value.copy(
-                    photos = updatedPhotos.toList(),
-                    pendingBytes = emptyMap(),
-                    isUploading = false,
-                    isSubmitted = true,
+            val uploadedPhotos = updatedPhotos.toList()
+            _state.value = _state.value.copy(photos = uploadedPhotos)
+
+            repository
+                .submitEvidence(current.taskId, uploadedPhotos, current.notes)
+                .fold(
+                    onSuccess = {
+                        _state.value =
+                            _state.value.copy(
+                                pendingBytes = emptyMap(),
+                                isUploading = false,
+                                isSubmitted = true,
+                            )
+                        analytics.logEvent(
+                            "evidence_submitted",
+                            mapOf("task_id" to current.taskId, "photo_count" to uploadedPhotos.size.toString()),
+                        )
+                    },
+                    onFailure = { err ->
+                        _state.value =
+                            _state.value.copy(
+                                isUploading = false,
+                                error = err.message ?: "Failed to submit evidence. Please try again.",
+                            )
+                    },
                 )
-            _state.value = finalState
-            analytics.logEvent(
-                "evidence_submitted",
-                mapOf("task_id" to current.taskId, "photo_count" to updatedPhotos.size.toString()),
-            )
         }
     }
 

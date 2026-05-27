@@ -10,8 +10,6 @@ import com.maku.eyeonsite.ui.dashboard.ClientDashboardViewModel
 import com.maku.eyeonsite.ui.dashboard.ClientTaskRepository
 import com.maku.eyeonsite.ui.evidence.ChecklistViewModel
 import com.maku.eyeonsite.ui.evidence.EvidenceCaptureViewModel
-import com.maku.eyeonsite.ui.evidence.EvidenceUploader
-import com.maku.eyeonsite.ui.evidence.NoOpEvidenceUploader
 import com.maku.eyeonsite.ui.map.InspectorAvailabilityRepository
 import com.maku.eyeonsite.ui.map.InspectorHomeViewModel
 import com.maku.eyeonsite.ui.map.NearbyTaskRepository
@@ -29,8 +27,7 @@ val authModule =
         factory<FirebaseAuthProvider> { createFirebaseAuthProvider() }
         factory { AuthViewModel(get(), get()) }
         factory { SettingsViewModel() }
-        factory<EvidenceUploader> { NoOpEvidenceUploader() }
-        factory { EvidenceCaptureViewModel(get(), get()) }
+        factory { EvidenceCaptureViewModel(get(), get(), get()) }
         factory { ChecklistViewModel(get()) }
         factory<NearbyTaskRepository> { MockNearbyTaskRepository() }
         factory { TaskMapViewModel(get()) }

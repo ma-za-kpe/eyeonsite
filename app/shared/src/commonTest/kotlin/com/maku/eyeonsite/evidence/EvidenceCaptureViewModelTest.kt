@@ -1,6 +1,7 @@
 package com.maku.eyeonsite.evidence
 
 import com.maku.eyeonsite.analytics.NoOpAnalyticsService
+import com.maku.eyeonsite.data.NoOpEvidenceRepository
 import com.maku.eyeonsite.domain.EvidencePackage
 import com.maku.eyeonsite.domain.UploadStatus
 import com.maku.eyeonsite.ui.evidence.EvidenceCaptureViewModel
@@ -31,7 +32,7 @@ class EvidenceCaptureViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         uploader = FakeEvidenceUploader()
-        vm = EvidenceCaptureViewModel(uploader, NoOpAnalyticsService)
+        vm = EvidenceCaptureViewModel(uploader, NoOpEvidenceRepository(), NoOpAnalyticsService)
         vm.initTask("task-001")
     }
 
@@ -170,7 +171,7 @@ class EvidenceCaptureViewModelTest {
     fun `submitEvidence sets error and stops uploading on failure`() =
         runTest {
             uploader = FakeEvidenceUploader(shouldFail = true)
-            vm = EvidenceCaptureViewModel(uploader, NoOpAnalyticsService)
+            vm = EvidenceCaptureViewModel(uploader, NoOpEvidenceRepository(), NoOpAnalyticsService)
             vm.initTask("task-001")
 
             vm.addPhoto(fakeBytes, 0.0, 0.0)
@@ -203,7 +204,7 @@ class EvidenceCaptureViewModelTest {
     fun `clearError removes error message`() =
         runTest {
             uploader = FakeEvidenceUploader(shouldFail = true)
-            vm = EvidenceCaptureViewModel(uploader, NoOpAnalyticsService)
+            vm = EvidenceCaptureViewModel(uploader, NoOpEvidenceRepository(), NoOpAnalyticsService)
             vm.initTask("task-001")
             vm.addPhoto(fakeBytes, 0.0, 0.0)
             vm.submitEvidence()

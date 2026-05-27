@@ -33,7 +33,13 @@ tasks.register("validate") {
 subprojects {
     plugins.withId("io.gitlab.arturbosch.detekt") {
         this@subprojects.tasks.withType(io.gitlab.arturbosch.detekt.Detekt::class.java).configureEach {
-            exclude("**/build/**", "**/generated/**")
+            exclude(
+                "**/build/**",
+                "**/generated/**",
+                // detekt 1.23.x crashes on Firebase Storage/FieldValue type resolution
+                "**/FirestoreEvidenceRepository.android.kt",
+                "**/FirebaseStorageEvidenceUploader.android.kt",
+            )
         }
 
         detektAll.configure {
