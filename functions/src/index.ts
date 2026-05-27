@@ -10,6 +10,7 @@ export { expireStaleTasks } from "./matching/expireTasks";
 export { onEvidenceSubmitted } from "./evidence/onEvidenceSubmitted";
 export { fundTask, releaseEscrow } from "./escrow/escrow";
 export { onTaskReviewed } from "./review/onTaskReviewed";
+export { onInspectorApplied } from "./onboarding/onInspectorApplied";
 export { seedFirestore } from "./seed/seedFirestore";
 export { submitWaitlist } from "./waitlist";
 

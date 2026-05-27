@@ -11,6 +11,8 @@ import com.maku.eyeonsite.data.NoOpTaskRepository
 import com.maku.eyeonsite.data.PendingEvidenceRepository
 import com.maku.eyeonsite.data.PendingUploadRepository
 import com.maku.eyeonsite.data.TaskRepository
+import com.maku.eyeonsite.onboarding.InspectorOnboardingRepository
+import com.maku.eyeonsite.onboarding.NoOpInspectorOnboardingRepository
 import com.maku.eyeonsite.platform.GeocoderService
 import com.maku.eyeonsite.platform.NoOpGeocoderService
 import com.maku.eyeonsite.ui.dashboard.ClientTaskRepository
@@ -35,4 +37,5 @@ actual val analyticsModule: Module =
         single<PendingUploadRepository> { NoOpPendingUploadRepository() }
         single<PendingEvidenceRepository> { NoOpPendingEvidenceRepository() }
         single<PhotoQualityAnalyzer> { NoOpPhotoQualityAnalyzer }
+        single<InspectorOnboardingRepository> { NoOpInspectorOnboardingRepository() }
     }

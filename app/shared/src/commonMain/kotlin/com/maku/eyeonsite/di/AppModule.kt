@@ -2,6 +2,7 @@ package com.maku.eyeonsite.di
 
 import com.maku.eyeonsite.data.MockNearbyTaskRepository
 import com.maku.eyeonsite.data.NoOpInspectorAvailabilityRepository
+import com.maku.eyeonsite.onboarding.InspectorOnboardingViewModel
 import com.maku.eyeonsite.ui.auth.AuthViewModel
 import com.maku.eyeonsite.ui.auth.FirebaseAuthProvider
 import com.maku.eyeonsite.ui.auth.createFirebaseAuthProvider
@@ -32,6 +33,7 @@ val authModule =
         factory { EvidenceReviewViewModel(get(), get()) }
         factory { ClientDashboardViewModel(get(), get()) }
         factory { CreateTaskViewModel(get(), get(), get()) }
+        factory { InspectorOnboardingViewModel(get(), get()) }
     }
 
 expect val analyticsModule: Module

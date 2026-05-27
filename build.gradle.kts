@@ -56,6 +56,7 @@ subprojects {
                 "**/FirebaseStorageEvidenceUploader.android.kt",
                 "**/FirestoreEvidenceReviewer.android.kt",
                 "**/PendingUploadSyncWorker.kt",
+                "**/FirestoreInspectorOnboardingRepository.android.kt",
             )
         }
 
