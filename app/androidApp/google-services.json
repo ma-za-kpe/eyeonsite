@@ -12,7 +12,20 @@
           "package_name": "com.maku.eyeonsite"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "922315268903-ik1ljg8gculltabmqkpv77m26sdcl9d0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.maku.eyeonsite",
+            "certificate_hash": "ed3af6dfcc6645625f7926df1651c12f4e558b2d"
+          }
+        },
+        {
+          "client_id": "922315268903-sp22r3akdvtem563194a96a93v2v48f4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDKjkUXX8tQeqqHMxoanXLnC197V_42Mn0"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "922315268903-sp22r3akdvtem563194a96a93v2v48f4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
