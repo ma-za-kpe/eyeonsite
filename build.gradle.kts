@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.ktor) apply false
     alias(libs.plugins.spotless) apply false
     alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.sqldelight) apply false
     id("com.google.gms.google-services") version "4.4.4" apply false
     alias(libs.plugins.firebaseCrashlytics) apply false
 }
@@ -33,9 +34,23 @@ tasks.register("validate") {
 subprojects {
     plugins.withId("io.gitlab.arturbosch.detekt") {
         this@subprojects.tasks.withType(io.gitlab.arturbosch.detekt.Detekt::class.java).configureEach {
+            // The Spec<FileTreeElement> overload of exclude() runs at execution time and filters
+            // by absolute path — the only reliable way to drop generated sources (SQLDelight,
+            // Compose resource generator) whose source roots live under build/ and bypass
+            // path-based glob patterns that are relative to each registered source root.
+            exclude { it.file.absolutePath.contains("${java.io.File.separator}build${java.io.File.separator}") }
+            exclude { it.file.absolutePath.contains("${java.io.File.separator}generated${java.io.File.separator}") }
+            // Exclude test source sets (backtick function names fail FunctionNaming)
+            exclude { element ->
+                val path = element.file.absolutePath
+                path.contains("${java.io.File.separator}commonTest${java.io.File.separator}") ||
+                    path.contains("${java.io.File.separator}androidHostTest${java.io.File.separator}") ||
+                    path.contains("${java.io.File.separator}jsTest${java.io.File.separator}") ||
+                    path.contains("${java.io.File.separator}wasmJsTest${java.io.File.separator}") ||
+                    path.contains("${java.io.File.separator}iosArm64Test${java.io.File.separator}") ||
+                    path.contains("${java.io.File.separator}iosSimulatorArm64Test${java.io.File.separator}")
+            }
             exclude(
-                "**/build/**",
-                "**/generated/**",
                 // detekt 1.23.x crashes on Firebase Storage/FieldValue type resolution
                 "**/FirestoreEvidenceRepository.android.kt",
                 "**/FirebaseStorageEvidenceUploader.android.kt",

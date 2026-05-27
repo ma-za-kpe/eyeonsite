@@ -1,13 +1,11 @@
 package com.maku.eyeonsite.di
 
-import com.maku.eyeonsite.data.MockClientTaskRepository
 import com.maku.eyeonsite.data.MockNearbyTaskRepository
 import com.maku.eyeonsite.data.NoOpInspectorAvailabilityRepository
 import com.maku.eyeonsite.ui.auth.AuthViewModel
 import com.maku.eyeonsite.ui.auth.FirebaseAuthProvider
 import com.maku.eyeonsite.ui.auth.createFirebaseAuthProvider
 import com.maku.eyeonsite.ui.dashboard.ClientDashboardViewModel
-import com.maku.eyeonsite.ui.dashboard.ClientTaskRepository
 import com.maku.eyeonsite.ui.evidence.ChecklistViewModel
 import com.maku.eyeonsite.ui.evidence.EvidenceCaptureViewModel
 import com.maku.eyeonsite.ui.map.InspectorAvailabilityRepository
@@ -32,7 +30,6 @@ val authModule =
         factory<InspectorAvailabilityRepository> { NoOpInspectorAvailabilityRepository() }
         factory { InspectorHomeViewModel(get(), get()) }
         factory { EvidenceReviewViewModel(get(), get()) }
-        factory<ClientTaskRepository> { MockClientTaskRepository() }
         factory { ClientDashboardViewModel(get(), get()) }
         factory { CreateTaskViewModel(get(), get(), get()) }
     }

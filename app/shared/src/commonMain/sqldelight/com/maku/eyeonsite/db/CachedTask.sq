@@ -1,0 +1,26 @@
+CREATE TABLE cached_task (
+    id TEXT NOT NULL PRIMARY KEY,
+    type TEXT NOT NULL,
+    location TEXT NOT NULL,
+    description TEXT NOT NULL,
+    status TEXT NOT NULL,
+    bounty_usd INTEGER NOT NULL,
+    created_at_ms INTEGER NOT NULL,
+    inspector_name TEXT,
+    updated_at_ms INTEGER NOT NULL
+);
+
+getAllForClient:
+SELECT *
+FROM cached_task
+ORDER BY created_at_ms DESC;
+
+upsert:
+INSERT OR REPLACE INTO cached_task(id, type, location, description, status, bounty_usd, created_at_ms, inspector_name, updated_at_ms)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+deleteAll:
+DELETE FROM cached_task;
+
+countAll:
+SELECT COUNT(*) FROM cached_task;

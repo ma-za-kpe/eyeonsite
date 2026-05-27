@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.spotless)
     alias(libs.plugins.detekt)
+    alias(libs.plugins.sqldelight)
 }
 
 spotless {
@@ -79,6 +80,7 @@ kotlin {
             implementation(libs.firebase.auth)
             implementation(libs.firebase.firestore)
             implementation(libs.firebase.storage)
+            implementation(libs.sqldelight.android.driver)
             implementation(libs.koin.android)
             implementation(libs.camerax.core)
             implementation(libs.camerax.camera2)
@@ -102,6 +104,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.koin.core)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.sqldelight.runtime)
+            implementation(libs.sqldelight.coroutines)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -110,6 +114,14 @@ kotlin {
         }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)
+        }
+    }
+}
+
+sqldelight {
+    databases {
+        create("EyeOnSiteDatabase") {
+            packageName.set("com.maku.eyeonsite.db")
         }
     }
 }
