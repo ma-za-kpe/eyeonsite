@@ -1,0 +1,23 @@
+CREATE TABLE pending_evidence (
+    id TEXT NOT NULL PRIMARY KEY,           -- evidence ULID
+    task_id TEXT NOT NULL,
+    inspector_uid TEXT NOT NULL,
+    notes TEXT NOT NULL,
+    photo_count INTEGER NOT NULL,
+    created_at_ms INTEGER NOT NULL
+);
+
+getAll:
+SELECT *
+FROM pending_evidence
+ORDER BY created_at_ms ASC;
+
+insert:
+INSERT INTO pending_evidence(id, task_id, inspector_uid, notes, photo_count, created_at_ms)
+VALUES (?, ?, ?, ?, ?, ?);
+
+delete:
+DELETE FROM pending_evidence WHERE id = ?;
+
+countAll:
+SELECT COUNT(*) FROM pending_evidence;

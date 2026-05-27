@@ -2,67 +2,63 @@
 
 package com.maku.eyeonsite.data
 
+import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
 import com.maku.eyeonsite.domain.EvidencePhoto
+import com.maku.eyeonsite.sync.UploadSyncScheduler
 import com.maku.eyeonsite.util.generateUlid
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
 
-class FirestoreEvidenceRepository : EvidenceRepository {
-    private val db = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
-
+@Suppress("InjectDispatcher", "IgnoredReturnValue")
+class FirestoreEvidenceRepository(
+    private val context: Context,
+    private val pendingUploadRepo: PendingUploadRepository,
+    private val pendingEvidenceRepo: PendingEvidenceRepository,
+) : EvidenceRepository {
     override suspend fun submitEvidence(
         taskId: String,
         photos: List<EvidencePhoto>,
+        pendingBytes: Map<String, ByteArray>,
         notes: String,
     ): Result<Unit> =
         runCatching {
-            val uid = auth.currentUser?.uid.orEmpty()
+            val inspectorUid =
+                FirebaseAuth
+                    .getInstance()
+                    .currentUser
+                    ?.uid
+                    .orEmpty()
             val evidenceId = generateUlid()
-            commitEvidenceBatch(taskId, uid, evidenceId, photos, notes)
-        }
 
-    private suspend fun commitEvidenceBatch(
-        taskId: String,
-        inspectorUid: String,
-        evidenceId: String,
-        photos: List<EvidencePhoto>,
-        notes: String,
-    ) {
-        val photoMaps: List<Map<String, Any>> =
-            photos.map { p ->
-                mapOf(
-                    "id" to p.id,
-                    "latitude" to p.latitude,
-                    "longitude" to p.longitude,
-                    "capturedAtMs" to p.capturedAtMs,
-                    "storageUrl" to p.storageUrl,
+            withContext(Dispatchers.IO) {
+                for (photo in photos) {
+                    val bytes = pendingBytes[photo.id] ?: continue
+                    val file = File(context.filesDir, "evidence/$taskId/${photo.id}.jpg")
+                    file.parentFile?.mkdirs()
+                    file.writeBytes(bytes)
+
+                    pendingUploadRepo.enqueue(
+                        id = generateUlid(),
+                        taskId = taskId,
+                        photoId = photo.id,
+                        filePath = file.absolutePath,
+                        latitude = photo.latitude,
+                        longitude = photo.longitude,
+                        capturedAtMs = photo.capturedAtMs,
+                    )
+                }
+
+                pendingEvidenceRepo.insert(
+                    id = evidenceId,
+                    taskId = taskId,
+                    inspectorUid = inspectorUid,
+                    notes = notes,
+                    photoCount = photos.size,
                 )
             }
 
-        val evidenceData: Map<String, Any> =
-            mapOf(
-                "taskId" to taskId,
-                "inspectorUid" to inspectorUid,
-                "photos" to photoMaps,
-                "notes" to notes,
-                "submittedAtMs" to FieldValue.serverTimestamp(),
-                "status" to "PENDING",
-            )
-
-        val batch = db.batch()
-        batch.set(db.collection("evidence").document(evidenceId), evidenceData)
-        batch.update(db.document("tasks/$taskId"), "status", "EVIDENCE_SUBMITTED", "evidenceId", evidenceId)
-
-        suspendCancellableCoroutine { cont ->
-            batch
-                .commit()
-                .addOnSuccessListener { cont.resume(Unit) }
-                .addOnFailureListener { cont.resumeWithException(it) }
+            UploadSyncScheduler.triggerImmediateSync(context)
         }
-    }
 }

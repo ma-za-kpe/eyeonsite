@@ -6,7 +6,6 @@ import com.maku.eyeonsite.analytics.AnalyticsService
 import com.maku.eyeonsite.data.EvidenceRepository
 import com.maku.eyeonsite.domain.EvidencePackage
 import com.maku.eyeonsite.domain.EvidencePhoto
-import com.maku.eyeonsite.domain.UploadStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,12 +25,10 @@ data class EvidenceCaptureUiState(
 ) {
     val canSubmit: Boolean get() = photos.isNotEmpty() && !isUploading && !isSubmitted
     val canAddMore: Boolean get() = photos.size < EvidencePackage.MAX_PHOTOS && !isUploading
-    val uploadedCount: Int get() = photos.count { it.uploadStatus == UploadStatus.UPLOADED }
 }
 
 @OptIn(ExperimentalUuidApi::class)
 class EvidenceCaptureViewModel(
-    private val uploader: EvidenceUploader,
     private val repository: EvidenceRepository,
     private val analyzer: PhotoQualityAnalyzer,
     private val analytics: AnalyticsService,
@@ -106,40 +103,13 @@ class EvidenceCaptureViewModel(
         _state.value = current.copy(isUploading = true, error = null)
 
         viewModelScope.launch {
-            val updatedPhotos = current.photos.toMutableList()
-            var failed = false
-
-            for ((index, photo) in current.photos.withIndex()) {
-                val bytes = current.pendingBytes[photo.id] ?: continue
-                val uploading = photo.copy(uploadStatus = UploadStatus.UPLOADING)
-                updatedPhotos[index] = uploading
-                _state.value = _state.value.copy(photos = updatedPhotos.toList())
-
-                uploader.upload(uploading, bytes).fold(
-                    onSuccess = { url ->
-                        updatedPhotos[index] = uploading.copy(uploadStatus = UploadStatus.UPLOADED, storageUrl = url)
-                    },
-                    onFailure = { err ->
-                        updatedPhotos[index] = uploading.copy(uploadStatus = UploadStatus.FAILED)
-                        failed = true
-                        _state.value =
-                            _state.value.copy(
-                                photos = updatedPhotos.toList(),
-                                isUploading = false,
-                                error = err.message ?: "Upload failed",
-                            )
-                    },
-                )
-
-                if (failed) return@launch
-            }
-
-            val uploadedPhotos = updatedPhotos.toList()
-            _state.value = _state.value.copy(photos = uploadedPhotos)
-
             repository
-                .submitEvidence(current.taskId, uploadedPhotos, current.notes)
-                .fold(
+                .submitEvidence(
+                    taskId = current.taskId,
+                    photos = current.photos,
+                    pendingBytes = current.pendingBytes,
+                    notes = current.notes,
+                ).fold(
                     onSuccess = {
                         _state.value =
                             _state.value.copy(
@@ -149,7 +119,7 @@ class EvidenceCaptureViewModel(
                             )
                         analytics.logEvent(
                             "evidence_submitted",
-                            mapOf("task_id" to current.taskId, "photo_count" to uploadedPhotos.size.toString()),
+                            mapOf("task_id" to current.taskId, "photo_count" to current.photos.size.toString()),
                         )
                     },
                     onFailure = { err ->

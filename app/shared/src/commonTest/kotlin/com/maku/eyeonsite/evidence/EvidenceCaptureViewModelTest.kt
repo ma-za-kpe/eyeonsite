@@ -1,9 +1,7 @@
 package com.maku.eyeonsite.evidence
 
 import com.maku.eyeonsite.analytics.NoOpAnalyticsService
-import com.maku.eyeonsite.data.NoOpEvidenceRepository
 import com.maku.eyeonsite.domain.EvidencePackage
-import com.maku.eyeonsite.domain.UploadStatus
 import com.maku.eyeonsite.ui.evidence.EvidenceCaptureViewModel
 import com.maku.eyeonsite.ui.evidence.NoOpPhotoQualityAnalyzer
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +22,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class EvidenceCaptureViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
-    private lateinit var uploader: FakeEvidenceUploader
+    private lateinit var repository: FakeEvidenceRepository
     private lateinit var vm: EvidenceCaptureViewModel
 
     private val fakeBytes = ByteArray(4) { it.toByte() }
@@ -32,8 +30,8 @@ class EvidenceCaptureViewModelTest {
     @BeforeTest
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        uploader = FakeEvidenceUploader()
-        vm = EvidenceCaptureViewModel(uploader, NoOpEvidenceRepository(), NoOpPhotoQualityAnalyzer, NoOpAnalyticsService)
+        repository = FakeEvidenceRepository()
+        vm = EvidenceCaptureViewModel(repository, NoOpPhotoQualityAnalyzer, NoOpAnalyticsService)
         vm.initTask("task-001")
     }
 
@@ -142,7 +140,7 @@ class EvidenceCaptureViewModelTest {
         }
 
     @Test
-    fun `submitEvidence uploads all photos and sets isSubmitted`() =
+    fun `submitEvidence queues photos and sets isSubmitted`() =
         runTest {
             vm.addPhoto(fakeBytes, 5.6, -0.18)
             vm.addPhoto(fakeBytes, 5.7, -0.19)
@@ -152,8 +150,13 @@ class EvidenceCaptureViewModelTest {
             val state = vm.state.value
             assertTrue(state.isSubmitted)
             assertFalse(state.isUploading)
-            assertEquals(2, uploader.uploadedPhotoIds.size)
-            assertTrue(state.photos.all { it.uploadStatus == UploadStatus.UPLOADED })
+            assertEquals(1, repository.submissions.size)
+            assertEquals(
+                2,
+                repository.submissions
+                    .first()
+                    .photos.size,
+            )
         }
 
     @Test
@@ -171,8 +174,8 @@ class EvidenceCaptureViewModelTest {
     @Test
     fun `submitEvidence sets error and stops uploading on failure`() =
         runTest {
-            uploader = FakeEvidenceUploader(shouldFail = true)
-            vm = EvidenceCaptureViewModel(uploader, NoOpEvidenceRepository(), NoOpPhotoQualityAnalyzer, NoOpAnalyticsService)
+            repository = FakeEvidenceRepository(shouldFail = true)
+            vm = EvidenceCaptureViewModel(repository, NoOpPhotoQualityAnalyzer, NoOpAnalyticsService)
             vm.initTask("task-001")
 
             vm.addPhoto(fakeBytes, 0.0, 0.0)
@@ -182,21 +185,18 @@ class EvidenceCaptureViewModelTest {
             assertFalse(state.isSubmitted)
             assertFalse(state.isUploading)
             assertNotNull(state.error)
-            assertTrue(state.photos.any { it.uploadStatus == UploadStatus.FAILED })
         }
 
     @Test
-    fun `submitEvidence called twice does not double-upload`() =
+    fun `submitEvidence called twice does not double-submit`() =
         runTest {
             vm.addPhoto(fakeBytes, 0.0, 0.0)
             vm.submitEvidence()
 
-            // After first submit completes, isSubmitted is true
             assertTrue(vm.state.value.isSubmitted)
 
-            // Second submit is blocked by isSubmitted guard
             vm.submitEvidence()
-            assertEquals(1, uploader.uploadedPhotoIds.size)
+            assertEquals(1, repository.submissions.size)
         }
 
     // ── clearError ────────────────────────────────────────────────────────────────
@@ -204,8 +204,8 @@ class EvidenceCaptureViewModelTest {
     @Test
     fun `clearError removes error message`() =
         runTest {
-            uploader = FakeEvidenceUploader(shouldFail = true)
-            vm = EvidenceCaptureViewModel(uploader, NoOpEvidenceRepository(), NoOpPhotoQualityAnalyzer, NoOpAnalyticsService)
+            repository = FakeEvidenceRepository(shouldFail = true)
+            vm = EvidenceCaptureViewModel(repository, NoOpPhotoQualityAnalyzer, NoOpAnalyticsService)
             vm.initTask("task-001")
             vm.addPhoto(fakeBytes, 0.0, 0.0)
             vm.submitEvidence()

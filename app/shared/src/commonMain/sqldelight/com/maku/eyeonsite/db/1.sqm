@@ -1,0 +1,10 @@
+ALTER TABLE pending_upload ADD COLUMN storage_url TEXT;
+
+CREATE TABLE pending_evidence (
+    id TEXT NOT NULL PRIMARY KEY,
+    task_id TEXT NOT NULL,
+    inspector_uid TEXT NOT NULL,
+    notes TEXT NOT NULL,
+    photo_count INTEGER NOT NULL,
+    created_at_ms INTEGER NOT NULL
+);

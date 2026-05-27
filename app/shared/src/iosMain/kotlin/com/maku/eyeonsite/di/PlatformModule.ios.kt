@@ -5,8 +5,10 @@ import com.maku.eyeonsite.analytics.NoOpAnalyticsService
 import com.maku.eyeonsite.data.EvidenceRepository
 import com.maku.eyeonsite.data.MockClientTaskRepository
 import com.maku.eyeonsite.data.NoOpEvidenceRepository
+import com.maku.eyeonsite.data.NoOpPendingEvidenceRepository
 import com.maku.eyeonsite.data.NoOpPendingUploadRepository
 import com.maku.eyeonsite.data.NoOpTaskRepository
+import com.maku.eyeonsite.data.PendingEvidenceRepository
 import com.maku.eyeonsite.data.PendingUploadRepository
 import com.maku.eyeonsite.data.TaskRepository
 import com.maku.eyeonsite.platform.GeocoderService
@@ -31,5 +33,6 @@ actual val analyticsModule: Module =
         single<EvidenceReviewer> { NoOpEvidenceReviewer() }
         single<ClientTaskRepository> { MockClientTaskRepository() }
         single<PendingUploadRepository> { NoOpPendingUploadRepository() }
+        single<PendingEvidenceRepository> { NoOpPendingEvidenceRepository() }
         single<PhotoQualityAnalyzer> { NoOpPhotoQualityAnalyzer }
     }

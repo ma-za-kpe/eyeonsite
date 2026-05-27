@@ -6,7 +6,9 @@ import com.maku.eyeonsite.data.EvidenceRepository
 import com.maku.eyeonsite.data.FirestoreClientTaskRepository
 import com.maku.eyeonsite.data.FirestoreEvidenceRepository
 import com.maku.eyeonsite.data.FirestoreTaskRepository
+import com.maku.eyeonsite.data.PendingEvidenceRepository
 import com.maku.eyeonsite.data.PendingUploadRepository
+import com.maku.eyeonsite.data.SqlDelightPendingEvidenceRepository
 import com.maku.eyeonsite.data.SqlDelightPendingUploadRepository
 import com.maku.eyeonsite.data.TaskRepository
 import com.maku.eyeonsite.db.createDatabase
@@ -28,11 +30,18 @@ actual val analyticsModule: Module =
         single<AnalyticsService> { FirebaseAnalyticsService(androidContext()) }
         single<GeocoderService> { AndroidGeocoderService(androidContext()) }
         single<TaskRepository> { FirestoreTaskRepository() }
-        single<EvidenceRepository> { FirestoreEvidenceRepository() }
+        single<EvidenceRepository> {
+            FirestoreEvidenceRepository(
+                context = androidContext(),
+                pendingUploadRepo = get(),
+                pendingEvidenceRepo = get(),
+            )
+        }
         single<EvidenceUploader> { FirebaseStorageEvidenceUploader() }
         single<EvidenceReviewer> { FirestoreEvidenceReviewer() }
         single { createDatabase(androidContext()) }
         single<ClientTaskRepository> { FirestoreClientTaskRepository(get()) }
         single<PendingUploadRepository> { SqlDelightPendingUploadRepository(get()) }
+        single<PendingEvidenceRepository> { SqlDelightPendingEvidenceRepository(get()) }
         single<PhotoQualityAnalyzer> { LocalPhotoQualityAnalyzer() }
     }

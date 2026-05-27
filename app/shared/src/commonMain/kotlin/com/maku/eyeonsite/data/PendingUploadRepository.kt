@@ -9,6 +9,7 @@ data class PendingUploadEntry(
     val longitude: Double,
     val capturedAtMs: Long,
     val retryCount: Long,
+    val storageUrl: String?,
 )
 
 interface PendingUploadRepository {
@@ -22,9 +23,18 @@ interface PendingUploadRepository {
         capturedAtMs: Long,
     )
 
+    /** All entries, including already-uploaded ones awaiting evidence commit. */
     suspend fun getAll(): List<PendingUploadEntry>
 
+    /** Only entries that have not yet been uploaded to Firebase Storage. */
+    suspend fun getPendingUpload(): List<PendingUploadEntry>
+
     suspend fun getByTaskId(taskId: String): List<PendingUploadEntry>
+
+    suspend fun setStorageUrl(
+        id: String,
+        storageUrl: String,
+    )
 
     suspend fun incrementRetry(id: String)
 
@@ -46,7 +56,14 @@ class NoOpPendingUploadRepository : PendingUploadRepository {
 
     override suspend fun getAll(): List<PendingUploadEntry> = emptyList()
 
+    override suspend fun getPendingUpload(): List<PendingUploadEntry> = emptyList()
+
     override suspend fun getByTaskId(taskId: String): List<PendingUploadEntry> = emptyList()
+
+    override suspend fun setStorageUrl(
+        id: String,
+        storageUrl: String,
+    ) = Unit
 
     override suspend fun incrementRetry(id: String) = Unit
 

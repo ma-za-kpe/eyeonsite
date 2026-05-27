@@ -40,6 +40,14 @@ class SqlDelightPendingUploadRepository(
                 .map { it.toEntry() }
         }
 
+    override suspend fun getPendingUpload(): List<PendingUploadEntry> =
+        withContext(Dispatchers.IO) {
+            db.pendingUploadQueries
+                .getPendingUpload()
+                .executeAsList()
+                .map { it.toEntry() }
+        }
+
     override suspend fun getByTaskId(taskId: String): List<PendingUploadEntry> =
         withContext(Dispatchers.IO) {
             db.pendingUploadQueries
@@ -47,6 +55,14 @@ class SqlDelightPendingUploadRepository(
                 .executeAsList()
                 .map { it.toEntry() }
         }
+
+    override suspend fun setStorageUrl(
+        id: String,
+        storageUrl: String,
+    ) = withContext(Dispatchers.IO) {
+        db.pendingUploadQueries.setStorageUrl(storage_url = storageUrl, id = id)
+        Unit
+    }
 
     override suspend fun incrementRetry(id: String) =
         withContext(Dispatchers.IO) {
@@ -77,4 +93,5 @@ private fun com.maku.eyeonsite.db.Pending_upload.toEntry() =
         longitude = longitude,
         capturedAtMs = captured_at_ms,
         retryCount = retry_count,
+        storageUrl = storage_url,
     )
