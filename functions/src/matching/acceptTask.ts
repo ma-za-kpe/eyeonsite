@@ -36,7 +36,7 @@ export function buildTaskAcceptanceUpdate(
 }
 
 export const acceptTask = onCall(
-  { region: "africa-south1" },
+  { region: "africa-south1", enforceAppCheck: true },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Must be signed in to accept a task");

@@ -160,7 +160,7 @@ export function buildReleaseUpdate(
  * Demo MVP: status change only — no real payment processing (FR-1).
  */
 export const fundTask = onCall(
-  { region: REGION },
+  { region: REGION, enforceAppCheck: true },
   async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Must be signed in");
 
@@ -194,7 +194,7 @@ export const fundTask = onCall(
  * and triggers the Flutterwave payout to the inspector.
  */
 export const releaseEscrow = onCall(
-  { region: REGION, secrets: ["FLW_SECRET_KEY"] },
+  { region: REGION, enforceAppCheck: true, secrets: ["FLW_SECRET_KEY"] },
   async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Must be signed in");
 

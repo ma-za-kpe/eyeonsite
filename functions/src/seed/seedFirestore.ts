@@ -2,6 +2,7 @@ import * as admin from "firebase-admin";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { GeoPoint } from "firebase-admin/firestore";
 import { geohashForPoint } from "../utils/geohash";
+import { h3CoverageForPoint } from "../utils/h3";
 
 const REGION = "africa-south1";
 const ALLOWED_EMAIL = "makpalyy@gmail.com";
@@ -100,7 +101,7 @@ const TASKS = [
 // ── Callable function ──────────────────────────────────────────────────────────
 
 export const seedFirestore = onCall(
-  { region: REGION },
+  { region: REGION, enforceAppCheck: true },
   async (request) => {
     if (!request.auth) {
       throw new HttpsError("unauthenticated", "Must be signed in");
@@ -118,9 +119,11 @@ export const seedFirestore = onCall(
     // Create inspectors
     for (const inspector of INSPECTORS) {
       const { latitude, longitude } = inspector.location;
+      const h3Coverage = h3CoverageForPoint(latitude, longitude);
       const ref = await db.collection("inspectors").add({
         ...inspector,
         geohash: geohashForPoint(latitude, longitude),
+        ...h3Coverage,
         createdAtMs: Date.now(),
       });
       results.inspectors.push(ref.id);
@@ -128,7 +131,11 @@ export const seedFirestore = onCall(
 
     // Create tasks
     for (const task of TASKS) {
-      const ref = await db.collection("tasks").add(task);
+      const { latitude, longitude } = task.location;
+      const ref = await db.collection("tasks").add({
+        ...task,
+        ...h3CoverageForPoint(latitude, longitude),
+      });
       results.tasks.push(ref.id);
     }
 

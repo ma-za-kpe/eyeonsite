@@ -8,4 +8,12 @@ data class EvidencePhoto(
     val capturedAtMs: Long,
     val uploadStatus: UploadStatus = UploadStatus.LOCAL,
     val storageUrl: String = "",
+    val storagePath: String = "",
+    val accuracyMeters: Double? = null,
+    val locationProvider: LocationProvider = LocationProvider.UNKNOWN,
+    val isMockLocation: Boolean = false,
+    val capturedAtDeviceMs: Long = 0L,
+    val receivedAtServerMs: Long = 0L,
+    val exif: ExifMetadata = ExifMetadata(),
+    val perceptualHash: String = "",
 )

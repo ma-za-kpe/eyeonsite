@@ -52,6 +52,8 @@ dependencies {
     implementation(libs.firebase.perf)
     implementation(libs.firebase.messaging)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.appcheck.playintegrity)
+    debugImplementation(libs.firebase.appcheck.debug)
 
     // Koin
     implementation(libs.koin.core)

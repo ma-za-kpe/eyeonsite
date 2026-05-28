@@ -787,8 +787,8 @@ private class FakeOnboardingRepo : InspectorOnboardingRepository {
         city: String,
         serviceRadiusKm: Int,
         testScore: Int,
-        idDocUrl: String,
-        selfieUrl: String,
+        idDocPath: String,
+        selfiePath: String,
     ): Result<Unit> = Result.success(Unit)
 }
 

@@ -70,8 +70,8 @@ class InspectorOnboardingViewModel(
     val state: StateFlow<InspectorOnboardingUiState> = _state.asStateFlow()
 
     // Transient data collected across steps
-    private var uploadedIdDocUrl: String = ""
-    private var uploadedSelfieUrl: String = ""
+    private var uploadedIdDocPath: String = ""
+    private var uploadedSelfiePath: String = ""
     private var pendingIdBytes: ByteArray? = null
     private var pendingSelfieBytes: ByteArray? = null
     private var quizScore: Int = 0
@@ -100,9 +100,9 @@ class InspectorOnboardingViewModel(
         viewModelScope.launch {
             repository
                 .uploadIdDocuments(uid, idBytes, selfieBytes)
-                .onSuccess { (idDocUrl, selfieUrl) ->
-                    uploadedIdDocUrl = idDocUrl
-                    uploadedSelfieUrl = selfieUrl
+                .onSuccess { (idDocPath, selfiePath) ->
+                    uploadedIdDocPath = idDocPath
+                    uploadedSelfiePath = selfiePath
                     analytics.logEvent("onboarding_id_uploaded", mapOf("uid" to uid))
                     _state.value = InspectorOnboardingUiState.Training()
                 }.onFailure { e ->
@@ -202,8 +202,8 @@ class InspectorOnboardingViewModel(
                     city = current.city.trim(),
                     serviceRadiusKm = current.serviceRadiusKm,
                     testScore = quizScore,
-                    idDocUrl = uploadedIdDocUrl,
-                    selfieUrl = uploadedSelfieUrl,
+                    idDocPath = uploadedIdDocPath,
+                    selfiePath = uploadedSelfiePath,
                 ).onSuccess {
                     analytics.logEvent(
                         "onboarding_submitted",

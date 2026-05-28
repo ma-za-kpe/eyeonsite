@@ -9,6 +9,9 @@ export interface TaskDocument {
   clientFcmToken?: string;
   pinnedInspectorIds?: string[];
   expiresAtMs?: number;
+  h3Res7?: string;
+  h3Res9?: string;
+  h3NeighborRes9?: string[];
 }
 
 export interface InspectorDocument {
@@ -16,6 +19,9 @@ export interface InspectorDocument {
   location: GeoPoint;
   fcmToken?: string;
   geohash?: string;
+  h3Res7?: string;
+  h3Res9?: string;
+  h3NeighborRes9?: string[];
   rating?: number;
   tierLevel?: number;
 }

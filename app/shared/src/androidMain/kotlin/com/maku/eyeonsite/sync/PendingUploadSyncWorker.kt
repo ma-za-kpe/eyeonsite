@@ -91,7 +91,7 @@ class PendingUploadSyncWorker(
                     "latitude" to p.latitude,
                     "longitude" to p.longitude,
                     "capturedAtMs" to p.capturedAtMs,
-                    "storageUrl" to (p.storageUrl ?: ""),
+                    "storagePath" to (p.storageUrl ?: ""),
                 )
             }
         val evidenceData: Map<String, Any> =
