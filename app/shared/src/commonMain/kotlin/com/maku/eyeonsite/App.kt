@@ -8,7 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.compose.viewmodel.koinViewModel
 import com.maku.eyeonsite.domain.ChecklistAnswer
 import com.maku.eyeonsite.domain.ClientTaskSummary
 import com.maku.eyeonsite.domain.EvidencePhoto
@@ -44,7 +44,6 @@ import com.maku.eyeonsite.ui.task.TaskCreationScreen
 import com.maku.eyeonsite.ui.theme.AppVariant
 import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
 import com.maku.eyeonsite.ui.theme.ThemeMode
-import org.koin.core.context.GlobalContext
 
 private val MOCK_REVIEW_TASK =
     VerificationTask(
@@ -123,15 +122,15 @@ private sealed class AppScreen {
 
 @Composable
 fun App(forcedVariant: AppVariant? = null) {
-    val authVm: AuthViewModel = viewModel { GlobalContext.get().get() }
-    val settingsVm: SettingsViewModel = viewModel { GlobalContext.get().get() }
-    val evidenceVm: EvidenceCaptureViewModel = viewModel { GlobalContext.get().get() }
-    val mapVm: TaskMapViewModel = viewModel { GlobalContext.get().get() }
-    val homeVm: InspectorHomeViewModel = viewModel { GlobalContext.get().get() }
-    val reviewVm: EvidenceReviewViewModel = viewModel { GlobalContext.get().get() }
-    val dashboardVm: ClientDashboardViewModel = viewModel { GlobalContext.get().get() }
-    val createTaskVm: CreateTaskViewModel = viewModel { GlobalContext.get().get() }
-    val checklistVm: ChecklistViewModel = viewModel { GlobalContext.get().get() }
+    val authVm: AuthViewModel = koinViewModel()
+    val settingsVm: SettingsViewModel = koinViewModel()
+    val evidenceVm: EvidenceCaptureViewModel = koinViewModel()
+    val mapVm: TaskMapViewModel = koinViewModel()
+    val homeVm: InspectorHomeViewModel = koinViewModel()
+    val reviewVm: EvidenceReviewViewModel = koinViewModel()
+    val dashboardVm: ClientDashboardViewModel = koinViewModel()
+    val createTaskVm: CreateTaskViewModel = koinViewModel()
+    val checklistVm: ChecklistViewModel = koinViewModel()
 
     val authState by authVm.state.collectAsState()
     val phone by authVm.phone.collectAsState()

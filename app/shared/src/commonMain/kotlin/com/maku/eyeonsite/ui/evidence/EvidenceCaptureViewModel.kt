@@ -56,7 +56,7 @@ class EvidenceCaptureViewModel(
                 latitude = lat,
                 longitude = lng,
                 capturedAtMs =
-                    kotlinx.datetime.Clock.System
+                    kotlin.time.Clock.System
                         .now()
                         .toEpochMilliseconds(),
             )

@@ -1,6 +1,6 @@
 package com.maku.eyeonsite.util
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlin.random.Random
 
 private const val ENCODING = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
