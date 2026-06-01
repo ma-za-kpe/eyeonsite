@@ -15,13 +15,26 @@ class AuthViewModel(
     private val authProvider: FirebaseAuthProvider,
     private val analytics: AnalyticsService,
 ) : ViewModel() {
-    private val _state = MutableStateFlow<AuthState>(AuthState.Idle)
+    private val _state = MutableStateFlow<AuthState>(AuthState.CheckingSession)
     val state: StateFlow<AuthState> = _state.asStateFlow()
 
     private val _phone = MutableStateFlow("")
     val phone: StateFlow<String> = _phone.asStateFlow()
 
     private var pendingVerificationId: String? = null
+
+    init {
+        viewModelScope.launch {
+            val uid = authProvider.currentUid()
+            _state.value =
+                if (uid == null) {
+                    AuthState.Idle
+                } else {
+                    val role = authProvider.fetchRole(uid)
+                    if (role != null) AuthState.Authenticated(uid, role) else AuthState.NeedsRole(uid)
+                }
+        }
+    }
 
     fun sendOtp(phone: String) {
         _phone.value = phone
@@ -64,6 +77,7 @@ class AuthViewModel(
     ) {
         analytics.logEvent("auth_role_selected", mapOf("role" to role.name.lowercase()))
         _state.value = AuthState.Authenticated(uid, role)
+        viewModelScope.launch { authProvider.saveRole(uid, role) }
     }
 
     fun signOut() {

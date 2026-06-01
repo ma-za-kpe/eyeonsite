@@ -5,6 +5,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import com.maku.eyeonsite.domain.UserRole
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -15,6 +18,7 @@ actual fun createFirebaseAuthProvider(): FirebaseAuthProvider = AndroidFirebaseA
 
 class AndroidFirebaseAuthProvider : FirebaseAuthProvider {
     private val auth = FirebaseAuth.getInstance()
+    private val firestore = FirebaseFirestore.getInstance()
 
     override suspend fun sendOtp(phone: String): Result<String> =
         suspendCoroutine { cont ->
@@ -72,6 +76,30 @@ class AndroidFirebaseAuthProvider : FirebaseAuthProvider {
     }
 
     override fun currentUid(): String? = auth.currentUser?.uid
+
+    override suspend fun fetchRole(uid: String): UserRole? =
+        suspendCoroutine { cont ->
+            firestore
+                .collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener { doc ->
+                    val roleStr = doc.getString("role")
+                    cont.resume(roleStr?.let { runCatching { UserRole.valueOf(it) }.getOrNull() })
+                }.addOnFailureListener { cont.resume(null) }
+        }
+
+    override suspend fun saveRole(
+        uid: String,
+        role: UserRole,
+    ) = suspendCoroutine<Unit> { cont ->
+        firestore
+            .collection("users")
+            .document(uid)
+            .set(mapOf("role" to role.name), SetOptions.merge())
+            .addOnSuccessListener { cont.resume(Unit) }
+            .addOnFailureListener { cont.resume(Unit) }
+    }
 
     override fun signOut() = auth.signOut()
 }

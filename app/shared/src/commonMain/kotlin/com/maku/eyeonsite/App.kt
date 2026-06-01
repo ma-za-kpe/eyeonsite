@@ -189,6 +189,8 @@ fun App(forcedVariant: AppVariant? = null) {
             AppBackHandler(enabled = backStack.size > 1) { navigateBack() }
 
             when (val s = authState) {
+                is AuthState.CheckingSession -> Unit
+
                 is AuthState.Idle,
                 is AuthState.SendingOtp,
                 ->
