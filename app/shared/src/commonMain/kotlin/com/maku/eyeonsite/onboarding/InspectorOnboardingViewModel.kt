@@ -3,6 +3,7 @@ package com.maku.eyeonsite.onboarding
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maku.eyeonsite.analytics.AnalyticsService
+import com.maku.eyeonsite.domain.KycStatus
 import com.maku.eyeonsite.domain.OnboardingContent
 import com.maku.eyeonsite.domain.QuizQuestion
 import com.maku.eyeonsite.domain.TrainingModule
@@ -59,8 +60,24 @@ sealed class InspectorOnboardingUiState {
     }
 
     data object Submitted : InspectorOnboardingUiState()
+
+    // KYC outcomes — reached after profile submission when server decides
+    data object KycPending : InspectorOnboardingUiState()
+
+    data object KycApproved : InspectorOnboardingUiState()
+
+    data class KycRejected(
+        val reason: String = "",
+    ) : InspectorOnboardingUiState()
+
+    data class KycRetryRequired(
+        val reason: String = "",
+    ) : InspectorOnboardingUiState()
+
+    data object KycExpired : InspectorOnboardingUiState()
 }
 
+@Suppress("TooManyFunctions")
 class InspectorOnboardingViewModel(
     private val repository: InspectorOnboardingRepository,
     private val analytics: AnalyticsService,
@@ -226,5 +243,37 @@ class InspectorOnboardingViewModel(
             is InspectorOnboardingUiState.ProfileSetup -> _state.value = s.copy(error = null)
             else -> Unit
         }
+    }
+
+    // ── KYC status observation ────────────────────────────────────────────────
+
+    fun loadKycStatus(uid: String) {
+        _state.value = InspectorOnboardingUiState.KycPending
+        viewModelScope.launch {
+            repository.observeKycStatus(uid).collect { kyc ->
+                _state.value =
+                    when (kyc.status) {
+                        KycStatus.APPROVED -> InspectorOnboardingUiState.KycApproved
+                        KycStatus.REJECTED -> InspectorOnboardingUiState.KycRejected(kyc.failureReason)
+                        KycStatus.RETRY_REQUIRED -> InspectorOnboardingUiState.KycRetryRequired(kyc.failureReason)
+                        KycStatus.EXPIRED -> InspectorOnboardingUiState.KycExpired
+                        else -> InspectorOnboardingUiState.KycPending
+                    }
+            }
+        }
+    }
+
+    fun retryKyc() {
+        val current = _state.value
+        if (current !is InspectorOnboardingUiState.KycRetryRequired &&
+            current !is InspectorOnboardingUiState.KycExpired
+        ) {
+            return
+        }
+        uploadedIdDocPath = ""
+        uploadedSelfiePath = ""
+        pendingIdBytes = null
+        pendingSelfieBytes = null
+        _state.value = InspectorOnboardingUiState.IdCapture()
     }
 }

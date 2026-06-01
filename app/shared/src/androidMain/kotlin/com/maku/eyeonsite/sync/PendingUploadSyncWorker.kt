@@ -56,6 +56,7 @@ class PendingUploadSyncWorker(
             uploadRepo.delete(entry.id)
             return true
         }
+        uploadRepo.setUploading(entry.id)
         val photo =
             EvidencePhoto(
                 id = entry.photoId,
@@ -102,6 +103,12 @@ class PendingUploadSyncWorker(
                 "notes" to evidence.notes,
                 "submittedAtMs" to FieldValue.serverTimestamp(),
                 "status" to "PENDING",
+                "attestation" to
+                    mapOf(
+                        "provider" to evidence.attestation.provider.name,
+                        "verdict" to evidence.attestation.verdict.name,
+                        "checkedAtMs" to evidence.attestation.checkedAtMs,
+                    ),
             )
         return runCatching {
             suspendCancellableCoroutine { cont ->

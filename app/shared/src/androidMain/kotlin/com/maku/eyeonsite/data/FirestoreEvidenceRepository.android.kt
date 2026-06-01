@@ -4,6 +4,7 @@ package com.maku.eyeonsite.data
 
 import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
+import com.maku.eyeonsite.domain.DeviceAttestation
 import com.maku.eyeonsite.domain.EvidencePhoto
 import com.maku.eyeonsite.sync.UploadSyncScheduler
 import com.maku.eyeonsite.util.generateUlid
@@ -22,6 +23,7 @@ class FirestoreEvidenceRepository(
         photos: List<EvidencePhoto>,
         pendingBytes: Map<String, ByteArray>,
         notes: String,
+        attestation: DeviceAttestation,
     ): Result<Unit> =
         runCatching {
             val inspectorUid =
@@ -56,6 +58,7 @@ class FirestoreEvidenceRepository(
                     inspectorUid = inspectorUid,
                     notes = notes,
                     photoCount = photos.size,
+                    attestation = attestation,
                 )
             }
 

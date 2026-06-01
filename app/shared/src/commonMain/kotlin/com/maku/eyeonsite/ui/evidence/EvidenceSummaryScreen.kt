@@ -254,6 +254,13 @@ private fun SummaryPhotoThumbnail(
 
         // Upload status indicator
         when (photo.uploadStatus) {
+            UploadStatus.QUEUED, UploadStatus.UPLOADING ->
+                Text(
+                    text = "⏳",
+                    modifier = Modifier.align(Alignment.TopStart).padding(4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = SavannaGold,
+                )
             UploadStatus.UPLOADED ->
                 Text(
                     text = "✓",

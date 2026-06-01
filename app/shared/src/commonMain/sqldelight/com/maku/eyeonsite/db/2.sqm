@@ -1,0 +1,4 @@
+ALTER TABLE pending_evidence ADD COLUMN attestation_provider TEXT NOT NULL DEFAULT 'NONE';
+ALTER TABLE pending_evidence ADD COLUMN attestation_verdict TEXT NOT NULL DEFAULT 'UNKNOWN';
+ALTER TABLE pending_evidence ADD COLUMN attestation_checked_at_ms INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE pending_upload ADD COLUMN upload_status TEXT NOT NULL DEFAULT 'QUEUED';

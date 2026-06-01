@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.maku.eyeonsite.analytics.NoOpAnalyticsService
+import com.maku.eyeonsite.domain.KycCheck
 import com.maku.eyeonsite.domain.OnboardingContent
 import com.maku.eyeonsite.ui.theme.AlertCoral
 import com.maku.eyeonsite.ui.theme.AppVariant
@@ -38,6 +39,8 @@ import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
 import com.maku.eyeonsite.ui.theme.Forest
 import com.maku.eyeonsite.ui.theme.SavannaGold
 import com.maku.eyeonsite.ui.theme.SignalGreen
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 private const val CAPTURE_BOX_SIZE_DP = 120
 private const val PROGRESS_DOT_DP = 8
@@ -93,6 +96,18 @@ fun InspectorOnboardingScreen(
                 onDismissError = { vm.clearError() },
             )
         InspectorOnboardingUiState.Submitted -> SubmittedStep()
+        InspectorOnboardingUiState.KycPending -> KycPendingStep()
+        InspectorOnboardingUiState.KycApproved -> KycApprovedStep()
+        is InspectorOnboardingUiState.KycRejected -> KycRejectedStep(reason = s.reason)
+        is InspectorOnboardingUiState.KycRetryRequired ->
+            KycRetryRequiredStep(
+                reason = s.reason,
+                onRetry = { vm.retryKyc() },
+            )
+        InspectorOnboardingUiState.KycExpired ->
+            KycExpiredStep(
+                onRetry = { vm.retryKyc() },
+            )
     }
 }
 
@@ -585,6 +600,182 @@ private fun SubmittedStep() {
     }
 }
 
+// ── KYC outcome steps ─────────────────────────────────────────────────────────
+
+@Composable
+private fun KycPendingStep() {
+    Box(
+        modifier = Modifier.fillMaxSize().background(DeepForest),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(32.dp),
+        ) {
+            CircularProgressIndicator(color = SavannaGold)
+            Text(
+                text = "Verifying your identity…",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+            )
+            Text(
+                text = "This usually takes a few minutes.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.6f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun KycApprovedStep() {
+    Box(
+        modifier = Modifier.fillMaxSize().background(DeepForest),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(32.dp),
+        ) {
+            Text("✓", style = MaterialTheme.typography.displayMedium, color = SignalGreen)
+            Text(
+                text = "Identity Verified",
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White,
+            )
+            Text(
+                text = "You're approved to start accepting verification tasks.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.7f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun KycRejectedStep(reason: String) {
+    Box(
+        modifier = Modifier.fillMaxSize().background(DeepForest),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(32.dp),
+        ) {
+            Text("✕", style = MaterialTheme.typography.displayMedium, color = AlertCoral)
+            Text(
+                text = "Verification Failed",
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White,
+            )
+            if (reason.isNotBlank()) {
+                Text(
+                    text = reason,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = AlertCoral.copy(alpha = 0.9f),
+                )
+            }
+            Text(
+                text = "Please contact support if you believe this is a mistake.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.5f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun KycRetryRequiredStep(
+    reason: String,
+    onRetry: () -> Unit,
+) {
+    Box(
+        modifier = Modifier.fillMaxSize().background(DeepForest),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(32.dp),
+        ) {
+            Text("⚠", style = MaterialTheme.typography.displayMedium, color = CautionAmber)
+            Text(
+                text = "Re-submission Required",
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White,
+            )
+            if (reason.isNotBlank()) {
+                Text(
+                    text = reason,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = CautionAmber.copy(alpha = 0.9f),
+                )
+            }
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(SavannaGold)
+                        .clickable { onRetry() }
+                        .padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "Re-submit Documents",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = DeepForest,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun KycExpiredStep(onRetry: () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize().background(DeepForest),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(32.dp),
+        ) {
+            Text("⏰", style = MaterialTheme.typography.displayMedium, color = CautionAmber)
+            Text(
+                text = "Verification Expired",
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White,
+            )
+            Text(
+                text = "Your verification session has expired. Please start again.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.7f),
+            )
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(SavannaGold)
+                        .clickable { onRetry() }
+                        .padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "Start Again",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = DeepForest,
+                )
+            }
+        }
+    }
+}
+
 // ── Shared primitives ─────────────────────────────────────────────────────────
 
 @Composable
@@ -790,6 +981,8 @@ private class FakeOnboardingRepo : InspectorOnboardingRepository {
         idDocPath: String,
         selfiePath: String,
     ): Result<Unit> = Result.success(Unit)
+
+    override fun observeKycStatus(uid: String): Flow<KycCheck> = flowOf(KycCheck())
 }
 
 @androidx.compose.ui.tooling.preview.Preview

@@ -9,4 +9,5 @@ data class ClientTaskSummary(
     val bountyUsd: Int,
     val createdAtMs: Long,
     val inspectorName: String? = null,
+    val escrowStatus: EscrowStatus = EscrowStatus.UNFUNDED,
 )

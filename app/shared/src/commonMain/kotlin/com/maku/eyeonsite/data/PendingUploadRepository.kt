@@ -1,5 +1,7 @@
 package com.maku.eyeonsite.data
 
+import com.maku.eyeonsite.domain.UploadStatus
+
 data class PendingUploadEntry(
     val id: String,
     val taskId: String,
@@ -10,6 +12,7 @@ data class PendingUploadEntry(
     val capturedAtMs: Long,
     val retryCount: Long,
     val storageUrl: String?,
+    val uploadStatus: UploadStatus = UploadStatus.QUEUED,
 )
 
 interface PendingUploadRepository {
@@ -35,6 +38,8 @@ interface PendingUploadRepository {
         id: String,
         storageUrl: String,
     )
+
+    suspend fun setUploading(id: String)
 
     suspend fun incrementRetry(id: String)
 
@@ -64,6 +69,8 @@ class NoOpPendingUploadRepository : PendingUploadRepository {
         id: String,
         storageUrl: String,
     ) = Unit
+
+    override suspend fun setUploading(id: String) = Unit
 
     override suspend fun incrementRetry(id: String) = Unit
 

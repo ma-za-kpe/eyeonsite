@@ -1,5 +1,9 @@
 package com.maku.eyeonsite.onboarding
 
+import com.maku.eyeonsite.domain.KycCheck
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+
 data class ProfileSubmission(
     val uid: String,
     val fullName: String,
@@ -13,6 +17,7 @@ data class ProfileSubmission(
 class FakeInspectorOnboardingRepository(
     private val uploadShouldFail: Boolean = false,
     private val submitShouldFail: Boolean = false,
+    private val kycCheck: KycCheck = KycCheck(),
 ) : InspectorOnboardingRepository {
     val uploadCalls = mutableListOf<String>()
     val submissions = mutableListOf<ProfileSubmission>()
@@ -44,4 +49,6 @@ class FakeInspectorOnboardingRepository(
             submissions.add(ProfileSubmission(uid, fullName, city, serviceRadiusKm, testScore, idDocPath, selfiePath))
             Result.success(Unit)
         }
+
+    override fun observeKycStatus(uid: String): Flow<KycCheck> = flowOf(kycCheck)
 }

@@ -3,6 +3,7 @@
 package com.maku.eyeonsite.data
 
 import com.maku.eyeonsite.db.EyeOnSiteDatabase
+import com.maku.eyeonsite.domain.UploadStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -64,6 +65,12 @@ class SqlDelightPendingUploadRepository(
         Unit
     }
 
+    override suspend fun setUploading(id: String) =
+        withContext(Dispatchers.IO) {
+            db.pendingUploadQueries.setUploading(id)
+            Unit
+        }
+
     override suspend fun incrementRetry(id: String) =
         withContext(Dispatchers.IO) {
             db.pendingUploadQueries.incrementRetry(id)
@@ -94,4 +101,5 @@ private fun com.maku.eyeonsite.db.Pending_upload.toEntry() =
         capturedAtMs = captured_at_ms,
         retryCount = retry_count,
         storageUrl = storage_url,
+        uploadStatus = runCatching { UploadStatus.valueOf(upload_status) }.getOrDefault(UploadStatus.QUEUED),
     )

@@ -6,6 +6,10 @@ import com.maku.eyeonsite.analytics.AnalyticsService
 import com.maku.eyeonsite.data.EvidenceRepository
 import com.maku.eyeonsite.domain.EvidencePackage
 import com.maku.eyeonsite.domain.EvidencePhoto
+import com.maku.eyeonsite.domain.UploadStatus
+import com.maku.eyeonsite.domain.toLocationProvider
+import com.maku.eyeonsite.platform.AttestationService
+import com.maku.eyeonsite.platform.MockAttestationService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,6 +36,7 @@ class EvidenceCaptureViewModel(
     private val repository: EvidenceRepository,
     private val analyzer: PhotoQualityAnalyzer,
     private val analytics: AnalyticsService,
+    private val attestationService: AttestationService = MockAttestationService,
 ) : ViewModel() {
     private val _state = MutableStateFlow(EvidenceCaptureUiState())
     val state: StateFlow<EvidenceCaptureUiState> = _state.asStateFlow()
@@ -45,6 +50,8 @@ class EvidenceCaptureViewModel(
         bytes: ByteArray,
         lat: Double,
         lng: Double,
+        provider: String = "",
+        accuracyMeters: Float? = null,
     ) {
         val current = _state.value
         if (!current.canAddMore) return
@@ -59,6 +66,8 @@ class EvidenceCaptureViewModel(
                     kotlinx.datetime.Clock.System
                         .now()
                         .toEpochMilliseconds(),
+                locationProvider = provider.toLocationProvider(),
+                accuracyMeters = accuracyMeters?.toDouble(),
             )
 
         _state.value =
@@ -103,16 +112,19 @@ class EvidenceCaptureViewModel(
         _state.value = current.copy(isUploading = true, error = null)
 
         viewModelScope.launch {
+            val attestation = attestationService.attest()
             repository
                 .submitEvidence(
                     taskId = current.taskId,
                     photos = current.photos,
                     pendingBytes = current.pendingBytes,
                     notes = current.notes,
+                    attestation = attestation,
                 ).fold(
                     onSuccess = {
                         _state.value =
                             _state.value.copy(
+                                photos = _state.value.photos.map { it.copy(uploadStatus = UploadStatus.QUEUED) },
                                 pendingBytes = emptyMap(),
                                 isUploading = false,
                                 isSubmitted = true,

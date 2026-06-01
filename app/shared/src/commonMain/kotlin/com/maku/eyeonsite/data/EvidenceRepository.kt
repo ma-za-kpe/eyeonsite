@@ -1,5 +1,6 @@
 package com.maku.eyeonsite.data
 
+import com.maku.eyeonsite.domain.DeviceAttestation
 import com.maku.eyeonsite.domain.EvidencePhoto
 
 interface EvidenceRepository {
@@ -8,6 +9,7 @@ interface EvidenceRepository {
         photos: List<EvidencePhoto>,
         pendingBytes: Map<String, ByteArray>,
         notes: String,
+        attestation: DeviceAttestation = DeviceAttestation(),
     ): Result<Unit>
 }
 
@@ -17,5 +19,6 @@ class NoOpEvidenceRepository : EvidenceRepository {
         photos: List<EvidencePhoto>,
         pendingBytes: Map<String, ByteArray>,
         notes: String,
+        attestation: DeviceAttestation,
     ): Result<Unit> = Result.success(Unit)
 }

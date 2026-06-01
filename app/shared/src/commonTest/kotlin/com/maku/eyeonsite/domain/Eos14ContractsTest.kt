@@ -138,6 +138,26 @@ class Eos14ContractsTest {
     }
 
     @Test
+    fun `evidence package with MOCK attestation is trusted for auto accept in test environments`() {
+        val pkg =
+            EvidencePackage(
+                taskId = "task-1",
+                photos = listOf(photo()),
+                qualityScore = 0.85f,
+                attestation =
+                    DeviceAttestation(
+                        provider = AttestationProvider.MOCK,
+                        verdict = AttestationVerdict.PASSED,
+                    ),
+                contentSafety = ContentSafety(ContentSafetyVerdict.SAFE),
+            )
+
+        assertTrue(pkg.isTrustedForAutoAccept())
+        assertEquals(AttestationProvider.MOCK, pkg.attestation.provider)
+        assertEquals(AttestationVerdict.PASSED, pkg.attestation.verdict)
+    }
+
+    @Test
     fun `inspector profile carries KYC check without raw private document data`() {
         val inspector =
             InspectorProfile(

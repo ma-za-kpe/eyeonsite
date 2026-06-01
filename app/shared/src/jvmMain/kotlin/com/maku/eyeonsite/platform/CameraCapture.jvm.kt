@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 @Composable
 actual fun CameraCapture(
     modifier: Modifier,
-    onPhotoCaptured: (ByteArray, Double, Double) -> Unit,
+    onPhotoCaptured: (ByteArray, Double, Double, String, Float?) -> Unit,
     onPermissionDenied: () -> Unit,
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

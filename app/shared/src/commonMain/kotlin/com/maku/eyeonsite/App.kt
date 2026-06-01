@@ -1,6 +1,11 @@
 package com.maku.eyeonsite
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -8,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.maku.eyeonsite.domain.ChecklistAnswer
 import com.maku.eyeonsite.domain.ClientTaskSummary
@@ -17,6 +23,8 @@ import com.maku.eyeonsite.domain.TaskType
 import com.maku.eyeonsite.domain.UploadStatus
 import com.maku.eyeonsite.domain.UserRole
 import com.maku.eyeonsite.domain.VerificationTask
+import com.maku.eyeonsite.ui.AppBackHandler
+import com.maku.eyeonsite.ui.SystemBarAppearance
 import com.maku.eyeonsite.ui.auth.AuthState
 import com.maku.eyeonsite.ui.auth.AuthViewModel
 import com.maku.eyeonsite.ui.auth.OtpScreen
@@ -145,6 +153,8 @@ fun App(forcedVariant: AppVariant? = null) {
             ThemeMode.DARK -> true
         }
 
+    SystemBarAppearance(isDark = isDark)
+
     val variant =
         forcedVariant ?: if (authState is AuthState.Authenticated &&
             (authState as AuthState.Authenticated).role == UserRole.INSPECTOR
@@ -155,189 +165,213 @@ fun App(forcedVariant: AppVariant? = null) {
         }
 
     EyeOnSiteTheme(variant = variant, darkTheme = isDark) {
-        val isAuthenticated = authState is AuthState.Authenticated
-        var appScreen by remember(isAuthenticated) { mutableStateOf<AppScreen>(AppScreen.Home) }
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .safeDrawingPadding(),
+        ) {
+            val isAuthenticated = authState is AuthState.Authenticated
+            var backStack by remember(isAuthenticated) {
+                mutableStateOf(listOf<AppScreen>(AppScreen.Home))
+            }
+            val appScreen = backStack.last()
 
-        when (val s = authState) {
-            is AuthState.Idle,
-            is AuthState.SendingOtp,
-            ->
-                SignInScreen(
-                    isSending = s is AuthState.SendingOtp,
-                    onContinue = { p -> authVm.sendOtp(p) },
-                )
+            fun navigate(s: AppScreen) {
+                backStack = backStack + s
+            }
 
-            is AuthState.OtpSent,
-            is AuthState.Verifying,
-            is AuthState.Error,
-            ->
-                OtpScreen(
-                    phone = phone,
-                    isVerifying = s is AuthState.Verifying,
-                    errorMessage = (s as? AuthState.Error)?.message,
-                    onVerify = { code -> authVm.verifyOtp(code) },
-                    onResend = { authVm.sendOtp(phone) },
-                    onBack = { authVm.dismissError() },
-                )
+            fun navigateBack() {
+                if (backStack.size > 1) backStack = backStack.dropLast(1)
+            }
 
-            is AuthState.NeedsRole ->
-                if (forcedVariant != null) {
-                    // Flavored build — auto-assign the role that matches this APK's purpose.
-                    val autoRole =
-                        if (forcedVariant == AppVariant.INSPECTOR) UserRole.INSPECTOR else UserRole.CLIENT
-                    LaunchedEffect(s.uid) { authVm.selectRole(s.uid, autoRole) }
-                } else {
-                    RoleSelectionScreen(
-                        uid = s.uid,
-                        onRoleSelected = { uid, role -> authVm.selectRole(uid, role) },
+            AppBackHandler(enabled = backStack.size > 1) { navigateBack() }
+
+            when (val s = authState) {
+                is AuthState.Idle,
+                is AuthState.SendingOtp,
+                ->
+                    SignInScreen(
+                        isSending = s is AuthState.SendingOtp,
+                        onContinue = { p -> authVm.sendOtp(p) },
                     )
-                }
 
-            is AuthState.Authenticated ->
-                when (val screen = appScreen) {
-                    AppScreen.Home ->
-                        if (s.role == UserRole.INSPECTOR) {
-                            InspectorTaskMapScreen(
-                                vm = mapVm,
-                                homeVm = homeVm,
-                                inspectorUid = s.uid,
-                                onAcceptTask = { nearbyTask ->
-                                    appScreen =
-                                        AppScreen.CaptureEvidence(
-                                            VerificationTask(
-                                                id = nearbyTask.id,
-                                                type = nearbyTask.type,
-                                                location = nearbyTask.location,
-                                                description = nearbyTask.description,
+                is AuthState.OtpSent,
+                is AuthState.Verifying,
+                is AuthState.Error,
+                ->
+                    OtpScreen(
+                        phone = phone,
+                        isVerifying = s is AuthState.Verifying,
+                        errorMessage = (s as? AuthState.Error)?.message,
+                        onVerify = { code -> authVm.verifyOtp(code) },
+                        onResend = { authVm.sendOtp(phone) },
+                        onBack = { authVm.dismissError() },
+                    )
+
+                is AuthState.NeedsRole ->
+                    if (forcedVariant != null) {
+                        // Flavored build — auto-assign the role that matches this APK's purpose.
+                        val autoRole =
+                            if (forcedVariant == AppVariant.INSPECTOR) UserRole.INSPECTOR else UserRole.CLIENT
+                        LaunchedEffect(s.uid) { authVm.selectRole(s.uid, autoRole) }
+                    } else {
+                        RoleSelectionScreen(
+                            uid = s.uid,
+                            onRoleSelected = { uid, role -> authVm.selectRole(uid, role) },
+                        )
+                    }
+
+                is AuthState.Authenticated ->
+                    when (val screen = appScreen) {
+                        AppScreen.Home ->
+                            if (s.role == UserRole.INSPECTOR) {
+                                InspectorTaskMapScreen(
+                                    vm = mapVm,
+                                    homeVm = homeVm,
+                                    inspectorUid = s.uid,
+                                    onAcceptTask = { nearbyTask ->
+                                        navigate(
+                                            AppScreen.CaptureEvidence(
+                                                VerificationTask(
+                                                    id = nearbyTask.id,
+                                                    type = nearbyTask.type,
+                                                    location = nearbyTask.location,
+                                                    description = nearbyTask.description,
+                                                ),
                                             ),
                                         )
-                                },
-                            )
-                        } else {
-                            HomeScreen(
-                                role = s.role,
-                                onCreateTask = { appScreen = AppScreen.CreateTask },
-                                onSettings = { appScreen = AppScreen.Settings },
-                                onViewDashboard = { appScreen = AppScreen.ClientDashboard },
-                                onReviewEvidence = {
-                                    appScreen = AppScreen.ReviewEvidence(MOCK_REVIEW_TASK, MOCK_REVIEW_PHOTOS)
-                                },
-                            )
-                        }
+                                    },
+                                )
+                            } else {
+                                HomeScreen(
+                                    role = s.role,
+                                    onCreateTask = { navigate(AppScreen.CreateTask) },
+                                    onSettings = { navigate(AppScreen.Settings) },
+                                    onViewDashboard = { navigate(AppScreen.ClientDashboard) },
+                                    onReviewEvidence = {
+                                        navigate(AppScreen.ReviewEvidence(MOCK_REVIEW_TASK, MOCK_REVIEW_PHOTOS))
+                                    },
+                                )
+                            }
 
-                    AppScreen.ClientDashboard ->
-                        ClientDashboardScreen(
-                            vm = dashboardVm,
-                            clientUid = s.uid,
-                            onCreateTask = { appScreen = AppScreen.CreateTask },
-                            onTaskDetail = { task -> appScreen = AppScreen.TaskDetail(task) },
-                            onReviewEvidence = { task ->
-                                appScreen =
-                                    AppScreen.ReviewEvidence(
-                                        VerificationTask(
-                                            id = task.id,
-                                            type = task.type,
-                                            location = task.location,
-                                            description = task.description,
-                                            status = task.status,
+                        AppScreen.ClientDashboard ->
+                            ClientDashboardScreen(
+                                vm = dashboardVm,
+                                clientUid = s.uid,
+                                onCreateTask = { navigate(AppScreen.CreateTask) },
+                                onTaskDetail = { task -> navigate(AppScreen.TaskDetail(task)) },
+                                onReviewEvidence = { task ->
+                                    navigate(
+                                        AppScreen.ReviewEvidence(
+                                            VerificationTask(
+                                                id = task.id,
+                                                type = task.type,
+                                                location = task.location,
+                                                description = task.description,
+                                                status = task.status,
+                                            ),
+                                            MOCK_REVIEW_PHOTOS,
                                         ),
-                                        MOCK_REVIEW_PHOTOS,
                                     )
-                            },
-                            onBack = { appScreen = AppScreen.Home },
-                        )
-
-                    is AppScreen.TaskDetail ->
-                        TaskDetailScreen(
-                            task = screen.task,
-                            onBack = { appScreen = AppScreen.ClientDashboard },
-                            onReviewEvidence =
-                                if (screen.task.status in
-                                    setOf(
-                                        TaskStatus.EVIDENCE_SUBMITTED,
-                                        TaskStatus.UNDER_REVIEW,
-                                    )
-                                ) {
-                                    {
-                                        appScreen =
-                                            AppScreen.ReviewEvidence(
-                                                VerificationTask(
-                                                    id = screen.task.id,
-                                                    type = screen.task.type,
-                                                    location = screen.task.location,
-                                                    description = screen.task.description,
-                                                    status = screen.task.status,
-                                                ),
-                                                MOCK_REVIEW_PHOTOS,
-                                            )
-                                    }
-                                } else {
-                                    null
                                 },
-                        )
+                                onBack = { navigateBack() },
+                            )
 
-                    AppScreen.CreateTask ->
-                        TaskCreationScreen(
-                            vm = createTaskVm,
-                            onBack = { appScreen = AppScreen.Home },
-                            onTaskCreated = { task -> appScreen = AppScreen.MatchInspectors(task) },
-                        )
+                        is AppScreen.TaskDetail ->
+                            TaskDetailScreen(
+                                task = screen.task,
+                                onBack = { navigateBack() },
+                                onReviewEvidence =
+                                    if (screen.task.status in
+                                        setOf(
+                                            TaskStatus.EVIDENCE_SUBMITTED,
+                                            TaskStatus.UNDER_REVIEW,
+                                        )
+                                    ) {
+                                        {
+                                            navigate(
+                                                AppScreen.ReviewEvidence(
+                                                    VerificationTask(
+                                                        id = screen.task.id,
+                                                        type = screen.task.type,
+                                                        location = screen.task.location,
+                                                        description = screen.task.description,
+                                                        status = screen.task.status,
+                                                    ),
+                                                    MOCK_REVIEW_PHOTOS,
+                                                ),
+                                            )
+                                        }
+                                    } else {
+                                        null
+                                    },
+                            )
 
-                    is AppScreen.MatchInspectors ->
-                        InspectorMatchingScreen(
-                            task = screen.task,
-                            onBack = { appScreen = AppScreen.CreateTask },
-                            onAssign = { appScreen = AppScreen.CaptureEvidence(screen.task) },
-                        )
+                        AppScreen.CreateTask ->
+                            TaskCreationScreen(
+                                vm = createTaskVm,
+                                onBack = { navigateBack() },
+                                onTaskCreated = { task -> navigate(AppScreen.MatchInspectors(task)) },
+                            )
 
-                    is AppScreen.CaptureEvidence ->
-                        EvidenceCaptureScreen(
-                            task = screen.task,
-                            vm = evidenceVm,
-                            onBack = { appScreen = AppScreen.MatchInspectors(screen.task) },
-                            onSubmitted = { photos -> appScreen = AppScreen.Checklist(screen.task, photos) },
-                        )
+                        is AppScreen.MatchInspectors ->
+                            InspectorMatchingScreen(
+                                task = screen.task,
+                                onBack = { navigateBack() },
+                                onAssign = { navigate(AppScreen.CaptureEvidence(screen.task)) },
+                            )
 
-                    is AppScreen.Checklist ->
-                        ChecklistScreen(
-                            vm = checklistVm,
-                            task = screen.task,
-                            onBack = { appScreen = AppScreen.Home },
-                            onDone = { answers ->
-                                appScreen = AppScreen.EvidenceSummary(screen.task, screen.photos, answers)
-                            },
-                        )
+                        is AppScreen.CaptureEvidence ->
+                            EvidenceCaptureScreen(
+                                task = screen.task,
+                                vm = evidenceVm,
+                                onBack = { navigateBack() },
+                                onSubmitted = { photos -> navigate(AppScreen.Checklist(screen.task, photos)) },
+                            )
 
-                    is AppScreen.EvidenceSummary ->
-                        EvidenceSummaryScreen(
-                            task = screen.task,
-                            photos = screen.photos,
-                            checklistAnswers = screen.answers,
-                            onBack = { appScreen = AppScreen.Home },
-                            onConfirmed = { appScreen = AppScreen.Home },
-                        )
+                        is AppScreen.Checklist ->
+                            ChecklistScreen(
+                                vm = checklistVm,
+                                task = screen.task,
+                                onBack = { navigateBack() },
+                                onDone = { answers ->
+                                    navigate(AppScreen.EvidenceSummary(screen.task, screen.photos, answers))
+                                },
+                            )
 
-                    is AppScreen.ReviewEvidence ->
-                        EvidenceReviewScreen(
-                            vm = reviewVm,
-                            task = screen.task,
-                            photos = screen.photos,
-                            onBack = { appScreen = AppScreen.Home },
-                            onReviewSubmitted = { appScreen = AppScreen.Home },
-                        )
+                        is AppScreen.EvidenceSummary ->
+                            EvidenceSummaryScreen(
+                                task = screen.task,
+                                photos = screen.photos,
+                                checklistAnswers = screen.answers,
+                                onBack = { navigateBack() },
+                                onConfirmed = { backStack = listOf(AppScreen.Home) },
+                            )
 
-                    AppScreen.Settings ->
-                        SettingsScreen(
-                            role = s.role,
-                            currentMode = themeMode,
-                            onThemeChange = { settingsVm.setThemeMode(it) },
-                            onBack = { appScreen = AppScreen.Home },
-                            onSignOut = {
-                                authVm.signOut()
-                                appScreen = AppScreen.Home
-                            },
-                        )
-                }
-        }
+                        is AppScreen.ReviewEvidence ->
+                            EvidenceReviewScreen(
+                                vm = reviewVm,
+                                task = screen.task,
+                                photos = screen.photos,
+                                onBack = { navigateBack() },
+                                onReviewSubmitted = { backStack = listOf(AppScreen.Home) },
+                            )
+
+                        AppScreen.Settings ->
+                            SettingsScreen(
+                                role = s.role,
+                                currentMode = themeMode,
+                                onThemeChange = { settingsVm.setThemeMode(it) },
+                                onBack = { navigateBack() },
+                                onSignOut = {
+                                    authVm.signOut()
+                                    backStack = listOf(AppScreen.Home)
+                                },
+                            )
+                    }
+            }
+        } // Box
     }
 }

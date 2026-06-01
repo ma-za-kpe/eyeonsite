@@ -7,6 +7,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
 import com.maku.eyeonsite.domain.InspectorOnboardingStatus
+import com.maku.eyeonsite.domain.KycCheck
+import com.maku.eyeonsite.domain.KycProvider
+import com.maku.eyeonsite.domain.KycStatus
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -77,5 +83,34 @@ class FirestoreInspectorOnboardingRepository : InspectorOnboardingRepository {
                     .addOnSuccessListener { cont.resume(Unit) }
                     .addOnFailureListener { cont.resumeWithException(it) }
             }
+        }
+
+    override fun observeKycStatus(uid: String): Flow<KycCheck> =
+        callbackFlow {
+            val registration =
+                db
+                    .collection("inspectors")
+                    .document(uid)
+                    .addSnapshotListener { snap, _ ->
+                        if (snap == null) return@addSnapshotListener
+                        val kyc =
+                            KycCheck(
+                                provider =
+                                    runCatching {
+                                        KycProvider.valueOf(snap.getString("kycProvider") ?: "")
+                                    }.getOrDefault(KycProvider.NONE),
+                                status =
+                                    runCatching {
+                                        KycStatus.valueOf(snap.getString("kycStatus") ?: "")
+                                    }.getOrDefault(KycStatus.NOT_STARTED),
+                                providerJobId = snap.getString("kycJobId").orEmpty(),
+                                submittedAtMs = snap.getLong("kycSubmittedAtMs") ?: 0L,
+                                decidedAtMs = snap.getLong("kycDecidedAtMs") ?: 0L,
+                                resultCode = snap.getString("kycResultCode").orEmpty(),
+                                failureReason = snap.getString("kycFailureReason").orEmpty(),
+                            )
+                        trySend(kyc)
+                    }
+            awaitClose { registration.remove() }
         }
 }

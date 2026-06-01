@@ -8,6 +8,15 @@ enum class LocationProvider {
     MANUAL,
 }
 
+fun String.toLocationProvider(): LocationProvider =
+    when (this.lowercase()) {
+        "gps" -> LocationProvider.GPS
+        "fused" -> LocationProvider.FUSED
+        "network" -> LocationProvider.NETWORK
+        "" -> LocationProvider.MANUAL
+        else -> LocationProvider.UNKNOWN
+    }
+
 data class ExifMetadata(
     val latitude: Double? = null,
     val longitude: Double? = null,
@@ -20,7 +29,6 @@ data class ExifMetadata(
 
 enum class AttestationProvider {
     NONE,
-    FIREBASE_APP_CHECK,
     PLAY_INTEGRITY,
     MOCK,
 }

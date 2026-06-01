@@ -50,7 +50,7 @@ import kotlin.coroutines.suspendCoroutine
 @Composable
 actual fun CameraCapture(
     modifier: Modifier,
-    onPhotoCaptured: (ByteArray, Double, Double) -> Unit,
+    onPhotoCaptured: (ByteArray, Double, Double, String, Float?) -> Unit,
     onPermissionDenied: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -125,9 +125,9 @@ actual fun CameraCapture(
                             context = context,
                             imageCapture = imageCapture,
                             locationGranted = locationGranted,
-                            onCaptured = { bytes, lat, lng ->
+                            onCaptured = { bytes, lat, lng, provider, accuracy ->
                                 isCapturing = false
-                                onPhotoCaptured(bytes, lat, lng)
+                                onPhotoCaptured(bytes, lat, lng, provider, accuracy)
                             },
                             onError = { isCapturing = false },
                         )
@@ -175,7 +175,7 @@ private fun capturePhoto(
     context: Context,
     imageCapture: ImageCapture,
     locationGranted: Boolean,
-    onCaptured: (ByteArray, Double, Double) -> Unit,
+    onCaptured: (ByteArray, Double, Double, String, Float?) -> Unit,
     onError: () -> Unit,
 ) {
     val executor = ContextCompat.getMainExecutor(context)
@@ -184,6 +184,8 @@ private fun capturePhoto(
     fun doCapture(
         lat: Double,
         lng: Double,
+        provider: String = "",
+        accuracy: Float? = null,
     ) {
         val options = ImageCapture.OutputFileOptions.Builder(outputFile).build()
         imageCapture.takePicture(
@@ -191,7 +193,7 @@ private fun capturePhoto(
             executor,
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    onCaptured(outputFile.readBytes(), lat, lng)
+                    onCaptured(outputFile.readBytes(), lat, lng, provider, accuracy)
                 }
 
                 override fun onError(exception: ImageCaptureException) {
@@ -205,8 +207,14 @@ private fun capturePhoto(
         LocationServices
             .getFusedLocationProviderClient(context)
             .lastLocation
-            .addOnSuccessListener { loc -> doCapture(loc?.latitude ?: 0.0, loc?.longitude ?: 0.0) }
-            .addOnFailureListener { doCapture(0.0, 0.0) }
+            .addOnSuccessListener { loc ->
+                doCapture(
+                    lat = loc?.latitude ?: 0.0,
+                    lng = loc?.longitude ?: 0.0,
+                    provider = loc?.provider.orEmpty(),
+                    accuracy = if (loc != null && loc.hasAccuracy()) loc.accuracy else null,
+                )
+            }.addOnFailureListener { doCapture(0.0, 0.0) }
     } else {
         doCapture(0.0, 0.0)
     }

@@ -1,6 +1,7 @@
 package com.maku.eyeonsite.evidence
 
 import com.maku.eyeonsite.data.EvidenceRepository
+import com.maku.eyeonsite.domain.DeviceAttestation
 import com.maku.eyeonsite.domain.EvidencePhoto
 
 class FakeEvidenceRepository(
@@ -10,6 +11,7 @@ class FakeEvidenceRepository(
         val taskId: String,
         val photos: List<EvidencePhoto>,
         val notes: String,
+        val attestation: DeviceAttestation,
     )
 
     val submissions = mutableListOf<Submission>()
@@ -19,11 +21,12 @@ class FakeEvidenceRepository(
         photos: List<EvidencePhoto>,
         pendingBytes: Map<String, ByteArray>,
         notes: String,
+        attestation: DeviceAttestation,
     ): Result<Unit> =
         if (shouldFail) {
             Result.failure(Exception("Storage unavailable"))
         } else {
-            submissions.add(Submission(taskId, photos, notes))
+            submissions.add(Submission(taskId, photos, notes, attestation))
             Result.success(Unit)
         }
 }
