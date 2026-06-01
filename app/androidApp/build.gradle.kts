@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.detekt)
     id("com.google.gms.google-services")
     alias(libs.plugins.firebaseCrashlytics)
+    alias(libs.plugins.firebaseAppDistribution)
 }
 
 spotless {
@@ -93,6 +94,13 @@ android {
         }
     }
     buildTypes {
+        getByName("debug") {
+            firebaseAppDistribution {
+                appId = "1:922315268903:android:9a262a3db6364511fb7f02"
+                groups = "internal"
+                artifactType = "APK"
+            }
+        }
         getByName("release") {
             isMinifyEnabled = false
         }
