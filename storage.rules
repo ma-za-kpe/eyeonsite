@@ -44,10 +44,10 @@ service firebase.storage {
 
     match /evidence/{taskId}/{fileName} {
       allow read: if canReadEvidence(taskId);
-      allow create: if canWriteEvidence(taskId)
+      allow write: if resource == null
+        && canWriteEvidence(taskId)
         && validEvidenceFile(fileName)
         && isJpegImage();
-      allow update, delete: if false;
     }
 
     match /id_docs/{uid}/{fileName} {
