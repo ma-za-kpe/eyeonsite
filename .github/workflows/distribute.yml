@@ -49,11 +49,9 @@ jobs:
         run: |
           NOTE="${{ github.event.inputs.release_notes }}"
           if [ -z "$NOTE" ]; then
-            LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-            if [ -n "$LAST_TAG" ]; then
-              NOTE=$(git log "${LAST_TAG}..HEAD" --pretty=format:"- %s" --no-merges | grep -v "^- Merge" | head -30)
-            else
-              NOTE=$(git log -15 --pretty=format:"- %s" --no-merges | grep -v "^- Merge")
+            # Extract the latest section from CHANGELOG.md (authoritative — kept by release-please)
+            if [ -f CHANGELOG.md ]; then
+              NOTE=$(awk '/^## /{if(found)exit; found=1; next} found{print}' CHANGELOG.md | sed '/^$/d' | head -30)
             fi
           fi
           if [ -z "$NOTE" ]; then
