@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.maku.eyeonsite.APP_VERSION
 import com.maku.eyeonsite.analytics.AnalyticsService
 import com.maku.eyeonsite.landing.components.CtaButton
 import com.maku.eyeonsite.landing.components.CtaVariant
@@ -114,15 +115,22 @@ fun FooterSection(
                         .background(White.copy(alpha = 0.08f)),
                 )
 
-                // Bottom row: legal links + copyright
+                // Bottom row: legal links + copyright + version
                 if (isMobile) {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         LegalLinks(analytics)
-                        Text(
-                            text = "© 2025 Manti Labs LLC (Delaware) · makpalyy@gmail.com",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Stone.copy(alpha = 0.5f),
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "© 2025 Manti Labs LLC (Delaware) · makpalyy@gmail.com",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Stone.copy(alpha = 0.5f),
+                            )
+                            VersionBadge(analytics)
+                        }
                     }
                 } else {
                     Row(
@@ -135,7 +143,13 @@ fun FooterSection(
                             style = MaterialTheme.typography.bodySmall,
                             color = Stone.copy(alpha = 0.5f),
                         )
-                        LegalLinks(analytics)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(24.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            LegalLinks(analytics)
+                            VersionBadge(analytics)
+                        }
                     }
                 }
             }
@@ -167,6 +181,20 @@ private fun LegalLinks(analytics: AnalyticsService) {
         LegalLink("Terms of Service", analytics)
         LegalLink("Contact", analytics)
     }
+}
+
+@Composable
+private fun VersionBadge(analytics: AnalyticsService) {
+    Text(
+        text = "v$APP_VERSION",
+        style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+        color = SavannaGold.copy(alpha = 0.7f),
+        modifier =
+            Modifier.clickable {
+                analytics.logEvent("version_badge_clicked", mapOf("version" to APP_VERSION))
+                navigateTo("https://github.com/ma-za-kpe/eyeonsite/blob/main/CHANGELOG.md")
+            },
+    )
 }
 
 @Composable

@@ -1,6 +1,70 @@
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+// ── AppVersion generation ────────────────────────────────────────────────────
+// Reads version from .release-please-manifest.json and the latest section from
+// CHANGELOG.md, then writes AppVersion.kt into the commonMain generated sources.
+// This means APP_VERSION and APP_CHANGELOG are always in sync with releases.
+
+val generateAppVersion by tasks.registering {
+    val manifestFile = rootProject.file(".release-please-manifest.json")
+    val changelogFile = rootProject.file("CHANGELOG.md")
+    val outDir = layout.buildDirectory.dir("generated/appversion/commonMain/kotlin/com/maku/eyeonsite")
+
+    inputs.files(manifestFile, changelogFile)
+    outputs.dir(outDir)
+
+    doLast {
+        val version =
+            if (manifestFile.exists()) {
+                Regex(""""\."\s*:\s*"([^"]+)"""").find(manifestFile.readText())?.groupValues?.get(1) ?: "0.1.0"
+            } else {
+                "0.1.0"
+            }
+
+        val changelog =
+            if (changelogFile.exists()) {
+                val lines = changelogFile.readLines()
+                val start = lines.indexOfFirst { it.startsWith("## ") }
+                if (start < 0) {
+                    ""
+                } else {
+                    val end = lines.drop(start + 1).indexOfFirst { it.startsWith("## ") }
+                    if (end < 0) {
+                        lines.drop(start).joinToString("\n").trim()
+                    } else {
+                        lines
+                            .drop(start)
+                            .take(end + 1)
+                            .joinToString("\n")
+                            .trim()
+                    }
+                }
+            } else {
+                ""
+            }
+
+        val escaped = changelog.replace("$", "\${'\$'}")
+        val file =
+            outDir
+                .get()
+                .asFile
+                .also { it.mkdirs() }
+                .resolve("AppVersion.kt")
+        file.writeText(
+            buildString {
+                appendLine("package com.maku.eyeonsite")
+                appendLine()
+                appendLine("const val APP_VERSION = \"$version\"")
+                appendLine()
+                appendLine("val APP_CHANGELOG = \"\"\"")
+                appendLine(escaped)
+                appendLine("\"\"\".trimIndent()")
+            },
+        )
+    }
+}
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
@@ -73,6 +137,13 @@ kotlin {
     }
 
     sourceSets {
+        commonMain {
+            kotlin.srcDir(
+                tasks.named("generateAppVersion").map {
+                    layout.buildDirectory.dir("generated/appversion/commonMain/kotlin")
+                },
+            )
+        }
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(project.dependencies.platform(libs.firebase.bom))
