@@ -10,3 +10,14 @@ window.gtag('config', 'G-J1X286KNHJ', {
   allow_google_signals: false,
   allow_ad_personalization_signals: false
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('[data-cta-id]').forEach(function (el) {
+    el.addEventListener('click', function () {
+      gtag('event', 'cta_click', {
+        cta_id: el.dataset.ctaId,
+        cta_section: el.dataset.ctaSection || ''
+      });
+    });
+  });
+});
