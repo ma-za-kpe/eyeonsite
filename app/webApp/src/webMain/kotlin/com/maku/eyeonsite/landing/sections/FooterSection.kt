@@ -117,20 +117,14 @@ fun FooterSection(
 
                 // Bottom row: legal links + copyright + version
                 if (isMobile) {
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         LegalLinks(analytics)
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = "© 2025 Manti Labs LLC (Delaware) · makpalyy@gmail.com",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Stone.copy(alpha = 0.5f),
-                            )
-                            VersionBadge(analytics)
-                        }
+                        Text(
+                            text = "© 2025 Manti Labs LLC (Delaware) · makpalyy@gmail.com",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Stone.copy(alpha = 0.5f),
+                        )
+                        VersionBadge(analytics)
                     }
                 } else {
                     Row(

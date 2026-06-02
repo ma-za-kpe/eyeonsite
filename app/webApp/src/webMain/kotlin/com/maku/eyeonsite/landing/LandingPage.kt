@@ -18,6 +18,7 @@ import com.maku.eyeonsite.analytics.AnalyticsService
 import com.maku.eyeonsite.landing.components.NavBar
 import com.maku.eyeonsite.landing.sections.EvidencePreviewSection
 import com.maku.eyeonsite.landing.sections.FooterSection
+import com.maku.eyeonsite.landing.sections.GetTheAppSection
 import com.maku.eyeonsite.landing.sections.HeroSection
 import com.maku.eyeonsite.landing.sections.HowItWorksSection
 import com.maku.eyeonsite.landing.sections.PricingSection
@@ -91,6 +92,7 @@ fun LandingPage(
                     waitlistY = it.positionInRoot().y.toInt()
                 },
         )
+        GetTheAppSection(analytics = analytics)
         FooterSection(
             analytics = analytics,
             onGetStartedClick = { scrollTo(waitlistY) },
