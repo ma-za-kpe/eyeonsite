@@ -168,6 +168,9 @@ jobs:
         working-directory: functions
         run: npm test
 
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
       - name: Test Firebase rules
         working-directory: functions
         run: npm run test:rules

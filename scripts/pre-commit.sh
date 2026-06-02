@@ -1,6 +1,6 @@
 #!/bin/sh
 # EyeOnSite pre-commit hook
-# Runs formatting, static analysis, shared tests, Android build, and web build.
+# Runs formatting, static analysis, shared tests, Android build, web build, and Functions tests.
 # Install: ./scripts/install-hooks.sh
 
 set -e
@@ -26,5 +26,9 @@ echo "  Android build passed"
 echo "  [5/5] Web production bundle..."
 ./gradlew :app:webApp:jsBrowserProductionWebpack --daemon -q
 echo "  Web build passed"
+
+echo "  [6/6] Functions build + tests..."
+(cd functions && npm run build --silent && npm test --silent)
+echo "  Functions passed"
 
 echo "All pre-commit checks passed."
