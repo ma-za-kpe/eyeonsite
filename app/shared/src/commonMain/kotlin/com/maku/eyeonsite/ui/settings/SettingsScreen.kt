@@ -15,13 +15,22 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.maku.eyeonsite.APP_CHANGELOG
+import com.maku.eyeonsite.APP_VERSION
 import com.maku.eyeonsite.domain.UserRole
 import com.maku.eyeonsite.ui.task.TopBar
 import com.maku.eyeonsite.ui.theme.AlertCoral
@@ -30,6 +39,7 @@ import com.maku.eyeonsite.ui.theme.CautionAmber
 import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
 import com.maku.eyeonsite.ui.theme.Forest
 import com.maku.eyeonsite.ui.theme.LocalAppVariant
+import com.maku.eyeonsite.ui.theme.SavannaGold
 import com.maku.eyeonsite.ui.theme.ThemeMode
 
 private const val RADIO_DOT_SIZE_DP = 10
@@ -42,6 +52,20 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onSignOut: () -> Unit,
 ) {
+    var showChangelog by remember { mutableStateOf(false) }
+
+    if (showChangelog) {
+        AlertDialog(
+            onDismissRequest = { showChangelog = false },
+            title = { Text("What's new in v$APP_VERSION") },
+            text = { Text(APP_CHANGELOG, style = MaterialTheme.typography.bodySmall) },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showChangelog = false }) { Text("Close") }
+            },
+        )
+    }
+
     Column(
         modifier =
             Modifier
@@ -74,9 +98,10 @@ fun SettingsScreen(
             }
 
             Text(
-                text = "EyeOnSite 0.1.0-alpha · Manti Labs",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = "EyeOnSite v$APP_VERSION · Manti Labs",
+                style = MaterialTheme.typography.bodySmall.copy(textDecoration = TextDecoration.Underline),
+                color = SavannaGold,
+                modifier = Modifier.clickable { showChangelog = true },
             )
         }
     }
