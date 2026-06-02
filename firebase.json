@@ -66,9 +66,10 @@
     ],
     "rewrites": [
       { "source": "/api/waitlist", "function": "submitWaitlist" },
-      { "source": "/privacy", "destination": "/privacy.html" },
-      { "source": "/terms",   "destination": "/terms.html"   },
-      { "source": "**",       "destination": "/index.html"   }
+      { "source": "/privacy",   "destination": "/privacy.html"   },
+      { "source": "/terms",     "destination": "/terms.html"     },
+      { "source": "/changelog", "destination": "/changelog.html" },
+      { "source": "**",         "destination": "/index.html"     }
     ]
   }
 }

@@ -876,7 +876,10 @@ textarea { resize: vertical; }
     font-size: 0.6875rem;
     color: rgba(156,154,146,0.45);
     letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: color 0.15s;
 }
+a.version-badge:hover { color: var(--stone); }
 
 /* ── Admin ────────────────────────────────────────────────────────── */
 #admin { background: var(--ivory); min-height: 100vh; }

@@ -38,6 +38,19 @@
 | **A7** | [Decision Log](./EOS-A7-DECISION-LOG.md) | Every architecture and product decision with reasoning, trade-offs, and revisit triggers. 10 founding decisions + rejected ideas. |
 | **A8** | [Integration Mock Strategy](./EOS-A8-INTEGRATION-MOCK-STRATEGY.md) | How external services (Stripe, Flutterwave, Cloud Vision) are mocked during development and testing without leaking keys. |
 | **A9** | [CI/CD and Distribution](./EOS-A9-CICD-AND-DISTRIBUTION.md) | GitHub Actions workflows, Android product flavors, Firebase App Distribution setup, secrets reference, and pre-commit pipeline. |
+| **A10** | [E2E Test Architecture](./EOS-A10-E2E-TEST-ARCHITECTURE.md) | End-to-end test strategy across Android, Cloud Functions, and Firestore rules. |
+
+## Brand & Marketing
+
+| # | Document | Description |
+|---|----------|------------|
+| **B0** | [Brand Index](./EOS-B0-BRAND-INDEX.md) | Overview of all brand documents. |
+| **B1** | [Brand Identity](./EOS-B1-BRAND-IDENTITY.md) | Colors, fonts, logo, voice, and visual language. |
+| **B2** | [Messaging Playbook](./EOS-B2-MESSAGING-PLAYBOOK.md) | Copy frameworks, value propositions, and messaging by audience. |
+| **B3** | [Marketing Strategy](./EOS-B3-MARKETING-STRATEGY.md) | Channel strategy, growth loops, and launch playbook. |
+| **B4** | [Pitch Deck Outline](./EOS-B4-PITCH-DECK-OUTLINE.md) | Slide-by-slide investor pitch structure. |
+| **B5** | [Landing Page Spec](./EOS-B5-LANDING-PAGE-SPEC.md) | Section-by-section content spec for geteyeonsite.com. |
+| **B6** | [Landing Page Contributor Guide](./EOS-B6-LANDING-PAGE-CONTRIBUTOR.md) | How to add sections, update styles, manage the beta download links, and deploy. **Read this before touching `public/`.** |
 
 ---
 
@@ -54,6 +67,8 @@
 **Handling a dispute?** Read: A4 → 02 (dispute flow section) → 08 (escrow actions).
 
 **Understanding the matching engine?** Read: A5 → 06 → 03 (event model).
+
+**Editing the landing page (geteyeonsite.com)?** Read: B6 (Contributor Guide) first, then B5 (Content Spec) for copy guidance.
 
 ---
 

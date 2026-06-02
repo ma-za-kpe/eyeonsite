@@ -420,17 +420,26 @@
                     We're running a private Android beta in Accra.
                     Install the build that matches your role &mdash; real flows, real feedback welcome.
                 </p>
+                <!--
+                    BETA DOWNLOAD LINKS
+                    Replace these href values with real Firebase App Distribution group invite links.
+                    How to get them:
+                      Firebase Console → App Distribution → [select app] →
+                      Testers & Groups → "internal" → Copy invite link
+                    Do this for both the client app and the inspector app.
+                    The link format will look like:
+                      https://appdistribution.firebase.google.com/testerapps/<hash>
+                    NOT the Firebase App ID — the Console generates a distinct short link.
+                -->
                 <div class="beta-buttons">
-                    <a href="https://appdistribution.firebase.google.com/testerapps/1:922315268903:android:9a262a3db6364511fb7f02/groups/internal"
+                    <a href="#waitlist"
                        class="btn btn-primary beta-btn"
-                       target="_blank" rel="noopener noreferrer"
                        data-cta-id="beta_client" data-cta-section="get_the_app">
                         <span class="beta-btn-label">Download &mdash; Diaspora Client</span>
                         <span class="beta-btn-sub">Track &amp; verify your property</span>
                     </a>
-                    <a href="https://appdistribution.firebase.google.com/testerapps/1:922315268903:android:83ace1bab8aeac06fb7f02/groups/internal"
+                    <a href="#waitlist"
                        class="btn btn-ghost beta-btn"
-                       target="_blank" rel="noopener noreferrer"
                        data-cta-id="beta_inspector" data-cta-section="get_the_app">
                         <span class="beta-btn-label">Download &mdash; Field Inspector</span>
                         <span class="beta-btn-sub">Accept jobs, submit evidence</span>
@@ -469,7 +478,7 @@
                         <a href="/privacy" class="legal-link">Privacy Policy</a>
                         <a href="/terms" class="legal-link">Terms of Service</a>
                         <a href="mailto:makpalyy@gmail.com" class="legal-link">Contact</a>
-                        <span class="version-badge">v0.2.0</span>
+                        <a href="/changelog" class="version-badge" aria-label="View changelog">v0.2.0</a>
                     </nav>
                 </div>
             </div>

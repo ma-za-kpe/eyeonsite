@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Changelog — EyeOnSite</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .cl-shell {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px var(--px) 96px;
+        }
+        .cl-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.875rem;
+            color: var(--stone);
+            margin-bottom: 48px;
+            transition: color 0.15s;
+        }
+        .cl-back:hover { color: var(--white); }
+        .cl-back::before { content: "←"; }
+        .cl-title {
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 8px;
+        }
+        .cl-subtitle {
+            font-size: 0.9375rem;
+            color: var(--stone);
+            margin-bottom: 56px;
+        }
+        .cl-version {
+            border-left: 2px solid var(--forest);
+            padding-left: 24px;
+            margin-bottom: 48px;
+        }
+        .cl-version-header {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .cl-version-tag {
+            font-family: var(--font-mono);
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--gold);
+        }
+        .cl-version-date {
+            font-size: 0.8125rem;
+            color: var(--stone);
+        }
+        .cl-group-label {
+            font-size: 0.6875rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--forest);
+            margin: 20px 0 10px;
+        }
+        .cl-items {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .cl-item {
+            font-size: 0.9375rem;
+            color: rgba(255,255,255,0.75);
+            padding-left: 16px;
+            position: relative;
+            line-height: 1.55;
+        }
+        .cl-item::before {
+            content: "·";
+            position: absolute;
+            left: 0;
+            color: var(--stone);
+        }
+        .cl-divider {
+            border: none;
+            height: 1px;
+            background: rgba(255,255,255,0.06);
+            margin: 48px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="cl-shell">
+        <a href="/" class="cl-back">Back to EyeOnSite</a>
+
+        <h1 class="cl-title">Changelog</h1>
+        <p class="cl-subtitle">All notable changes, auto-managed by release-please via Conventional Commits.</p>
+
+        <!-- v0.2.0 -->
+        <div class="cl-version">
+            <div class="cl-version-header">
+                <span class="cl-version-tag">v0.2.0</span>
+                <span class="cl-version-date">2026-06-02</span>
+            </div>
+
+            <p class="cl-group-label">Features</p>
+            <ul class="cl-items">
+                <li class="cl-item">Country picker on sign-in screen</li>
+                <li class="cl-item">Persistent auth session — users stay logged in across app restarts</li>
+                <li class="cl-item">Firebase App Distribution Gradle plugin wired into CI</li>
+                <li class="cl-item">Client and Inspector shipped as separate APKs with distinct application IDs</li>
+                <li class="cl-item">App Check (Play Integrity in production, fixed debug token in beta builds)</li>
+                <li class="cl-item">Client Dashboard — task hub, escrow summary, 20 unit tests</li>
+                <li class="cl-item">Inspector task map — Google Maps Compose hub with custom markers</li>
+                <li class="cl-item">Evidence Capture — CameraX, GPS, upload pipeline, 16 tests</li>
+                <li class="cl-item">Evidence review — client accept / revise / dispute flow, 20 tests</li>
+                <li class="cl-item">Offline-first evidence submission with WorkManager sync queue</li>
+                <li class="cl-item">Cloud Vision AI photo quality scoring (Cloud Function)</li>
+                <li class="cl-item">Stripe + Flutterwave payment integration</li>
+                <li class="cl-item">Matching Engine Cloud Functions — geo-match, FCM pings, 24 tests</li>
+                <li class="cl-item">Escrow lifecycle — fundTask + releaseEscrow Cloud Functions</li>
+                <li class="cl-item">Inspector onboarding flow</li>
+                <li class="cl-item">TaskCreationScreen and InspectorMatchingScreen</li>
+                <li class="cl-item">Dual app personalities — client and inspector themes and branding</li>
+                <li class="cl-item">Dispute and revision request flow</li>
+                <li class="cl-item">SQLDelight offline cache + pending upload queue</li>
+                <li class="cl-item">Auto-generated AppVersion.kt from release-please manifest</li>
+                <li class="cl-item">EOS-14 production hardening — all domain contracts wired into live flows</li>
+            </ul>
+
+            <p class="cl-group-label">Bug Fixes</p>
+            <ul class="cl-items">
+                <li class="cl-item">Removed redundant FirebaseApp.initializeApp() call that caused App Check race condition on startup</li>
+                <li class="cl-item">Fixed matching engine race condition and terminal status handling</li>
+                <li class="cl-item">Replaced SVG LogoMark with Canvas-drawn mark for cross-platform compatibility</li>
+                <li class="cl-item">Resolved Koin/webpack errors in JS and WasmJS build targets</li>
+                <li class="cl-item">Fixed Firestore rules to deny evidence overwrites and deletes</li>
+            </ul>
+        </div>
+
+        <hr class="cl-divider">
+
+        <!-- v0.1.0 -->
+        <div class="cl-version">
+            <div class="cl-version-header">
+                <span class="cl-version-tag">v0.1.0</span>
+                <span class="cl-version-date">2026-05-25</span>
+            </div>
+
+            <p class="cl-group-label">Features</p>
+            <ul class="cl-items">
+                <li class="cl-item">KMP foundation — Firebase SDK, EyeOnSite brand theme, DM Sans + JetBrains Mono fonts</li>
+                <li class="cl-item">SignInScreen shared across Android, iOS, and Web</li>
+                <li class="cl-item">EyeOnSiteTheme with full light/dark Material3 color schemes</li>
+                <li class="cl-item">Firebase Analytics + Auth wired into Android</li>
+                <li class="cl-item">Landing page deployed to Firebase Hosting</li>
+                <li class="cl-item">AnalyticsService interface with Firebase and Mock implementations</li>
+                <li class="cl-item">Spotless + Detekt + pre-commit hooks</li>
+                <li class="cl-item">GitHub Actions CI/CD pipeline</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
