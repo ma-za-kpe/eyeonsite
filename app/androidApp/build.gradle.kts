@@ -115,6 +115,11 @@ android {
     }
     buildTypes {
         getByName("debug") {
+            // Fixed debug token so every CI-distributed APK uses the same registered token.
+            // Set APP_CHECK_DEBUG_TOKEN in local.properties locally; injected via -P on CI.
+            val token = (findProperty("APP_CHECK_DEBUG_TOKEN") as String?)
+                ?: localProps.getProperty("APP_CHECK_DEBUG_TOKEN", "")
+            manifestPlaceholders["APP_CHECK_DEBUG_TOKEN"] = token
         }
         getByName("release") {
             isMinifyEnabled = false

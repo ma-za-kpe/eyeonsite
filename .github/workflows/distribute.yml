@@ -68,6 +68,7 @@ jobs:
           ./gradlew :app:androidApp:assembleClientDebug \
             -PversionCode=${{ steps.version.outputs.code }} \
             -PversionName=${{ steps.version.outputs.name }} \
+            -PAPP_CHECK_DEBUG_TOKEN=${{ secrets.APP_CHECK_DEBUG_TOKEN }} \
             --no-daemon --stacktrace
 
       - name: Distribute client APK
@@ -85,6 +86,7 @@ jobs:
           ./gradlew :app:androidApp:assembleInspectorDebug \
             -PversionCode=${{ steps.version.outputs.code }} \
             -PversionName=${{ steps.version.outputs.name }} \
+            -PAPP_CHECK_DEBUG_TOKEN=${{ secrets.APP_CHECK_DEBUG_TOKEN }} \
             --no-daemon --stacktrace
 
       - name: Distribute inspector APK

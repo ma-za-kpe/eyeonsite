@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!--
+            Firebase App Check debug token — injected at build time from
+            local.properties (APP_CHECK_DEBUG_TOKEN) or the CI secret of the
+            same name. Register this UUID once in:
+            Firebase Console → App Check → [app] → Manage debug tokens
+        -->
+        <meta-data
+            android:name="firebase_app_check_debug_token"
+            android:value="${APP_CHECK_DEBUG_TOKEN}" />
+    </application>
+</manifest>
