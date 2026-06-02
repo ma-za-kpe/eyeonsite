@@ -91,7 +91,7 @@ jobs:
         run: |
           firebase appdistribution:distribute \
             app/androidApp/build/outputs/apk/inspector/debug/androidApp-inspector-debug.apk \
-            --app "1:922315268903:android:9a262a3db6364511fb7f02" \
+            --app "1:922315268903:android:83ace1bab8aeac06fb7f02" \
             --groups "internal" \
             --release-notes-file RELEASE_NOTES.txt
         env:

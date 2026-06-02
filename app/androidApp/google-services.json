@@ -41,6 +41,35 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:922315268903:android:83ace1bab8aeac06fb7f02",
+        "android_client_info": {
+          "package_name": "com.maku.eyeonsite.inspector"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "922315268903-sp22r3akdvtem563194a96a93v2v48f4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDKjkUXX8tQeqqHMxoanXLnC197V_42Mn0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "922315268903-sp22r3akdvtem563194a96a93v2v48f4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

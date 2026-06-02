@@ -87,14 +87,22 @@ android {
     }
     flavorDimensions += "variant"
     productFlavors {
-        // Both flavors share applicationId (single Firebase project registration).
-        // Separate applicationIds require registering additional Android apps in the Firebase
-        // console and updating google-services.json — defer to production release.
         create("client") {
             dimension = "variant"
+            firebaseAppDistribution {
+                appId = "1:922315268903:android:9a262a3db6364511fb7f02"
+                groups = "internal"
+                artifactType = "APK"
+            }
         }
         create("inspector") {
             dimension = "variant"
+            applicationIdSuffix = ".inspector"
+            firebaseAppDistribution {
+                appId = "1:922315268903:android:83ace1bab8aeac06fb7f02"
+                groups = "internal"
+                artifactType = "APK"
+            }
         }
     }
     buildFeatures {
@@ -107,11 +115,6 @@ android {
     }
     buildTypes {
         getByName("debug") {
-            firebaseAppDistribution {
-                appId = "1:922315268903:android:9a262a3db6364511fb7f02"
-                groups = "internal"
-                artifactType = "APK"
-            }
         }
         getByName("release") {
             isMinifyEnabled = false
