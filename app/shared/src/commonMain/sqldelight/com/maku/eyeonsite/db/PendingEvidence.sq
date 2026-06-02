@@ -4,7 +4,10 @@ CREATE TABLE pending_evidence (
     inspector_uid TEXT NOT NULL,
     notes TEXT NOT NULL,
     photo_count INTEGER NOT NULL,
-    created_at_ms INTEGER NOT NULL
+    created_at_ms INTEGER NOT NULL,
+    attestation_provider TEXT NOT NULL DEFAULT 'NONE',
+    attestation_verdict TEXT NOT NULL DEFAULT 'UNKNOWN',
+    attestation_checked_at_ms INTEGER NOT NULL DEFAULT 0
 );
 
 getAll:
@@ -13,8 +16,8 @@ FROM pending_evidence
 ORDER BY created_at_ms ASC;
 
 insert:
-INSERT INTO pending_evidence(id, task_id, inspector_uid, notes, photo_count, created_at_ms)
-VALUES (?, ?, ?, ?, ?, ?);
+INSERT INTO pending_evidence(id, task_id, inspector_uid, notes, photo_count, created_at_ms, attestation_provider, attestation_verdict, attestation_checked_at_ms)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 delete:
 DELETE FROM pending_evidence WHERE id = ?;

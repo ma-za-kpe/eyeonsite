@@ -2,6 +2,7 @@ package com.maku.eyeonsite.evidence
 
 import com.maku.eyeonsite.analytics.NoOpAnalyticsService
 import com.maku.eyeonsite.domain.EvidencePackage
+import com.maku.eyeonsite.domain.UploadStatus
 import com.maku.eyeonsite.ui.evidence.EvidenceCaptureViewModel
 import com.maku.eyeonsite.ui.evidence.NoOpPhotoQualityAnalyzer
 import kotlinx.coroutines.Dispatchers
@@ -228,4 +229,31 @@ class EvidenceCaptureViewModelTest {
         vm.addPhoto(fakeBytes, 0.0, 0.0)
         assertTrue(vm.state.value.canSubmit)
     }
+
+    // ── UploadStatus transitions ──────────────────────────────────────────────
+
+    @Test
+    fun `photos have LOCAL status after addPhoto`() {
+        vm.addPhoto(fakeBytes, 5.6, -0.18)
+
+        assertEquals(
+            UploadStatus.LOCAL,
+            vm.state.value.photos
+                .first()
+                .uploadStatus,
+        )
+    }
+
+    @Test
+    fun `submitEvidence transitions all photos from LOCAL to QUEUED`() =
+        runTest {
+            vm.addPhoto(fakeBytes, 5.6, -0.18)
+            vm.addPhoto(fakeBytes, 5.7, -0.19)
+
+            vm.submitEvidence()
+
+            vm.state.value.photos.forEach { photo ->
+                assertEquals(UploadStatus.QUEUED, photo.uploadStatus)
+            }
+        }
 }

@@ -361,6 +361,20 @@ class InspectorOnboardingViewModelTest {
         }
 
     @Test
+    fun `submitProfile passes private KYC storage paths instead of download urls`() =
+        runTest {
+            advanceToProfile()
+            vm.setFullName("Kwame Mensah")
+            vm.setCity("Accra")
+            vm.submitProfile("uid-test")
+            val sub = repo.submissions.first()
+            assertEquals("id_docs/uid-test/govt_id.jpg", sub.idDocPath)
+            assertEquals("id_docs/uid-test/selfie.jpg", sub.selfiePath)
+            assertFalse(sub.idDocPath.startsWith("http"))
+            assertFalse(sub.selfiePath.startsWith("http"))
+        }
+
+    @Test
     fun `submit failure shows error`() =
         runTest {
             repo = FakeInspectorOnboardingRepository(submitShouldFail = true)

@@ -1,11 +1,13 @@
 package com.maku.eyeonsite.auth
 
+import com.maku.eyeonsite.domain.UserRole
 import com.maku.eyeonsite.ui.auth.FirebaseAuthProvider
 
 class FakeFirebaseAuthProvider : FirebaseAuthProvider {
     var sendOtpResult: Result<String> = Result.success("fake-verification-id")
     var verifyOtpResult: Result<String> = Result.success("fake-uid-001")
-    private var storedUid: String? = null
+    var storedUid: String? = null
+    var storedRole: UserRole? = null
     var signOutCalled = false
 
     val sendOtpCalls = mutableListOf<String>()
@@ -27,8 +29,18 @@ class FakeFirebaseAuthProvider : FirebaseAuthProvider {
 
     override fun currentUid(): String? = storedUid
 
+    override suspend fun fetchRole(uid: String): UserRole? = storedRole
+
+    override suspend fun saveRole(
+        uid: String,
+        role: UserRole,
+    ) {
+        storedRole = role
+    }
+
     override fun signOut() {
         signOutCalled = true
         storedUid = null
+        storedRole = null
     }
 }

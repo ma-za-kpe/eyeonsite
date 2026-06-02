@@ -1,6 +1,7 @@
 package com.maku.eyeonsite.data
 
 import com.maku.eyeonsite.domain.ClientTaskSummary
+import com.maku.eyeonsite.domain.EscrowStatus
 import com.maku.eyeonsite.domain.TaskStatus
 import com.maku.eyeonsite.domain.TaskType
 import com.maku.eyeonsite.ui.dashboard.ClientTaskRepository
@@ -22,6 +23,7 @@ private val MOCK_TASKS =
             bountyUsd = 45,
             createdAtMs = 1_747_900_000_000L,
             inspectorName = "Kwame A.",
+            escrowStatus = EscrowStatus.RELEASE_PENDING,
         ),
         ClientTaskSummary(
             id = "task-002",
@@ -32,6 +34,7 @@ private val MOCK_TASKS =
             bountyUsd = 30,
             createdAtMs = 1_747_800_000_000L,
             inspectorName = "Ama B.",
+            escrowStatus = EscrowStatus.HELD,
         ),
         ClientTaskSummary(
             id = "task-003",
@@ -42,6 +45,7 @@ private val MOCK_TASKS =
             bountyUsd = 55,
             createdAtMs = 1_747_700_000_000L,
             inspectorName = "Kofi C.",
+            escrowStatus = EscrowStatus.RELEASED,
         ),
         ClientTaskSummary(
             id = "task-004",
@@ -51,6 +55,7 @@ private val MOCK_TASKS =
             status = TaskStatus.POSTED,
             bountyUsd = 25,
             createdAtMs = 1_747_600_000_000L,
+            escrowStatus = EscrowStatus.UNFUNDED,
         ),
         ClientTaskSummary(
             id = "task-005",
@@ -61,5 +66,6 @@ private val MOCK_TASKS =
             bountyUsd = 60,
             createdAtMs = 1_747_500_000_000L,
             inspectorName = "Yaw D.",
+            escrowStatus = EscrowStatus.HELD,
         ),
     )

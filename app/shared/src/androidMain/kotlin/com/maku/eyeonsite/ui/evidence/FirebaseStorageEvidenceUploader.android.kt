@@ -26,11 +26,8 @@ class FirebaseStorageEvidenceUploader : EvidenceUploader {
             suspendCancellableCoroutine { cont ->
                 ref
                     .putBytes(bytes, metadata)
-                    .addOnSuccessListener {
-                        ref.downloadUrl
-                            .addOnSuccessListener { uri -> cont.resume(uri.toString()) }
-                            .addOnFailureListener { cont.resumeWithException(it) }
-                    }.addOnFailureListener { cont.resumeWithException(it) }
+                    .addOnSuccessListener { cont.resume(ref.path) }
+                    .addOnFailureListener { cont.resumeWithException(it) }
             }
         }
 }

@@ -1,8 +1,12 @@
 package com.maku.eyeonsite.ui.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,12 +36,24 @@ import com.maku.eyeonsite.ui.theme.SavannaGold
 import com.maku.eyeonsite.ui.theme.Stone
 import com.maku.eyeonsite.ui.theme.White
 
+private val FIELD_HEIGHT = 56.dp
+private val CORNER_RADIUS = 12.dp
+
 @Composable
 fun SignInScreen(
     isSending: Boolean = false,
     onContinue: (phoneNumber: String) -> Unit = {},
 ) {
-    var phoneNumber by remember { mutableStateOf("") }
+    var selectedCountry by remember { mutableStateOf(defaultCountry) }
+    var localNumber by remember { mutableStateOf("") }
+    var showPicker by remember { mutableStateOf(false) }
+
+    if (showPicker) {
+        CountryPickerDialog(
+            onDismiss = { showPicker = false },
+            onSelect = { selectedCountry = it },
+        )
+    }
 
     Column(
         modifier =
@@ -87,40 +103,59 @@ fun SignInScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        OutlinedTextField(
-            value = phoneNumber,
-            onValueChange = { phoneNumber = it },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            placeholder = {
-                Text("+233 XX XXX XXXX", color = Stone)
-            },
-            label = {
-                Text("Phone number", color = Stone)
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            colors =
-                OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = White,
-                    unfocusedTextColor = White,
-                    focusedBorderColor = Forest,
-                    unfocusedBorderColor = Stone,
-                    focusedLabelColor = Forest,
-                    cursorColor = SavannaGold,
-                ),
-        )
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier =
+                    Modifier
+                        .height(FIELD_HEIGHT)
+                        .border(1.dp, Stone, RoundedCornerShape(CORNER_RADIUS))
+                        .clickable { showPicker = true }
+                        .padding(horizontal = 14.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "${selectedCountry.flag}  +${selectedCountry.dialCode}",
+                    color = White,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+
+            OutlinedTextField(
+                value = localNumber,
+                onValueChange = { localNumber = it },
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("Phone number", color = Stone) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                singleLine = true,
+                shape = RoundedCornerShape(CORNER_RADIUS),
+                colors =
+                    OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedBorderColor = Forest,
+                        unfocusedBorderColor = Stone,
+                        focusedLabelColor = Forest,
+                        cursorColor = SavannaGold,
+                    ),
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
 
         Button(
-            onClick = { onContinue(phoneNumber) },
+            onClick = {
+                onContinue(PhoneInputValidator.assembleE164(selectedCountry.dialCode, localNumber))
+            },
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .height(52.dp),
-            enabled = phoneNumber.length >= 10 && !isSending,
-            shape = RoundedCornerShape(12.dp),
+            enabled = PhoneInputValidator.isValid(localNumber) && !isSending,
+            shape = RoundedCornerShape(CORNER_RADIUS),
             colors =
                 ButtonDefaults.buttonColors(
                     containerColor = Forest,

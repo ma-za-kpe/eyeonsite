@@ -1,6 +1,7 @@
 import { GeoPoint } from "firebase-admin/firestore";
-import { rankCandidates, sendTaskPings } from "../onTaskCreated";
+import { queryAvailableInspectors, rankCandidates, sendTaskPings } from "../onTaskCreated";
 import { InspectorDocument, TaskDocument } from "../types";
+import { h3CoverageForPoint } from "../../utils/h3";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -72,6 +73,66 @@ describe("rankCandidates", () => {
 });
 
 // ── sendTaskPings ─────────────────────────────────────────────────────────────
+
+function makeInspectorDoc(id: string, doc: InspectorDocument) {
+  return { id, data: () => doc };
+}
+
+function makeQueryRecorder(docsByField: Record<string, unknown[]> = {}) {
+  type FakeQuery = {
+    where: (field: string, op: string, value: unknown) => FakeQuery;
+    get: () => Promise<{ docs: unknown[] }>;
+  };
+
+  const calls: Array<{ field: string; op: string; value: unknown }> = [];
+  const query: FakeQuery = {
+    where: jest.fn((field: string, op: string, value: unknown): FakeQuery => {
+      calls.push({ field, op, value });
+      return query;
+    }),
+    get: jest.fn(async (): Promise<{ docs: unknown[] }> => {
+      const lastField = calls[calls.length - 1]?.field ?? "";
+      return { docs: docsByField[lastField] ?? [] };
+    }),
+  };
+  const db = {
+    collection: jest.fn(() => query),
+  };
+  return { db: db as any, calls };
+}
+
+describe("queryAvailableInspectors", () => {
+  test("queries H3 cells before geohash fallback", async () => {
+    const coverage = h3CoverageForPoint(TASK_LAT, TASK_LNG);
+    const inspector = makeInspectorDoc("inspector-h3", makeInspector(TASK_LAT, TASK_LNG).doc);
+    const { db, calls } = makeQueryRecorder({ h3Res9: [inspector] });
+
+    const result = await queryAvailableInspectors(db, TASK_LAT, TASK_LNG, {
+      h3Res9: coverage.h3Res9,
+      h3NeighborRes9: coverage.h3NeighborRes9,
+    });
+
+    expect(result.map((item) => item.uid)).toEqual(["inspector-h3"]);
+    expect(calls).toContainEqual({ field: "available", op: "==", value: true });
+    expect(calls).toContainEqual({
+      field: "h3Res9",
+      op: "in",
+      value: [coverage.h3Res9, ...coverage.h3NeighborRes9],
+    });
+    expect(calls.some((call) => call.field === "geohash")).toBe(false);
+  });
+
+  test("falls back to geohash during migration when H3 has no matches", async () => {
+    const inspector = makeInspectorDoc("inspector-geohash", makeInspector(TASK_LAT, TASK_LNG).doc);
+    const { db, calls } = makeQueryRecorder({ geohash: [inspector] });
+
+    const result = await queryAvailableInspectors(db, TASK_LAT, TASK_LNG, {});
+
+    expect(result.map((item) => item.uid)).toEqual(["inspector-geohash"]);
+    expect(calls.some((call) => call.field === "h3Res9")).toBe(true);
+    expect(calls.some((call) => call.field === "geohash")).toBe(true);
+  });
+});
 
 function makeDb() {
   return { doc: jest.fn().mockReturnValue({ update: jest.fn().mockResolvedValue(undefined) }), batch: jest.fn() } as any;

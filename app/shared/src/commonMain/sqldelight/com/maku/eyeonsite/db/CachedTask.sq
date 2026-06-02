@@ -7,7 +7,8 @@ CREATE TABLE cached_task (
     bounty_usd INTEGER NOT NULL,
     created_at_ms INTEGER NOT NULL,
     inspector_name TEXT,
-    updated_at_ms INTEGER NOT NULL
+    updated_at_ms INTEGER NOT NULL,
+    escrow_status TEXT NOT NULL DEFAULT 'UNFUNDED'
 );
 
 getAllForClient:
@@ -16,8 +17,8 @@ FROM cached_task
 ORDER BY created_at_ms DESC;
 
 upsert:
-INSERT OR REPLACE INTO cached_task(id, type, location, description, status, bounty_usd, created_at_ms, inspector_name, updated_at_ms)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO cached_task(id, type, location, description, status, bounty_usd, created_at_ms, inspector_name, updated_at_ms, escrow_status)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 deleteAll:
 DELETE FROM cached_task;

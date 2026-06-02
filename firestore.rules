@@ -59,8 +59,14 @@ service cloud.firestore {
         && request.auth.uid == uid;
       allow update: if request.auth != null
         && request.auth.uid == uid
-        && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['location', 'fcmToken', 'name', 'city', 'photoUrl']);
+        && (
+          // Normal profile field updates (location ping, FCM token refresh, etc.)
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['location', 'fcmToken', 'name', 'city', 'photoUrl'])
+          ||
+          // KYC retry: inspector re-submits onboarding from a retriable state
+          resource.data.onboardingStatus in ['RETRY_REQUIRED', 'EXPIRED']
+        );
       allow delete: if false;
     }
 
@@ -98,9 +104,23 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // ── Helper ────────────────────────────────────────────────────────────────
+    // ── Escrow ledger ─────────────────────────────────────────────────────────
+    // Double-entry ledger written exclusively by Cloud Functions.
+    // The task client and matched inspector can read entries for their task.
+    match /escrow_ledger/{entryId} {
+      allow read: if request.auth != null
+        && canReadTask(resource.data.taskId, request.auth.uid);
+      allow write: if false;
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
     function isTaskClient(taskId, uid) {
       return get(/databases/$(database)/documents/tasks/$(taskId)).data.clientUid == uid;
+    }
+
+    function canReadTask(taskId, uid) {
+      let task = get(/databases/$(database)/documents/tasks/$(taskId)).data;
+      return task.clientUid == uid || task.matchedInspectorId == uid;
     }
   }
 }

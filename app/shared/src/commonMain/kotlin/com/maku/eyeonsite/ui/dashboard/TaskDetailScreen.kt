@@ -26,6 +26,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.maku.eyeonsite.domain.ClientTaskSummary
+import com.maku.eyeonsite.domain.EscrowLedgerEntry
+import com.maku.eyeonsite.domain.EscrowLedgerEntryStatus
+import com.maku.eyeonsite.domain.EscrowLedgerEntryType
+import com.maku.eyeonsite.domain.EscrowStatus
 import com.maku.eyeonsite.domain.TaskStatus
 import com.maku.eyeonsite.domain.TaskType
 import com.maku.eyeonsite.ui.task.TopBar
@@ -60,6 +64,8 @@ fun TaskDetailScreen(
     task: ClientTaskSummary,
     onBack: () -> Unit,
     onReviewEvidence: (() -> Unit)? = null,
+    ledgerEntries: List<EscrowLedgerEntry> = emptyList(),
+    escrowStatus: EscrowStatus = task.escrowStatus,
 ) {
     Column(
         modifier =
@@ -93,11 +99,17 @@ fun TaskDetailScreen(
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                        Text(
-                            text = "$${task.bountyUsd}",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = Forest,
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            EscrowStatusBadge(status = escrowStatus)
+                            Text(
+                                text = "$${task.bountyUsd}",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Forest,
+                            )
+                        }
                     }
                     Text(
                         text = task.description,
@@ -117,6 +129,11 @@ fun TaskDetailScreen(
                 InspectorCard(name = task.inspectorName)
             } else if (task.status == TaskStatus.POSTED || task.status == TaskStatus.ESCROW_FUNDED) {
                 FindingInspectorCard()
+            }
+
+            // Escrow ledger
+            if (ledgerEntries.isNotEmpty()) {
+                EscrowLedgerCard(entries = ledgerEntries)
             }
 
             // Map placeholder
@@ -344,6 +361,107 @@ private fun MapPlaceholder() {
 }
 
 @Composable
+private fun EscrowStatusBadge(status: EscrowStatus) {
+    if (status == EscrowStatus.UNFUNDED) return
+    val (label, color) =
+        when (status) {
+            EscrowStatus.HELD -> "Escrow Held" to Forest
+            EscrowStatus.RELEASE_PENDING -> "Releasing" to SavannaGold
+            EscrowStatus.RELEASED -> "Released" to SignalGreen
+            EscrowStatus.REFUND_PENDING -> "Refunding" to SavannaGold
+            EscrowStatus.REFUNDED -> "Refunded" to SignalGreen
+            EscrowStatus.DISPUTED -> "Disputed" to AlertCoral
+            EscrowStatus.FROZEN -> "Frozen" to AlertCoral
+            EscrowStatus.FAILED -> "Failed" to AlertCoral
+            EscrowStatus.UNFUNDED -> return
+        }
+    Box(
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(color.copy(alpha = 0.12f))
+                .padding(horizontal = 6.dp, vertical = 3.dp),
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+        )
+    }
+}
+
+@Composable
+private fun EscrowLedgerCard(entries: List<EscrowLedgerEntry>) {
+    DetailCard {
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                text = "Escrow Ledger",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            entries.forEach { entry ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = entry.type.label(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = entry.provider.name,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = "$${entry.amountUsdCents / 100}.${(entry.amountUsdCents % 100).toString().padStart(2, '0')}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            text = entry.status.label(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = entry.status.color(),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun EscrowLedgerEntryType.label(): String =
+    when (this) {
+        EscrowLedgerEntryType.ESCROW_HOLD -> "Escrow hold"
+        EscrowLedgerEntryType.ESCROW_RELEASE -> "Escrow release"
+        EscrowLedgerEntryType.ESCROW_REFUND -> "Refund"
+        EscrowLedgerEntryType.PAYOUT -> "Inspector payout"
+        EscrowLedgerEntryType.FEE -> "Platform fee"
+    }
+
+private fun EscrowLedgerEntryStatus.label(): String =
+    when (this) {
+        EscrowLedgerEntryStatus.PENDING -> "Pending"
+        EscrowLedgerEntryStatus.POSTED -> "Posted"
+        EscrowLedgerEntryStatus.FAILED -> "Failed"
+        EscrowLedgerEntryStatus.REVERSED -> "Reversed"
+    }
+
+@Composable
+private fun EscrowLedgerEntryStatus.color(): Color =
+    when (this) {
+        EscrowLedgerEntryStatus.POSTED -> SignalGreen
+        EscrowLedgerEntryStatus.FAILED -> AlertCoral
+        EscrowLedgerEntryStatus.REVERSED -> SavannaGold
+        EscrowLedgerEntryStatus.PENDING -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+@Composable
 private fun DetailCard(content: @Composable () -> Unit) {
     Box(
         modifier =
@@ -435,6 +553,47 @@ fun TaskDetailExpiredPreview() {
         TaskDetailScreen(
             task = previewTask(TaskStatus.EXPIRED),
             onBack = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview
+@Composable
+fun TaskDetailWithLedgerPreview() {
+    EyeOnSiteTheme(variant = AppVariant.CLIENT, darkTheme = false) {
+        TaskDetailScreen(
+            task = previewTask(TaskStatus.ACCEPTED, inspector = "Kwame A."),
+            onBack = {},
+            ledgerEntries =
+                listOf(
+                    EscrowLedgerEntry(
+                        id = "e1",
+                        taskId = "task-001",
+                        type = EscrowLedgerEntryType.ESCROW_HOLD,
+                        status = EscrowLedgerEntryStatus.POSTED,
+                        provider = com.maku.eyeonsite.domain.MoneyProvider.STRIPE,
+                        amountUsdCents = 4500L,
+                        createdAtMs = 1_748_000_000_000L,
+                    ),
+                    EscrowLedgerEntry(
+                        id = "e2",
+                        taskId = "task-001",
+                        type = EscrowLedgerEntryType.PAYOUT,
+                        status = EscrowLedgerEntryStatus.POSTED,
+                        provider = com.maku.eyeonsite.domain.MoneyProvider.FLUTTERWAVE,
+                        amountUsdCents = 3600L,
+                        createdAtMs = 1_748_000_001_000L,
+                    ),
+                    EscrowLedgerEntry(
+                        id = "e3",
+                        taskId = "task-001",
+                        type = EscrowLedgerEntryType.FEE,
+                        status = EscrowLedgerEntryStatus.POSTED,
+                        provider = com.maku.eyeonsite.domain.MoneyProvider.STRIPE,
+                        amountUsdCents = 900L,
+                        createdAtMs = 1_748_000_002_000L,
+                    ),
+                ),
         )
     }
 }

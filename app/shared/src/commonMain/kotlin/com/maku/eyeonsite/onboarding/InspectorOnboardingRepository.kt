@@ -1,5 +1,9 @@
 package com.maku.eyeonsite.onboarding
 
+import com.maku.eyeonsite.domain.KycCheck
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+
 interface InspectorOnboardingRepository {
     suspend fun uploadIdDocuments(
         uid: String,
@@ -13,9 +17,11 @@ interface InspectorOnboardingRepository {
         city: String,
         serviceRadiusKm: Int,
         testScore: Int,
-        idDocUrl: String,
-        selfieUrl: String,
+        idDocPath: String,
+        selfiePath: String,
     ): Result<Unit>
+
+    fun observeKycStatus(uid: String): Flow<KycCheck>
 }
 
 class NoOpInspectorOnboardingRepository : InspectorOnboardingRepository {
@@ -31,7 +37,9 @@ class NoOpInspectorOnboardingRepository : InspectorOnboardingRepository {
         city: String,
         serviceRadiusKm: Int,
         testScore: Int,
-        idDocUrl: String,
-        selfieUrl: String,
+        idDocPath: String,
+        selfiePath: String,
     ): Result<Unit> = Result.success(Unit)
+
+    override fun observeKycStatus(uid: String): Flow<KycCheck> = flowOf(KycCheck())
 }

@@ -8,6 +8,7 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.maku.eyeonsite.db.EyeOnSiteDatabase
 import com.maku.eyeonsite.domain.ClientTaskSummary
+import com.maku.eyeonsite.domain.EscrowStatus
 import com.maku.eyeonsite.domain.TaskStatus
 import com.maku.eyeonsite.domain.TaskType
 import com.maku.eyeonsite.ui.dashboard.ClientTaskRepository
@@ -27,6 +28,7 @@ private data class TaskUpsertArgs(
     val bountyUsd: Long,
     val createdAtMs: Long,
     val inspectorName: String?,
+    val escrowStatus: String,
 )
 
 @Suppress("ReturnCount")
@@ -45,6 +47,7 @@ private fun DocumentSnapshot.toUpsertArgs(fallbackNow: Long): TaskUpsertArgs? {
         bountyUsd = bounty,
         createdAtMs = getLong("createdAtMs") ?: fallbackNow,
         inspectorName = getString("inspectorName"),
+        escrowStatus = getString("escrowStatus") ?: EscrowStatus.UNFUNDED.name,
     )
 }
 
@@ -78,6 +81,7 @@ class FirestoreClientTaskRepository(
                                     created_at_ms = a.createdAtMs,
                                     inspector_name = a.inspectorName,
                                     updated_at_ms = now,
+                                    escrow_status = a.escrowStatus,
                                 )
                             }
                         }
@@ -106,4 +110,5 @@ private fun com.maku.eyeonsite.db.Cached_task.toDomain(): ClientTaskSummary =
         bountyUsd = bounty_usd.toInt(),
         createdAtMs = created_at_ms,
         inspectorName = inspector_name,
+        escrowStatus = runCatching { EscrowStatus.valueOf(escrow_status) }.getOrDefault(EscrowStatus.UNFUNDED),
     )

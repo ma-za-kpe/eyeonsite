@@ -82,7 +82,7 @@ fun EvidenceCaptureScreen(
             if (state.canAddMore) {
                 CameraCapture(
                     modifier = Modifier.fillMaxSize(),
-                    onPhotoCaptured = { bytes, lat, lng -> vm.addPhoto(bytes, lat, lng) },
+                    onPhotoCaptured = { bytes, lat, lng, provider, accuracy -> vm.addPhoto(bytes, lat, lng, provider, accuracy) },
                     onPermissionDenied = {},
                 )
             } else {
@@ -277,6 +277,12 @@ private fun PhotoThumbnail(
 
         // Upload status indicator
         when (photo.uploadStatus) {
+            UploadStatus.QUEUED ->
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp).align(Alignment.TopStart).padding(4.dp),
+                    strokeWidth = 2.dp,
+                    color = SavannaGold,
+                )
             UploadStatus.UPLOADING ->
                 CircularProgressIndicator(
                     modifier = Modifier.size(16.dp).align(Alignment.TopStart).padding(4.dp),

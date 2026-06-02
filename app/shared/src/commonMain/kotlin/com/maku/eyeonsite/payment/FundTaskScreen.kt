@@ -34,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.maku.eyeonsite.analytics.NoOpAnalyticsService
+import com.maku.eyeonsite.domain.MoneyProvider
 import com.maku.eyeonsite.ui.theme.DeepForest
 import com.maku.eyeonsite.ui.theme.EyeOnSiteTheme
 import com.maku.eyeonsite.ui.theme.Forest
@@ -53,7 +54,7 @@ fun FundTaskScreen(
     vm: FundTaskViewModel,
     taskId: String,
     bountyUsd: Double,
-    onPaymentReady: (clientSecret: String) -> Unit,
+    onPaymentReady: (clientSecret: String, provider: MoneyProvider) -> Unit,
     onFunded: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -61,7 +62,7 @@ fun FundTaskScreen(
 
     LaunchedEffect(state) {
         when (val s = state) {
-            is FundTaskUiState.ReadyToPay -> onPaymentReady(s.clientSecret)
+            is FundTaskUiState.ReadyToPay -> onPaymentReady(s.clientSecret, s.provider)
             is FundTaskUiState.Funded -> onFunded()
             else -> Unit
         }
@@ -138,7 +139,7 @@ private fun EscrowIdleContent(
             )
         }
         Text(
-            text = "Secured by Stripe. Funds released to the inspector only after you approve their evidence.",
+            text = "Funds held in escrow. Released to the inspector only after you approve their evidence.",
             fontSize = 12.sp,
             color = Color.White.copy(alpha = 0.5f),
             textAlign = TextAlign.Center,
@@ -344,7 +345,7 @@ fun FundTaskLoadingPreview() {
                 vm = FundTaskViewModel(NoOpPaymentRepository(), NoOpAnalyticsService),
                 taskId = "task-preview",
                 bountyUsd = 60.0,
-                onPaymentReady = {},
+                onPaymentReady = { _, _ -> },
                 onFunded = {},
                 onBack = {},
             )

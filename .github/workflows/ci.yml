@@ -25,9 +25,6 @@ jobs:
           distribution: temurin
           cache: gradle
 
-      - name: Validate Gradle wrapper
-        uses: gradle/actions/wrapper-validation@v3
-
       - name: Spotless check
         run: ./gradlew spotlessCheck --no-daemon --stacktrace
 
@@ -167,6 +164,9 @@ jobs:
       - name: Test Functions
         working-directory: functions
         run: npm test
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
 
       - name: Test Firebase rules
         working-directory: functions

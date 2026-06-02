@@ -1,5 +1,7 @@
 package com.maku.eyeonsite.data
 
+import com.maku.eyeonsite.domain.DeviceAttestation
+
 data class PendingEvidenceEntry(
     val id: String,
     val taskId: String,
@@ -7,6 +9,7 @@ data class PendingEvidenceEntry(
     val notes: String,
     val photoCount: Long,
     val createdAtMs: Long,
+    val attestation: DeviceAttestation = DeviceAttestation(),
 )
 
 interface PendingEvidenceRepository {
@@ -16,6 +19,7 @@ interface PendingEvidenceRepository {
         inspectorUid: String,
         notes: String,
         photoCount: Int,
+        attestation: DeviceAttestation = DeviceAttestation(),
     )
 
     suspend fun getAll(): List<PendingEvidenceEntry>
@@ -30,6 +34,7 @@ class NoOpPendingEvidenceRepository : PendingEvidenceRepository {
         inspectorUid: String,
         notes: String,
         photoCount: Int,
+        attestation: DeviceAttestation,
     ) = Unit
 
     override suspend fun getAll(): List<PendingEvidenceEntry> = emptyList()

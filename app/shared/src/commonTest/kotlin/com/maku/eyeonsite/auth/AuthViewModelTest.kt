@@ -37,6 +37,49 @@ class AuthViewModelTest {
         Dispatchers.resetMain()
     }
 
+    // ── session restore ─────────────────────────────────────────────────────────
+
+    @Test
+    fun `init restores Authenticated state when Firebase session and role exist`() =
+        runTest {
+            authProvider.storedUid = "returning-uid"
+            authProvider.storedRole = UserRole.CLIENT
+            val restoredVm = AuthViewModel(authProvider, analytics)
+
+            val state = restoredVm.state.value
+            assertIs<AuthState.Authenticated>(state)
+            assertEquals("returning-uid", state.uid)
+            assertEquals(UserRole.CLIENT, state.role)
+        }
+
+    @Test
+    fun `init transitions to NeedsRole when session exists but role not saved`() =
+        runTest {
+            authProvider.storedUid = "returning-uid"
+            authProvider.storedRole = null
+            val restoredVm = AuthViewModel(authProvider, analytics)
+
+            val state = restoredVm.state.value
+            assertIs<AuthState.NeedsRole>(state)
+            assertEquals("returning-uid", state.uid)
+        }
+
+    @Test
+    fun `init transitions to Idle when no Firebase session exists`() =
+        runTest {
+            val freshVm = AuthViewModel(authProvider, analytics)
+
+            assertIs<AuthState.Idle>(freshVm.state.value)
+        }
+
+    @Test
+    fun `selectRole persists role so it survives restart`() =
+        runTest {
+            vm.selectRole("uid-123", UserRole.INSPECTOR)
+
+            assertEquals(UserRole.INSPECTOR, authProvider.storedRole)
+        }
+
     // ── sendOtp ─────────────────────────────────────────────────────────────────
 
     @Test

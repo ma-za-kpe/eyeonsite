@@ -3,6 +3,7 @@ package com.maku.eyeonsite.payment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maku.eyeonsite.analytics.AnalyticsService
+import com.maku.eyeonsite.domain.MoneyProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +17,7 @@ sealed class FundTaskUiState {
     data class ReadyToPay(
         val clientSecret: String,
         val paymentIntentId: String,
+        val provider: MoneyProvider = MoneyProvider.STRIPE,
     ) : FundTaskUiState()
 
     data object Funded : FundTaskUiState()
@@ -43,6 +45,7 @@ class FundTaskViewModel(
                         FundTaskUiState.ReadyToPay(
                             clientSecret = result.clientSecret,
                             paymentIntentId = result.paymentIntentId,
+                            provider = result.provider,
                         )
                     analytics.logEvent("payment_intent_created", mapOf("taskId" to taskId))
                 }.onFailure { e ->

@@ -68,7 +68,7 @@ Validated on 2026-05-25:
 - [~] SQLDelight offline-first sync engine and pending upload queue.
 - [~] Inspector onboarding: ID upload, liveness/selfie check, training, test task.
 - [~] Cloud Vision quality scoring behind a replaceable interface.
-- [ ] Fraud pipeline: GPS spoof checks, EXIF verification, device attestation, perceptual hashes.
+- [~] Fraud pipeline: GPS spoof checks, EXIF verification, device attestation, perceptual hashes.
 - [~] Firebase Storage rules for evidence photos, KYC documents, path ownership, size limits, and content types.
 - [~] Firestore and Storage emulator tests for rules, task ownership, evidence access, waitlist writes, and onboarding data.
 - [~] Firebase Emulator Suite local workflow with mocked Functions, Firestore, Storage, Auth, deterministic seed data, and JDK 21+ runtime.
@@ -91,23 +91,23 @@ Validated on 2026-05-25:
 
 Implementation order for the post-demo hardening pass. Keep these items mocked or test-mode until the corresponding production provider is ready.
 
-- [ ] Establish DDD boundaries and shared contracts for H3, evidence trust, KYC, escrow ledger, and fraud signals.
-- [ ] Enforce TDD for the first pass of each new module: red test, green implementation, refactor.
+- [~] Establish DDD boundaries and shared contracts for H3, evidence trust, KYC, escrow ledger, and fraud signals.
+- [~] Enforce TDD for the first pass of each new module: red test, green implementation, refactor.
 - [ ] Keep local development on mock adapters and test keys only.
 - [~] Add validation gates for every milestone: build, lint, detekt, unit tests, shared tests, and E2E checks.
 - [x] Validate current in-progress onboarding, offline queue, Storage upload, and Vision code before building the next layer.
-- [ ] Add schema and domain fields for H3 cells, EXIF metadata, attestation verdicts, pHash, quality score, and escrow state.
+- [~] Add schema and domain fields for H3 cells, EXIF metadata, attestation verdicts, pHash, quality score, and escrow state.
 - [ ] Replace shared no-op paths with Firebase-backed repositories and a deterministic storage uploader where needed.
 - [~] Add Storage rules and rules tests before enabling real evidence or KYC media in production.
 - [~] Add emulator-first integration tests for Auth, Firestore, Storage, Functions, FCM stubs, and offline sync recovery.
 - [ ] Add immutable audit events for task state changes, evidence processing, KYC decisions, escrow ledger entries, and payouts.
-- [ ] Implement H3-based task and inspector matching in Cloud Functions, with haversine as the final tie-breaker.
-- [~] Add required Firestore composite indexes for H3/geospatial matching and admin review queues.
-- [ ] Implement the evidence trust pipeline: GPS validation, EXIF verification, timestamp drift checks, speed plausibility, pHash, and fraud scoring.
-- [ ] Add capture integrity controls: in-app-only capture, mock-location detection, accuracy thresholds, provider source, clock skew, and device motion where available.
-- [ ] Add private media access controls: store paths instead of public URLs where possible, generate short-lived access for authorized review, and preserve original bytes.
-- [ ] Add Play Integrity plus Firebase App Check enforcement for Android submissions.
-- [ ] Enforce App Check or equivalent attestation on callable/HTTP Functions that mutate production data.
+- [x] Implement H3-based task and inspector matching in Cloud Functions, with haversine as the final tie-breaker.
+- [x] Add required Firestore composite indexes for H3/geospatial matching and admin review queues.
+- [~] Implement the evidence trust pipeline: GPS validation, EXIF verification, timestamp drift checks, speed plausibility, pHash, and fraud scoring.
+- [~] Add capture integrity controls: in-app-only capture, mock-location detection, accuracy thresholds, provider source, clock skew, and device motion where available.
+- [~] Add private media access controls: store paths instead of public URLs where possible, generate short-lived access for authorized review, and preserve original bytes.
+- [~] Add Play Integrity plus Firebase App Check enforcement for Android submissions.
+- [~] Enforce App Check or equivalent attestation on callable/HTTP Functions that mutate production data.
 - [ ] Build Stripe and Flutterwave mock adapters first, then promote them to test-mode adapters with webhook verification, idempotency, and replay protection.
 - [~] Add a double-entry escrow ledger model with invariants, reconciliation jobs, and explicit fee constants.
 - [ ] Complete payment and escrow compliance review for UK, US, Canada, Ghana, Nigeria, Kenya, and Uganda launch paths.
@@ -118,6 +118,35 @@ Implementation order for the post-demo hardening pass. Keep these items mocked o
 - [ ] Add C2PA-style provenance manifests and server-side signing for evidence bundles.
 - [~] Add release environment checks: project ID guardrails, required secrets, rules version, index deployment, and rollback notes.
 - [ ] Finish with dispute, revision, rating, tiering, and release-readiness validation.
+
+Validated on 2026-05-27 for shared EOS-14 contract pass:
+- `./gradlew :app:shared:testAndroid`
+- `./gradlew validate`
+
+Validated on 2026-05-27 for backend H3 matching pass:
+- `npm test -- --runTestsByPath src/utils/__tests__/h3.test.ts src/matching/__tests__/onTaskCreated.test.ts --runInBand`
+- `npm test`
+- `npm run build`
+- `node scripts/check-release-environment.mjs`
+- `./gradlew validate`
+
+Validated on 2026-05-27 for evidence trust pipeline pass:
+- `npm test -- --runTestsByPath src/evidence/__tests__/onEvidenceSubmitted.test.ts --runInBand`
+- `npm test`
+- `npm run build`
+- `node scripts/check-release-environment.mjs`
+- `./gradlew validate`
+
+Validated on 2026-05-27 for App Check enforcement pass:
+- `npm test -- --runTestsByPath src/security/__tests__/appCheckPolicy.test.ts --runInBand`
+- `npm test`
+- `npm run build`
+- `./gradlew validate`
+- `node scripts/check-release-environment.mjs`
+
+Validated on 2026-05-27 for private media path pass:
+- `./gradlew :app:shared:testAndroid`
+- `./gradlew validate`
 
 ### Delivery Principles
 
@@ -138,6 +167,7 @@ Implementation order for the post-demo hardening pass. Keep these items mocked o
 - [ ] Enable Firebase Hosting.
 - [ ] Enable Google Analytics for Firebase.
 - [ ] Enable Firebase App Check.
+- [ ] Register Android Play Integrity provider, debug App Check tokens, and enable enforcement for callable Functions, Firestore, and Storage after demo devices are registered.
 - [ ] Enable Crashlytics.
 - [ ] Enable Performance Monitoring.
 - [ ] Enable Test Lab and App Distribution for mobile QA.

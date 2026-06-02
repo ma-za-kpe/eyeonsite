@@ -1,16 +1,23 @@
 package com.maku.eyeonsite.onboarding
 
+import com.maku.eyeonsite.domain.KycCheck
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+
 data class ProfileSubmission(
     val uid: String,
     val fullName: String,
     val city: String,
     val serviceRadiusKm: Int,
     val testScore: Int,
+    val idDocPath: String,
+    val selfiePath: String,
 )
 
 class FakeInspectorOnboardingRepository(
     private val uploadShouldFail: Boolean = false,
     private val submitShouldFail: Boolean = false,
+    private val kycCheck: KycCheck = KycCheck(),
 ) : InspectorOnboardingRepository {
     val uploadCalls = mutableListOf<String>()
     val submissions = mutableListOf<ProfileSubmission>()
@@ -24,7 +31,7 @@ class FakeInspectorOnboardingRepository(
             Result.failure(RuntimeException("Upload failed"))
         } else {
             uploadCalls.add(uid)
-            Result.success("https://storage/id_$uid.jpg" to "https://storage/selfie_$uid.jpg")
+            Result.success("id_docs/$uid/govt_id.jpg" to "id_docs/$uid/selfie.jpg")
         }
 
     override suspend fun submitProfile(
@@ -33,13 +40,15 @@ class FakeInspectorOnboardingRepository(
         city: String,
         serviceRadiusKm: Int,
         testScore: Int,
-        idDocUrl: String,
-        selfieUrl: String,
+        idDocPath: String,
+        selfiePath: String,
     ): Result<Unit> =
         if (submitShouldFail) {
             Result.failure(RuntimeException("Submit failed"))
         } else {
-            submissions.add(ProfileSubmission(uid, fullName, city, serviceRadiusKm, testScore))
+            submissions.add(ProfileSubmission(uid, fullName, city, serviceRadiusKm, testScore, idDocPath, selfiePath))
             Result.success(Unit)
         }
+
+    override fun observeKycStatus(uid: String): Flow<KycCheck> = flowOf(kycCheck)
 }

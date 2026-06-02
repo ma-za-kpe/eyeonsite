@@ -3,6 +3,8 @@ package com.maku.eyeonsite.ui.auth
 import com.maku.eyeonsite.domain.UserRole
 
 sealed class AuthState {
+    data object CheckingSession : AuthState()
+
     data object Idle : AuthState()
 
     data object SendingOtp : AuthState()

@@ -13,7 +13,7 @@ const REGION = "africa-south1";
  * Requires: STRIPE_SECRET_KEY Firebase secret.
  */
 export const createPaymentIntent = onCall(
-  { region: REGION, secrets: ["STRIPE_SECRET_KEY"] },
+  { region: REGION, enforceAppCheck: true, secrets: ["STRIPE_SECRET_KEY"] },
   async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Must be signed in");
 

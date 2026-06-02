@@ -2,33 +2,21 @@ import * as admin from "firebase-admin";
 import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import { FcmRecipient, sendAndCleanup } from "../utils/fcm";
 import { geohashQueryBounds } from "../utils/geohash";
+import { h3CandidateCellsForTask, h3CoverageForPoint } from "../utils/h3";
 import { haversine } from "./haversine";
 import { InspectorCandidate, InspectorDocument, TaskDocument } from "./types";
 
 const MAX_CANDIDATES = 3;
-const EXPIRY_MS = 30 * 60 * 1000; // 30 minutes
-const RATING_FACTOR = 0.5;  // 1 star ≈ 0.5 km advantage in ranking
-const TIER_FACTOR = 1.0;    // each tier level ≈ 1 km advantage
+const EXPIRY_MS = 30 * 60 * 1000;
+const RATING_FACTOR = 0.5;
+const TIER_FACTOR = 1.0;
+const FIRESTORE_IN_LIMIT = 30;
 
-export async function queryAvailableInspectors(
-  db: admin.firestore.Firestore,
-  taskLat: number,
-  taskLng: number,
-): Promise<Array<{ uid: string; doc: InspectorDocument }>> {
-  const bounds = geohashQueryBounds(taskLat, taskLng);
-  const queries = bounds.map(([start, end]) =>
-    db
-      .collection("inspectors")
-      .where("available", "==", true)
-      .where("geohash", ">=", start)
-      .where("geohash", "<=", end)
-      .get(),
-  );
-  const snaps = await Promise.all(queries);
+type InspectorResult = { uid: string; doc: InspectorDocument };
 
-  // Deduplicate by uid — geohash cells can overlap at borders
+function collectInspectorResults(snaps: admin.firestore.QuerySnapshot[]): InspectorResult[] {
   const seen = new Set<string>();
-  const results: Array<{ uid: string; doc: InspectorDocument }> = [];
+  const results: InspectorResult[] = [];
   for (const snap of snaps) {
     for (const d of snap.docs) {
       if (!seen.has(d.id)) {
@@ -40,11 +28,64 @@ export async function queryAvailableInspectors(
   return results;
 }
 
+function chunk<T>(values: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let start = 0; start < values.length; start += size) {
+    chunks.push(values.slice(start, start + size));
+  }
+  return chunks;
+}
+
+async function queryInspectorsByH3(
+  db: admin.firestore.Firestore,
+  cells: string[],
+): Promise<InspectorResult[]> {
+  if (cells.length === 0) return [];
+  const queries = chunk(cells, FIRESTORE_IN_LIMIT).map((cellChunk) =>
+    db
+      .collection("inspectors")
+      .where("available", "==", true)
+      .where("h3Res9", "in", cellChunk)
+      .get(),
+  );
+  return collectInspectorResults(await Promise.all(queries));
+}
+
+async function queryInspectorsByGeohash(
+  db: admin.firestore.Firestore,
+  taskLat: number,
+  taskLng: number,
+): Promise<InspectorResult[]> {
+  const bounds = geohashQueryBounds(taskLat, taskLng);
+  const queries = bounds.map(([start, end]) =>
+    db
+      .collection("inspectors")
+      .where("available", "==", true)
+      .where("geohash", ">=", start)
+      .where("geohash", "<=", end)
+      .get(),
+  );
+  return collectInspectorResults(await Promise.all(queries));
+}
+
+export async function queryAvailableInspectors(
+  db: admin.firestore.Firestore,
+  taskLat: number,
+  taskLng: number,
+  task: Pick<TaskDocument, "h3Res9" | "h3NeighborRes9"> = {},
+): Promise<InspectorResult[]> {
+  const h3Results = await queryInspectorsByH3(db, h3CandidateCellsForTask(task, taskLat, taskLng));
+  if (h3Results.length > 0) {
+    return h3Results;
+  }
+  return queryInspectorsByGeohash(db, taskLat, taskLng);
+}
+
 export function rankCandidates(
   taskLat: number,
   taskLng: number,
   radiusKm: number,
-  inspectors: Array<{ uid: string; doc: InspectorDocument }>,
+  inspectors: InspectorResult[],
 ): InspectorCandidate[] {
   return inspectors
     .filter((i) => i.doc.location != null)
@@ -99,17 +140,19 @@ export const onTaskCreated = onDocumentCreated(
     const taskLat = task.location.latitude;
     const taskLng = task.location.longitude;
     const radiusKm = task.locationRadiusKm ?? 10;
+    const h3Coverage = h3CoverageForPoint(taskLat, taskLng);
 
-    const inspectors = await queryAvailableInspectors(db, taskLat, taskLng);
+    const inspectors = await queryAvailableInspectors(db, taskLat, taskLng, task);
     const candidates = rankCandidates(taskLat, taskLng, radiusKm, inspectors);
 
     if (candidates.length === 0) {
-      await snap.ref.update({ status: "EXPIRED" });
+      await snap.ref.update({ ...h3Coverage, status: "EXPIRED" });
       console.log(`Task ${taskId}: no inspectors in radius - marked EXPIRED`);
       return;
     }
 
     await snap.ref.update({
+      ...h3Coverage,
       pinnedInspectorIds: candidates.map((c) => c.uid),
       expiresAtMs: Date.now() + EXPIRY_MS,
     });

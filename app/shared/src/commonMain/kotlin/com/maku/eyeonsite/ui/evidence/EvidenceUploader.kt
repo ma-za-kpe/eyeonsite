@@ -13,5 +13,5 @@ class NoOpEvidenceUploader : EvidenceUploader {
     override suspend fun upload(
         photo: EvidencePhoto,
         bytes: ByteArray,
-    ): Result<String> = Result.success("https://storage.googleapis.com/eyeonsite/${photo.id}.jpg")
+    ): Result<String> = Result.success("evidence/${photo.taskId}/${photo.id}.jpg")
 }

@@ -7,6 +7,12 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageMetadata
 import com.maku.eyeonsite.domain.InspectorOnboardingStatus
+import com.maku.eyeonsite.domain.KycCheck
+import com.maku.eyeonsite.domain.KycProvider
+import com.maku.eyeonsite.domain.KycStatus
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -22,9 +28,9 @@ class FirestoreInspectorOnboardingRepository : InspectorOnboardingRepository {
         selfieBytes: ByteArray,
     ): Result<Pair<String, String>> =
         runCatching {
-            val idDocUrl = uploadBytes("id_docs/$uid/govt_id.jpg", idBytes)
-            val selfieUrl = uploadBytes("id_docs/$uid/selfie.jpg", selfieBytes)
-            idDocUrl to selfieUrl
+            val idDocPath = uploadBytes("id_docs/$uid/govt_id.jpg", idBytes)
+            val selfiePath = uploadBytes("id_docs/$uid/selfie.jpg", selfieBytes)
+            idDocPath to selfiePath
         }
 
     private suspend fun uploadBytes(
@@ -40,8 +46,7 @@ class FirestoreInspectorOnboardingRepository : InspectorOnboardingRepository {
                     .build()
             ref
                 .putBytes(bytes, metadata)
-                .continueWithTask { ref.downloadUrl }
-                .addOnSuccessListener { uri -> cont.resume(uri.toString()) }
+                .addOnSuccessListener { cont.resume(ref.path) }
                 .addOnFailureListener { cont.resumeWithException(it) }
         }
 
@@ -51,8 +56,8 @@ class FirestoreInspectorOnboardingRepository : InspectorOnboardingRepository {
         city: String,
         serviceRadiusKm: Int,
         testScore: Int,
-        idDocUrl: String,
-        selfieUrl: String,
+        idDocPath: String,
+        selfiePath: String,
     ): Result<Unit> =
         runCatching {
             val data: Map<String, Any> =
@@ -62,8 +67,8 @@ class FirestoreInspectorOnboardingRepository : InspectorOnboardingRepository {
                     "city" to city,
                     "serviceRadiusKm" to serviceRadiusKm,
                     "testScore" to testScore,
-                    "idDocUrl" to idDocUrl,
-                    "selfieUrl" to selfieUrl,
+                    "idDocPath" to idDocPath,
+                    "selfiePath" to selfiePath,
                     "onboardingStatus" to InspectorOnboardingStatus.PENDING_REVIEW.name,
                     "submittedAtMs" to FieldValue.serverTimestamp(),
                     "available" to false,
@@ -78,5 +83,34 @@ class FirestoreInspectorOnboardingRepository : InspectorOnboardingRepository {
                     .addOnSuccessListener { cont.resume(Unit) }
                     .addOnFailureListener { cont.resumeWithException(it) }
             }
+        }
+
+    override fun observeKycStatus(uid: String): Flow<KycCheck> =
+        callbackFlow {
+            val registration =
+                db
+                    .collection("inspectors")
+                    .document(uid)
+                    .addSnapshotListener { snap, _ ->
+                        if (snap == null) return@addSnapshotListener
+                        val kyc =
+                            KycCheck(
+                                provider =
+                                    runCatching {
+                                        KycProvider.valueOf(snap.getString("kycProvider") ?: "")
+                                    }.getOrDefault(KycProvider.NONE),
+                                status =
+                                    runCatching {
+                                        KycStatus.valueOf(snap.getString("kycStatus") ?: "")
+                                    }.getOrDefault(KycStatus.NOT_STARTED),
+                                providerJobId = snap.getString("kycJobId").orEmpty(),
+                                submittedAtMs = snap.getLong("kycSubmittedAtMs") ?: 0L,
+                                decidedAtMs = snap.getLong("kycDecidedAtMs") ?: 0L,
+                                resultCode = snap.getString("kycResultCode").orEmpty(),
+                                failureReason = snap.getString("kycFailureReason").orEmpty(),
+                            )
+                        trySend(kyc)
+                    }
+            awaitClose { registration.remove() }
         }
 }

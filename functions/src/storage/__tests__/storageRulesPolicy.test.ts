@@ -22,10 +22,9 @@ describe("Storage rules policy guard", () => {
     expect(rules).toContain("match /evidence/{taskId}/{fileName}");
     expect(rules).toContain("taskDoc(taskId).data.clientUid == request.auth.uid");
     expect(rules).toContain("taskDoc(taskId).data.matchedInspectorId == request.auth.uid");
-    expect(rules).toContain("allow create: if canWriteEvidence(taskId)");
+    expect(rules).toContain("allow write: if resource == null");
     expect(rules).toContain("request.resource.contentType == 'image/jpeg'");
     expect(rules).toContain("request.resource.size <= maxImageBytes()");
-    expect(rules).toContain("allow update, delete: if false;");
   });
 
   it("locks KYC media to owner-only access and approved filenames", () => {

@@ -38,6 +38,13 @@ function walkTsFiles(dir) {
   return files;
 }
 
+function hasCompositeIndex(collectionGroup, fieldPaths) {
+  return firestoreIndexes.indexes.some((index) => (
+    index.collectionGroup === collectionGroup &&
+    fieldPaths.every((fieldPath, indexAt) => index.fields?.[indexAt]?.fieldPath === fieldPath)
+  ));
+}
+
 function detectedJavaMajor() {
   const result = spawnSync("java", ["-version"], { encoding: "utf8" });
   return parseJavaMajor(`${result.stdout || ""}\n${result.stderr || ""}`);
@@ -81,6 +88,7 @@ for (const collectionGroup of ["inspectors", "tasks", "evidence", "disputes", "p
     `firestore.indexes.json must include collection group ${collectionGroup}`,
   );
 }
+assert(hasCompositeIndex("inspectors", ["available", "h3Res9"]), "firestore.indexes.json must index inspector H3 matching");
 
 assert(functionsPackage.scripts?.build === "tsc", "functions/package.json must expose npm run build");
 assert(functionsPackage.scripts?.test === "jest", "functions/package.json must expose npm test");

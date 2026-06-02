@@ -1,4 +1,4 @@
-import { computeQualityScore } from "../onEvidenceSubmitted";
+import { analyzeEvidenceTrust, computeQualityScore, EvidencePhotoInput } from "../onEvidenceSubmitted";
 
 const TASK_LAT = 5.6037;
 const TASK_LNG = -0.1870;
@@ -79,5 +79,103 @@ describe("computeQualityScore", () => {
     const { score: threeScore } = computeQualityScore(ON_SITE, TASK_LAT, TASK_LNG);
     // Count portion is capped; spread may differ but overall not dramatically higher
     expect(sixScore - threeScore).toBeLessThan(15);
+  });
+});
+
+describe("analyzeEvidenceTrust", () => {
+  const trustedPhotos: EvidencePhotoInput[] = ON_SITE.map((photo, index) => ({
+    ...photo,
+    id: `photo-${index + 1}`,
+    accuracyMeters: 4,
+    capturedAtDeviceMs: 1_748_000_000_000 + index * 60_000,
+    receivedAtServerMs: 1_748_000_300_000,
+    exif: {
+      latitude: photo.latitude,
+      longitude: photo.longitude,
+      capturedAtMs: 1_748_000_000_000 + index * 60_000,
+    },
+    perceptualHash: `hash-${index + 1}`,
+  }));
+
+  test("returns separate quality fraud content and provenance outputs", () => {
+    const analysis = analyzeEvidenceTrust(trustedPhotos, TASK_LAT, TASK_LNG, {
+      visionResults: trustedPhotos.map((photo) => ({
+        photoId: photo.id ?? "",
+        appropriate: true,
+        colorVariety: 1,
+      })),
+      attestationVerdict: "PASSED",
+    });
+
+    expect(analysis.qualityScore).toBeGreaterThanOrEqual(90);
+    expect(analysis.gpsValid).toBe(true);
+    expect(analysis.fraudRisk).toBe("LOW");
+    expect(analysis.contentRisk).toBe("LOW");
+    expect(analysis.provenanceStatus).toBe("PASSED");
+    expect(analysis.fraudSignals).toEqual([]);
+  });
+
+  test("flags mock location low accuracy gps exif mismatch and duplicate phash", () => {
+    const riskyPhotos: EvidencePhotoInput[] = trustedPhotos.map((photo, index) => ({
+      ...photo,
+      isMockLocation: index === 0,
+      accuracyMeters: index === 1 ? 120 : photo.accuracyMeters,
+      exif: index === 2
+        ? { latitude: 5.6690, longitude: -0.0166, capturedAtMs: photo.capturedAtDeviceMs }
+        : photo.exif,
+      perceptualHash: "same-hash",
+    }));
+
+    const analysis = analyzeEvidenceTrust(riskyPhotos, TASK_LAT, TASK_LNG, {
+      visionResults: [],
+      attestationVerdict: "PASSED",
+    });
+
+    expect(analysis.fraudRisk).toBe("HIGH");
+    expect(analysis.provenanceStatus).toBe("FAILED");
+    expect(analysis.fraudSignals.map((signal) => signal.type)).toEqual(
+      expect.arrayContaining(["MOCK_LOCATION", "LOW_ACCURACY", "GPS_EXIF_MISMATCH", "PHASH_DUPLICATE"]),
+    );
+  });
+
+  test("flags timestamp drift and impossible travel", () => {
+    const fastTravel: EvidencePhotoInput[] = [
+      {
+        ...trustedPhotos[0],
+        capturedAtDeviceMs: 1_748_000_000_000,
+        exif: { ...trustedPhotos[0].exif, capturedAtMs: 1_747_999_000_000 },
+      },
+      {
+        ...OFF_SITE[0],
+        id: "far-photo",
+        capturedAtDeviceMs: 1_748_000_060_000,
+        receivedAtServerMs: 1_748_000_300_000,
+        accuracyMeters: 5,
+        perceptualHash: "far-photo-hash",
+      },
+    ];
+
+    const analysis = analyzeEvidenceTrust(fastTravel, TASK_LAT, TASK_LNG, {
+      visionResults: [],
+      attestationVerdict: "PASSED",
+    });
+
+    expect(analysis.fraudSignals.map((signal) => signal.type)).toEqual(
+      expect.arrayContaining(["TIMESTAMP_DRIFT", "IMPOSSIBLE_TRAVEL", "GPS_OFF_SITE"]),
+    );
+    expect(analysis.fraudRisk).toBe("HIGH");
+  });
+
+  test("flags unsafe content and failed attestation", () => {
+    const analysis = analyzeEvidenceTrust(trustedPhotos, TASK_LAT, TASK_LNG, {
+      visionResults: [{ photoId: "photo-1", appropriate: false, colorVariety: 1 }],
+      attestationVerdict: "FAILED",
+    });
+
+    expect(analysis.contentRisk).toBe("HIGH");
+    expect(analysis.provenanceStatus).toBe("FAILED");
+    expect(analysis.fraudSignals.map((signal) => signal.type)).toEqual(
+      expect.arrayContaining(["CONTENT_UNSAFE", "ATTESTATION_FAILED"]),
+    );
   });
 });

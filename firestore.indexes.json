@@ -12,6 +12,14 @@
       "collectionGroup": "inspectors",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "available", "order": "ASCENDING" },
+        { "fieldPath": "h3Res9", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "inspectors",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "onboardingStatus", "order": "ASCENDING" },
         { "fieldPath": "submittedAtMs", "order": "ASCENDING" }
       ]

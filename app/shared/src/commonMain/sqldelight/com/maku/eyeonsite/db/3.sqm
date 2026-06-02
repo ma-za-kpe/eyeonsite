@@ -1,0 +1,1 @@
+ALTER TABLE cached_task ADD COLUMN escrow_status TEXT NOT NULL DEFAULT 'UNFUNDED';
