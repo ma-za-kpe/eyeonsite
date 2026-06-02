@@ -6,6 +6,18 @@ val localProps = Properties().also { props ->
         ?.inputStream()?.use { props.load(it) }
 }
 
+// versionName: read from release-please manifest; fallback to 0.1.0
+val manifestFile = rootProject.file(".release-please-manifest.json")
+val resolvedVersionName: String =
+    if (manifestFile.exists()) {
+        Regex(""""\."\s*:\s*"([^"]+)"""").find(manifestFile.readText())?.groupValues?.get(1) ?: "0.1.0"
+    } else {
+        "0.1.0"
+    }
+
+// versionCode: injected by CI as -PversionCode=<run_number>; defaults to 1 locally
+val resolvedVersionCode: Int = (findProperty("versionCode") as String?)?.toInt() ?: 1
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
@@ -69,8 +81,8 @@ android {
         applicationId = "com.maku.eyeonsite"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = resolvedVersionCode
+        versionName = resolvedVersionName
         manifestPlaceholders["MAPS_API_KEY"] = localProps.getProperty("MAPS_API_KEY", "")
     }
     flavorDimensions += "variant"
