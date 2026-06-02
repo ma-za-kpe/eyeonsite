@@ -158,6 +158,7 @@ Invalid transitions are rejected server-side. Client/inspector apps never set st
 - **Integration tests:** Cloud Functions tested with Firebase Emulator Suite
 - **UI tests:** Compose UI tests (androidTest) for critical flows (task creation, evidence capture, evidence review)
 - **End-to-end:** Full task lifecycle test against Firebase Emulator (create → fund → match → capture → submit → review → accept → payout)
+- **Harness architecture:** See `docs/EOS-A10-E2E-TEST-ARCHITECTURE.md` for personas, environment tiers, endpoint map, and assertion model.
 
 ## Environment
 

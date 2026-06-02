@@ -115,3 +115,6 @@ Tests:
 - Shared unit tests use fake repositories.
 - Cloud Function tests use emulator or provider fixtures.
 - End-to-end demo tests use Firebase emulators where possible and a dedicated test project when provider integration is required.
+
+See also:
+- `docs/EOS-A10-E2E-TEST-ARCHITECTURE.md` for the persona matrix, endpoint map, and first Kotlin harness structure.
