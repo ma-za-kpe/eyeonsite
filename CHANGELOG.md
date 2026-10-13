@@ -5,6 +5,25 @@ Auto-managed by [release-please](https://github.com/googleapis/release-please) v
 
 ---
 
+## [0.3.0](https://github.com/ma-za-kpe/eyeonsite/compare/v0.2.0...v0.3.0) (2026-10-13)
+
+
+### Features
+
+* **landing:** add beta download section and version badge to static page ([47145f1](https://github.com/ma-za-kpe/eyeonsite/commit/47145f18ff9cf8cfc69e46bd2759bf3b2595f850))
+* **landing:** changelog page, clickable version badge, fixed beta links, contributor docs ([af103a4](https://github.com/ma-za-kpe/eyeonsite/commit/af103a484ed7a589ac61effb93fc14e4c33aec14))
+* separate client and inspector into distinct apps ([65b6422](https://github.com/ma-za-kpe/eyeonsite/commit/65b642227682bcdc33f62eb96d52d45c332946ec))
+* **web:** add closed-beta download section and fix footer version badge ([1a7ce3c](https://github.com/ma-za-kpe/eyeonsite/commit/1a7ce3ccf4d60150f33c286ef519f9bccdebdbd0))
+
+
+### Bug Fixes
+
+* **appcheck:** bake fixed debug token into debug APKs via manifest ([70448c2](https://github.com/ma-za-kpe/eyeonsite/commit/70448c21e20d49c48e9c8238049ef5532ec78f98))
+* **appcheck:** remove redundant FirebaseApp.initializeApp to prevent Play Integrity race ([27ceefc](https://github.com/ma-za-kpe/eyeonsite/commit/27ceefcfb675d941963e6b071ecd058a4b192dfb))
+* **ci:** read release notes from CHANGELOG.md instead of git log ([907314e](https://github.com/ma-za-kpe/eyeonsite/commit/907314e8bb5812b41d3d779bdc3147c6bba8dea7))
+* **evidence:** keep client assessment untrusted ([#20](https://github.com/ma-za-kpe/eyeonsite/issues/20)) ([d9900c1](https://github.com/ma-za-kpe/eyeonsite/commit/d9900c1af798c6adaa52448a906f5d764888102a))
+* **hosting:** add no-cache headers for JS bundle to prevent stale deploys ([c0ebcc2](https://github.com/ma-za-kpe/eyeonsite/commit/c0ebcc2f7c767b16e4f0866cd2d5b65b85724edc))
+
 ## [0.2.0](https://github.com/ma-za-kpe/eyeonsite/compare/v0.1.0...v0.2.0) (2026-06-02)
 
 
