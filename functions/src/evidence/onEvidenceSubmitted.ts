@@ -397,8 +397,8 @@ function parseEvidencePhoto(raw: unknown): EvidencePhotoInput | null {
   };
 }
 
-function parseAttestationVerdict(raw: unknown): AttestationVerdict {
-  if (raw === "PASSED" || raw === "FAILED" || raw === "UNAVAILABLE") return raw;
+export function attestationVerdictForEvidence(_raw: Readonly<Record<string, unknown>>): AttestationVerdict {
+  // Firestore client fields cannot establish device integrity; verify an authenticated server receipt first.
   return "UNKNOWN";
 }
 
@@ -415,8 +415,6 @@ export const onEvidenceSubmitted = onDocumentCreated(
       console.error(`evidence/${evidenceId}: missing taskId or inspectorUid`);
       return;
     }
-
-    if (typeof raw["qualityScore"] === "number") return;
 
     const db = admin.firestore();
     const taskRef = db.doc(`tasks/${taskId}`);
@@ -445,7 +443,9 @@ export const onEvidenceSubmitted = onDocumentCreated(
     const visionResults = await runVisionAnalysis(taskId, rawPhotos);
     const trust = analyzeEvidenceTrust(photos, taskLat, taskLng, {
       visionResults,
-      attestationVerdict: parseAttestationVerdict(raw["attestationVerdict"]),
+      // Firestore input is written by the inspector, so its attestation fields are never authority.
+      // A verified server receipt must exist before this can be changed from UNKNOWN.
+      attestationVerdict: attestationVerdictForEvidence(raw),
       receivedAtServerMs: now,
     });
 

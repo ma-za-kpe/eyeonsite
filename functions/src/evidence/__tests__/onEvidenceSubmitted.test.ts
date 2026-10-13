@@ -1,4 +1,9 @@
-import { analyzeEvidenceTrust, computeQualityScore, EvidencePhotoInput } from "../onEvidenceSubmitted";
+import {
+  analyzeEvidenceTrust,
+  attestationVerdictForEvidence,
+  computeQualityScore,
+  EvidencePhotoInput,
+} from "../onEvidenceSubmitted";
 
 const TASK_LAT = 5.6037;
 const TASK_LNG = -0.1870;
@@ -23,6 +28,16 @@ const STATIONARY = [
   { latitude: TASK_LAT, longitude: TASK_LNG },
   { latitude: TASK_LAT, longitude: TASK_LNG },
 ];
+
+describe("server attestation boundary", () => {
+  test("does not trust client-persisted PASSED or assessment fields", () => {
+    expect(attestationVerdictForEvidence({
+      attestationVerdict: "PASSED",
+      attestation: { provider: "PLAY_INTEGRITY", verdict: "PASSED" },
+      qualityScore: 100,
+    })).toBe("UNKNOWN");
+  });
+});
 
 describe("computeQualityScore", () => {
   test("empty array → score 0 and gpsValid false", () => {
