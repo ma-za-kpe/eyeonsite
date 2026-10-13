@@ -4,6 +4,7 @@ import {
   initializeTestEnvironment,
   RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
+import { serverTimestamp } from "firebase/firestore";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -56,6 +57,46 @@ async function seedEvidenceObject(fileName = "photo-seed.jpg"): Promise<void> {
       .putString(JPEG, "raw", { contentType: "image/jpeg" });
   });
 }
+
+describe("firestore.rules evidence documents", () => {
+  it("allows a matched inspector to create bounded intake-only evidence", async () => {
+    const db = testEnv.authenticatedContext(INSPECTOR_UID).firestore();
+    await assertSucceeds(db.collection("evidence").doc("evidence-valid").set({
+      taskId: TASK_ID,
+      inspectorUid: INSPECTOR_UID,
+      photos: [{ id: "photo-1", storagePath: `evidence/${TASK_ID}/photo-1.jpg` }],
+      notes: "",
+      submittedAtMs: serverTimestamp(),
+      status: "PENDING",
+    }));
+  });
+
+  it("refuses client-authored assessment fields and evidence for another task", async () => {
+    const db = testEnv.authenticatedContext(INSPECTOR_UID).firestore();
+    const common = {
+      taskId: TASK_ID,
+      inspectorUid: INSPECTOR_UID,
+      photos: [{ id: "photo-1", storagePath: `evidence/${TASK_ID}/photo-1.jpg` }],
+      notes: "",
+      status: "PENDING",
+    };
+    await assertFails(db.collection("evidence").doc("forged-score").set({
+      ...common,
+      submittedAtMs: serverTimestamp(),
+      qualityScore: 100,
+    }));
+    await assertFails(db.collection("evidence").doc("forged-attestation").set({
+      ...common,
+      submittedAtMs: serverTimestamp(),
+      attestationVerdict: "PASSED",
+    }));
+    await assertFails(db.collection("evidence").doc("wrong-task").set({
+      ...common,
+      taskId: "other-task",
+      submittedAtMs: serverTimestamp(),
+    }));
+  });
+});
 
 describe("storage.rules evidence media", () => {
   it("allows only the matched inspector to upload task evidence JPEGs", async () => {

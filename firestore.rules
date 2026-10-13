@@ -71,15 +71,25 @@ service cloud.firestore {
     }
 
     // ── Evidence ──────────────────────────────────────────────────────────────
-    // The matched inspector creates and updates evidence documents.
+    // The matched inspector creates intake-only documents; the server owns assessment fields.
     // The task client can read evidence for their task.
     // Status changes (qualityScore, gpsValid) come from the onEvidenceSubmitted
     // Cloud Function via the Admin SDK.
     match /evidence/{evidenceId} {
       allow create: if request.auth != null
         && request.resource.data.inspectorUid == request.auth.uid
-        && request.resource.data.keys().hasAll(['taskId', 'inspectorUid', 'photos', 'submittedAtMs'])
-        && request.resource.data.photos is list;
+        && request.resource.data.keys().hasAll(['taskId', 'inspectorUid', 'photos', 'submittedAtMs', 'status'])
+        && request.resource.data.keys().hasOnly(['taskId', 'inspectorUid', 'photos', 'notes', 'submittedAtMs', 'status'])
+        && request.resource.data.taskId is string
+        && exists(/databases/$(database)/documents/tasks/$(request.resource.data.taskId))
+        && get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.matchedInspectorId == request.auth.uid
+        && request.resource.data.status == 'PENDING'
+        && request.resource.data.photos is list
+        && request.resource.data.photos.size() > 0
+        && request.resource.data.photos.size() <= 10
+        && request.resource.data.notes is string
+        && request.resource.data.notes.size() <= 2000
+        && request.resource.data.submittedAtMs == request.time;
 
       allow read: if request.auth != null
         && (resource.data.inspectorUid == request.auth.uid
